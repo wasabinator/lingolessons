@@ -1,0 +1,106 @@
+[
+  {
+    "model": "api.Language",
+    "pk": 1,
+    "fields": {
+      "code": "en",
+      "flag": "🇬🇧"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 2,
+    "fields": {
+      "code": "en_US",
+      "flag": "🇺🇸"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 3,
+    "fields": {
+      "code": "ja",
+      "flag": "🇯🇵"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 4,
+    "fields": {
+      "code": "es",
+      "flag": "🇪🇸"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 5,
+    "fields": {
+      "code": "fr",
+      "flag": "🇫🇷"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 6,
+    "fields": {
+      "code": "it",
+      "flag": "🇮🇹"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 7,
+    "fields": {
+      "code": "de",
+      "flag": "🇩🇪"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 8,
+    "fields": {
+      "code": "ko",
+      "flag": "🇰🇷"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 9,
+    "fields": {
+      "code": "zh",
+      "flag": "🇨🇳"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 10,
+    "fields": {
+      "code": "ru",
+      "flag": "🇷🇺"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 11,
+    "fields": {
+      "code": "hi",
+      "flag": "🇮🇳"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 12,
+    "fields": {
+      "code": "bn",
+      "flag": "🇧🇩"
+    }
+  },
+  {
+    "model": "api.Language",
+    "pk": 13,
+    "fields": {
+      "code": "id",
+      "flag": "🇮🇩"
+    }
+  }
+]
