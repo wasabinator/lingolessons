@@ -2,8 +2,12 @@ name: Django CI
 
 on:
   push:
+    paths:
+      - "server/**"
     branches: [ "master" ]
   pull_request:
+    paths:
+      - "server/**"
     branches: [ "master" ]
 
 jobs:
