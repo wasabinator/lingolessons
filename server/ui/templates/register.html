@@ -1,0 +1,10 @@
+{% extends 'core.html' %}
+{% load static %}
+{% load i18n %}
+{% block page %}
+{% url 'register_page' as register_url %}
+{% url 'login_page' as alt_url %}
+{% trans 'Register' as title %}
+{% trans 'Back to Login' as alt_title %}
+{% include "form.html" with form_title=title action=login_url form=form submit_title=title alt_title=alt_title %}
+{% endblock %}

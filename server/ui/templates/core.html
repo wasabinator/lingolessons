@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load i18n %}
+{% block head %}
+<!--
+  Copyright 2003-2024 Anthony Miceli and contributors. This file is part of LingoLessons.
+  LingoLessons is free software: you can redistribute it and/or modify it under the terms of the
+  GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
+  or (at your option) any later version.
+  LingoLessons is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License along with LingoLessons.
+  If not, see <https://www.gnu.org/licenses/>.
+  -->
+<link rel="shortcut icon" href="{%  static 'favicon.ico' %}" xmlns="http://www.w3.org/1999/html">
+{% endblock %}
+{% block content %}
+<nav class="flex items-center sticky top-0 z-10 p-2 shadow backdrop-blur font-sans text-lg">
+    <a class="shrink-0" href="{% url 'home_page' %}">
+        <img src="{% static 'img/logo.png' %}" class="aspect-video h-14 w-auto mr-2"
+             alt="LingoLessons"/>
+    </a>
+    <div class="flex grow items-center justify-center w-max">
+        <a href="#responsive-header" class="mx-8 text-blue-800 hover:text-blue-500">
+            Lessons
+        </a>
+        <a href="#responsive-header" class="mx-8 text-blue-800 hover:text-blue-500">
+            Progress
+        </a>
+        <a href="#responsive-header" class="mx-8 text-blue-800 hover:text-blue-500">
+            About
+        </a>
+        {% if user.is_authenticated %}
+        <form action="{% url 'logout' %}" method="post" class="my-0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'home_page' %}"/>
+            <input type="submit" class="mx-8 text-blue-800 hover:text-blue-500" value="Logout"/>
+        </form>
+        {% endif %}
+    </div>
+    <a href="#"
+       class="inline-block text-lg px-8 py-3 leading-none border rounded-md text-white font-bold border-white hover:border-blue-600 hover:text-blue-600 bg-blue-600 hover:bg-white ml-2 lg:mt-0">
+        Download
+    </a>
+</nav>
+<div class="text-center bg-slate-50 pt-12 font-sans text-slate-600">
+    {% block page %}
+    {% endblock %}
+</div>
+<nav class="w-full pt-32 font-sans text-gray-500 text-sm">
+    <p class="text-center">Copyright &copy; 2003-2024 Anthony Miceli and contributors</p>
+</nav>
+{% endblock %}

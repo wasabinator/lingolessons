@@ -33,7 +33,7 @@ router.register(r'users', UserViewSet)
 router.register(r'lessons', LessonViewSet, basename='LessonView')
 
 urlpatterns = [
-    path(r'', RedirectView.as_view(url='v1/swagger', permanent=False), name='index'),
+    # path(r'', RedirectView.as_view(url='v1/swagger', permanent=False), name='index'),
     path(r'v1/', RedirectView.as_view(url='swagger', permanent=False), name='index'),
     path(r'v1/', include(router.urls)),
     path(r'v1/', include('djoser.urls')),

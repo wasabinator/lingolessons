@@ -1,0 +1,10 @@
+{% extends 'core.html' %}
+{% load i18n %}
+{% block page %}
+{% url 'login_page' as login_url %}
+{% url 'login_page' as alt_url %}
+{% include "form.html" with form_title="Login" action=login_url form=form submit_title="Login" alt_title="Forgot Password?" alt=alt_url %}
+{% trans 'Don\'t have an account?' %}<a href="{% url 'register_page' %}">
+    <div class="text-blue-500 hover:text-blue-900">{% trans 'Click here to register' %}</div>
+</a>
+{% endblock %}

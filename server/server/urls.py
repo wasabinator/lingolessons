@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-#  Copyright 2024 Anthony Miceli and contributors. This file is part of LingoLessons.
+#  Copyright 2003-2024 Anthony Miceli and contributors. This file is part of LingoLessons.
 #  LingoLessons is free software: you can redistribute it and/or modify it under the terms of the
 #  GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
 #  or (at your option) any later version.
@@ -27,11 +27,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from core.views import frontpage
-
 urlpatterns = [
-    path('', frontpage, name='frontpage'),
-    path('admin/', admin.site.urls),
+    path('', include("ui.urls")),
     path('api/', include('api.urls')),
     path("__reload__/", include("django_browser_reload.urls")),
+    path('admin/', admin.site.urls),
+    # path("auth/", include("djoser.urls")),
+    path("accounts/", include("django.contrib.auth.urls")),
+    # path(r'v1/', include('djoser.urls')),
+    # path('', include('djoser.urls.authtoken')),
 ]

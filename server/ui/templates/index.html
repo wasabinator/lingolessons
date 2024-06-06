@@ -1,0 +1,30 @@
+{% extends 'core.html' %}
+{% load static %}
+{% block page %}
+<p class="flex grow justify-center pb-12">
+    <img src="{% static 'img/logo_lg.png' %}"/>
+</p>
+<p class="text-center pb-12 text-xl">A service for learning languages via vocabulary and grammar drills.</p>
+<p class="pb-12">
+    <a href="{% url 'login_page' %}"
+       class="inline-block text-lg px-8 py-3 leading-none border rounded-md text-white font-bold border-white hover:border-blue-600 hover:text-blue-600 bg-blue-600 hover:bg-white ml-2 lg:mt-0">
+        Login
+    </a>
+</p>
+<div class="flex max-sm:flex-col w-full items-stretch font-sans">
+    <div class="flex-1 grow px-6 py-2">
+        <p class="text-center p-2 font-semibold text-lg">Create</p>
+        <p class="text-center p-2">Create lists of items you wish to study. Or choose from lists created by other
+            users.</p>
+    </div>
+    <div class="flex-1 grow px-6 py-2">
+        <p class="text-center p-2 font-semibold text-lg">Share</p>
+        <p class="text-center p-2">Share your study lists and progress to help others learn.</p>
+    </div>
+    <div class="flex-1 grow px-6 py-2">
+        <p class="text-center p-2 font-semibold text-lg">Learn</p>
+        <p class="text-center p-2">Use our software to continue learning on your platform of choice. The software
+            operates in a discreet manner suitable for learning even while at work.</p>
+    </div>
+</div>
+{% endblock %}
