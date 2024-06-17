@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "server/**"
+      - '.github/workflows/**'
     branches: [ "master" ]
   pull_request:
     paths:
       - "server/**"
+      - '.github/workflows/**'
     branches: [ "master" ]
 
 jobs:
