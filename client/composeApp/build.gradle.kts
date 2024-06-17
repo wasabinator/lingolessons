@@ -134,7 +134,6 @@ compose.desktop {
             targetFormats(
                 TargetFormat.Dmg,
                 TargetFormat.Exe,
-                TargetFormat.AppImage,
                 TargetFormat.Deb,
                 TargetFormat.Rpm
             )
