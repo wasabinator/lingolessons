@@ -6,10 +6,9 @@
 #  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
-from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
-from django.http.response import HttpResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ValidationError
+from django.shortcuts import render, redirect
 from django.utils.translation import gettext as _
 
 from ui.forms import LoginForm, RegisterForm
@@ -17,7 +16,9 @@ from ui.forms import LoginForm, RegisterForm
 
 def home_page(request):
     if request.user.is_authenticated:
-        return render(request, 'home.html')
+        return render(request, 'home.html', {
+            'username': request.user.username
+        })
     else:
         return render(request, 'index.html')
 
