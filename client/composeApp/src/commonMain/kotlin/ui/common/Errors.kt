@@ -1,11 +1,15 @@
 package ui.common
 
 import domain.common.RepositoryError
+import io.ktor.utils.io.errors.IOException
+import lingolessons.composeapp.generated.resources.Res
+import lingolessons.composeapp.generated.resources.error_connection
+import lingolessons.composeapp.generated.resources.error_other
+import org.jetbrains.compose.resources.getString
 
-fun Result<Any>.getUiErrorMessage(): String {
-    val errorMessage: String? = when (val error = exceptionOrNull()) {
+suspend fun Result<Any>.getUiErrorMessage(): String =
+    when (val error = exceptionOrNull()) {
         is RepositoryError -> error.userFacingError
+        is IOException -> getString(Res.string.error_connection)
         else -> null
-    }
-    return errorMessage ?: "Something went wrong. Please try again"
-}
+    } ?: getString(Res.string.error_other)

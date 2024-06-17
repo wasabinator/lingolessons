@@ -1,16 +1,16 @@
 package domain.di
 
 import domain.auth.LoginUser
-import domain.domainScope
-import kotlinx.coroutines.CoroutineScope
+import domain.common.domainDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val domainModule = module {
-    single<CoroutineScope>(named("domain")) { domainScope }
+    single<CoroutineDispatcher>(named("domain")) { domainDispatcher }
     single {
         LoginUser(
-            domainScope = get(named("domain")),
+            dispatcher = get(named("domain")),
             userRepository = get()
         )
     }

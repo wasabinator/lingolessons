@@ -1,12 +1,10 @@
 package data.api.common
 
 import domain.common.RepositoryError
-import domain.domainScope
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
 internal interface ApiCallProcessor {
@@ -20,13 +18,11 @@ internal interface ApiCallProcessor {
             }
         )
     } catch (e: ClientRequestException) {
-        withContext(domainScope.coroutineContext) {
-            throw RepositoryError(
-                // Just return the first error message if there are multiple
-                userFacingError = e.response.body<Map<String, List<String>>?>()
-                    ?.flatMap { it.value }?.firstOrNull(),
-                cause = e,
-            )
-        }
+        throw RepositoryError(
+            // Just return the first error message if there are multiple
+            userFacingError = e.response.body<Map<String, List<String>>?>()
+                ?.flatMap { it.value }?.firstOrNull(),
+            cause = e,
+        )
     }
 }

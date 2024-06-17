@@ -6,4 +6,8 @@
     <string name="theme">Theme</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+
+    // Errors
+    <string name="error_connection">Could not connect to the server. Please check your connection and try again.</string>
+    <string name="error_other">Something went wrong. Please try again later.</string>
 </resources>
