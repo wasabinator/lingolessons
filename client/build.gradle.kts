@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ksp) apply false
-    // Data
     alias(libs.plugins.ktorfit) apply false
     alias(libs.plugins.serialization) apply false
+    alias(libs.plugins.osdetector) apply false
 }

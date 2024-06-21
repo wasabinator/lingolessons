@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktorfit)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.osdetector)
 }
 
 ktorfit {
@@ -135,20 +136,34 @@ compose.desktop {
                 TargetFormat.Dmg,
                 TargetFormat.Exe,
                 TargetFormat.Deb,
-                TargetFormat.Rpm
+                TargetFormat.Rpm,
             )
+            if (osdetector.os.startsWith("linux", ignoreCase = true)) {
+                targetFormats += TargetFormat.AppImage
+            }
             packageName = "com.lingolessons"
             packageVersion = "1.0.0"
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             modules("jdk.unsupported")
-            macOS { // ref: https://stackoverflow.com/questions/77350286/how-to-hide-the-dock-icon-in-jetpack-compose-desktop
-                bundleID = "com.XXXXXX.desktop"
-                infoPlist {
+            macOS {
+                bundleID = "com.lingolessons"
+                infoPlist { // ref: https://stackoverflow.com/questions/77350286/how-to-hide-the-dock-icon-in-jetpack-compose-desktop
                     extraKeysRawXml = """
                         <key>LSUIElement</key>
                         <string>true</string>
                     """.trimIndent()
                 }
+                iconFile.set(file("src/desktopMain/resources/macOS.icns"))
             }
+            windows {
+                iconFile.set(file("src/desktopMain/resources/windows.ico"))
+            }
+            linux {
+                iconFile.set(file("src/desktopMain/resources/linux.png"))
+            }
+        }
+        if (osdetector.os.startsWith("mac", ignoreCase = true)) {
+            jvmArgs("-Xdock:icon=src/desktopMain/resources/macOS.icns")
         }
     }
 }

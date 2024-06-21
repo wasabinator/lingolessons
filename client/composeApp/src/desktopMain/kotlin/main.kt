@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Tray
@@ -16,18 +17,18 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberNotification
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
+import java.awt.Dimension
 
 fun main() = application {
     var isOpen by remember { mutableStateOf(true) }
-    var isVisible by remember { mutableStateOf(false) }
+    val isVisible by remember { mutableStateOf(true) }
 
     //val systemTray = remember { SystemTray.get() }
     val windowState = rememberWindowState(
         position = WindowPosition(Alignment.Center),
-        size = DpSize(450.dp, 600.dp),
+        size = DpSize(800.dp, 600.dp),
         isMinimized = false
     )
-
 
     if (isOpen) {
         val trayState = rememberTrayState()
@@ -70,9 +71,12 @@ fun main() = application {
                 isOpen = false
             },
             title = "LingoLessons",
-            resizable = false,
-            //visible = isVisible,
+            resizable = true,
+            visible = isVisible,
         ) {
+            with(LocalDensity.current) {
+                window.minimumSize = Dimension(400.dp.toPx().toInt(), 600.dp.toPx().toInt())
+            }
             App()
         }
     }
