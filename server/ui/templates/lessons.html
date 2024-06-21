@@ -1,0 +1,41 @@
+{% extends 'core.html' %}
+{% load static %}
+{% block page %}
+<p class="pb-8">
+    These are your current lessons you have created:
+</p>
+<div class="flex flex-col items-center">
+    <div class="flex flex-col w-5/6 align-center">
+        <div class="text-right px-2 pb-2">
+            <a href="" class="text-blue-800 hover:text-blue-500">Add</a>
+        </div>
+        <table class="border-2 border-blue-500 border border-separate border-tools-table-outline rounded">
+            <thead>
+            <tr class="bg-blue-600">
+                <th class="min-w-80 text-left text-gray-50 p-2">Title</th>
+                <th class="text-centre text-gray-50 p-2">Type</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for lesson in lessons %}
+            <tr class="even:bg-blue-100 odd:bg-blue-50">
+                <td class="p-2">
+                    {{ lesson.title }}
+                </td>
+                <td class="p-2" align="center">
+                    {{ lesson.get_type_name }}
+                </td>
+                <td class="p-2" align="center">
+                    <a href="{% url 'lesson_page' id=lesson.id %}">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-right px-2 pt-2">
+            <a href="{% url 'new_lesson_page' %}" class="text-blue-800 hover:text-blue-500">Add</a>
+        </div>
+    </div>
+</div>
+{% endblock%}

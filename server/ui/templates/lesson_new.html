@@ -1,0 +1,39 @@
+{% extends 'core.html' %}
+{% load static %}
+{% block page %}
+<div class="flex flex-col w-full items-center">
+    <form method="POST" class="input-form">
+        {% csrf_token %}
+        <div class="pb-4">
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.title.id_for_label }}">
+                    {{form.title.label}}
+                </label>
+            </div>
+            <div>
+                {{form.title}}
+            </div>
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.type.id_for_label }}">
+                    {{form.type.label}}
+                </label>
+            </div>
+            <div>
+                {{form.type}}
+            </div>
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.language1.id_for_label }}">
+                    {{languages}}
+                </label>
+            </div>
+            <div>
+                {{form.language1}}{{form.language2}}
+            </div>
+        </div>
+        <div class="pt-2 pb-4">
+            <input class="inline-block text-lg font-semi-bold px-5 py-2 leading-none border rounded-md text-white border-white hover:border-blue-600 hover:text-blue-600 bg-blue-600 hover:bg-white ml-2 lg:mt-0"
+                   type="submit" value="Create"/>
+        </div>
+    </form>
+</div>
+{% endblock%}

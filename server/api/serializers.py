@@ -9,7 +9,7 @@
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Language, Lesson, LessonFact, Fact, Element
+from .models import Language, Lesson, Fact
 
 
 # Serializers define the API representation.
@@ -20,39 +20,16 @@ class UserSerializer(serializers.ModelSerializer):
         ref_name = "Username"
 
 
-# class UserCreateSerializer(BaseUserCreateSerializer):
-#     class Meta(BaseUserCreateSerializer.Meta):
-#         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password']
-
-
 class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = ['code']
 
 
-class ElementSerializer(serializers.ModelSerializer):
-    language = LanguageSerializer(many=False)
-
-    class Meta:
-        model = Element
-        fields = ['id', 'value', 'language']
-
-
 class FactSerializer(serializers.ModelSerializer):
-    elements = ElementSerializer(many=True)
-
     class Meta:
         model = Fact
-        fields = ['id', 'elements']
-
-
-class LessonFactSerializer(serializers.ModelSerializer):
-    fact = FactSerializer(many=False)
-
-    class Meta:
-        model = LessonFact
-        fields = ['id', 'fact', 'hint']
+        fields = ['id', 'element1', 'element2', 'hint']
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -64,14 +41,10 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class LessonDetailSerializer(serializers.ModelSerializer):
-    facts = LessonFactSerializer(many=True)
+    facts = FactSerializer(source='fact_set', many=True)
     owner = UserSerializer(many=False)
 
     class Meta:
         model = Lesson
         fields = ['title', 'owner', 'facts']
         depth = 1
-
-# class UserSerializer(BaseUserSerializer):
-#     class Meta(BaseUserSerializer.Meta):
-#         fields = ['id', 'username', 'first_name', 'last_name', 'email']

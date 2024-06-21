@@ -10,8 +10,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets, generics
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, LessonFactSerializer, FactSerializer
-from .models import Lesson, Fact, LessonFact
+from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
+from .models import Lesson, Fact
 
 
 # ViewSets define the view behavior.
@@ -20,14 +20,9 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class FactViewSet(viewsets.ModelViewSet):
+class LessonFactViewSet(viewsets.ModelViewSet):
     queryset = Fact.objects.all()
     serializer_class = FactSerializer
-
-
-class LessonFactViewSet(viewsets.ModelViewSet):
-    queryset = LessonFact.objects.all()
-    serializer_class = LessonFactSerializer
 
 
 class LessonViewSet(viewsets.ModelViewSet):

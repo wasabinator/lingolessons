@@ -1,0 +1,95 @@
+{% extends 'core.html' %}
+{% load static %}
+{% block page_head %}
+<script>
+    $(function() {
+        $(document).on('input', '.mandatory', function () {
+            var rowCount = $('.edit-table >tbody >tr').length;
+
+            var isBlank = true;
+            $('.edit-table tbody tr:last .mandatory').each(function() {
+                if ($(this).val()) isBlank = false;
+            });
+
+            if (!isBlank) {
+                var newRow = $('.edit-table tbody tr:last').clone()
+                newRow.find(':input').each(function() {
+                    var name = $(this).attr('name').replace('-' + (rowCount-1) + '-','-' + rowCount + '-');
+                    var id = 'id_' + name;
+                    $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+                });
+                newRow.insertAfter('.edit-table tbody tr:last');
+                $('#id_form-TOTAL_FORMS').val(''+(rowCount+1));
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% block page %}
+<div class="flex flex-col w-full items-center">
+    <form method="POST" class="input-form">
+        {% csrf_token %}
+        <div class="pb-4">
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.title.id_for_label }}">
+                    {{form.title.label}}
+                </label>
+            </div>
+            <div>
+                {{form.title}}
+            </div>
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.type.id_for_label }}">
+                    {{form.type.label}}
+                </label>
+            </div>
+            <div>
+                {{form.type}}
+            </div>
+            <div class="py-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ form.language1.id_for_label }}">
+                    {{languages}}
+                </label>
+            </div>
+            <div>
+                {{form.language1}}{{form.language2}}
+            </div>
+        </div>
+        <div class="pt-2 pb-4">
+            <input class="inline-block text-lg font-semi-bold px-5 py-2 leading-none border rounded-md text-white border-white hover:border-blue-600 hover:text-blue-600 bg-blue-600 hover:bg-white ml-2 lg:mt-0"
+                   type="submit" value="Save"/>
+            <input class="inline-block text-lg font-semi-bold px-5 py-2 leading-none border rounded-md text-white border-white hover:border-red-600 hover:text-red-600 bg-red-600 hover:bg-white ml-2 lg:mt-0"
+                   type="button" value="Delete lesson"/>
+        </div>
+        {{ formset.management_form }}
+        <table class="edit-table">
+            <thead>
+            <tr>
+                <th class="px-1 py-2">{{lesson.language1.flag}}</th>
+                <th class="px-1 py-2">{{lesson.language2.flag}}</th>
+                <th class="px-1 py-2">Hint</th>
+                {% if formset.can_delete %}
+                <th class="px-1 py-2">Delete?</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody class="form-body">
+            {% for form in formset %}
+            <tr>
+                <td class="p-1">{{ form.id }}{{ form.element1 }}</td>
+                <td class="p-1">{{ form.element2 }}</td>
+                <td class="p-1">{{ form.hint }}</td>
+                {% if formset.can_delete %}
+                <td align="center">{{ form.DELETE }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="pt-4">
+            <input class="inline-block text-lg font-semi-bold px-5 py-2 leading-none border rounded-md text-white border-white hover:border-blue-600 hover:text-blue-600 bg-blue-600 hover:bg-white ml-2 lg:mt-0"
+                   type="submit" value="Save"/>
+        </div>
+    </form>
+</div>
+{% endblock%}

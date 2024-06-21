@@ -24,43 +24,35 @@ class Language(models.Model):
         return self.flag
 
 
-class Element(models.Model):
-    language = models.ForeignKey(Language, related_name='language', on_delete=models.CASCADE)
-    value = models.CharField(max_length=255)
-    value_types = (
-        (1, "Vocabulary"),
-        (2, "Grammar"),
-    )
-    type = models.IntegerField(choices=value_types, default=1)
-
-    def __str__(self):
-        return f"{self.value}({self.language})"
-
-
-class Fact(models.Model):
-    elements = models.ManyToManyField(Element)
-
-    def __str__(self):
-        return " = ".join(str(e) for e in self.elements.all())
-
-
-class LessonFact(models.Model):
-    fact = models.OneToOneField(Fact, on_delete=models.CASCADE)
-    hint = models.CharField(max_length=255, blank=True, default='')
-
-    # owner = models.ForeignKey(User, related_name='fact_owner', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.fact}. Hint = {self.hint}"
-
-
 class Lesson(models.Model):
     title = models.CharField(max_length=255)
     owner = models.ForeignKey(User, related_name='lesson_owner', on_delete=models.CASCADE)
-    facts = models.ManyToManyField(LessonFact, related_name='lesson_facts')
+    language1 = models.ForeignKey(Language, related_name='language1', on_delete=models.CASCADE)
+    language2 = models.ForeignKey(Language, related_name='language2', on_delete=models.CASCADE)
+    VOCABULARY = 0
+    GRAMMAR = 1
+    value_types = (
+        (VOCABULARY, "Vocabulary"),
+        (GRAMMAR, "Grammar"),
+    )
+    type = models.IntegerField(choices=value_types, default=0)
 
-    # def get_facts(self):
-    #     return LessonFact.objects.filter(lesson=self)
+    def get_type_name(self):
+        match = [item for item in self.value_types if item[0] == self.type]
+        if match:
+            return match[0][1]
+        else:
+            return "Grammar"
 
     def __str__(self):
         return self.title
+
+
+class Fact(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    element1 = models.CharField(max_length=255)
+    element2 = models.CharField(max_length=255)
+    hint = models.CharField(max_length=255, blank=True, default='')
+
+    def __str__(self):
+        return f"{self.element1} = {self.element2}"
