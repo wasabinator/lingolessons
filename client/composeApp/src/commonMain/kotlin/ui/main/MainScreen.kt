@@ -12,23 +12,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import getPlatform
 
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainScreen(
     navController: NavHostController = rememberNavController()
 ) {
-    val windowInfo = LocalWindowInfo.current
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val largeScreen = windowInfo.containerSize.width > 600
+    val largeScreen = getPlatform().isLargeScreen()
 
     val currentRoute =
         derivedStateOf { backStackEntry?.destination?.route?.let { AppScreen.valueOf(it) } }
