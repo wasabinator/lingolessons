@@ -36,6 +36,8 @@ class Lesson(models.Model):
         (GRAMMAR, "Grammar"),
     )
     type = models.IntegerField(choices=value_types, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def get_type_name(self):
         match = [item for item in self.value_types if item[0] == self.type]
@@ -45,7 +47,7 @@ class Lesson(models.Model):
             return "Grammar"
 
     def __str__(self):
-        return self.title
+        return f"{self.title} [updated: {self.updated_at}]"
 
 
 class Fact(models.Model):
