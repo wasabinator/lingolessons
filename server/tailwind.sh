@@ -1,3 +1,3 @@
-#/bin/sh
+#!/bin/sh
 python manage.py tailwind start
 

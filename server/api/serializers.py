@@ -6,6 +6,7 @@
 #  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
+import time
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -47,4 +48,8 @@ class LessonDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = ['title', 'owner', 'facts']
-        depth = 1
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['updated_at'] = time.mktime(instance.updated_at.timetuple())  # Add updated at in utc format
+        return data

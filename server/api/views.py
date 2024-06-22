@@ -6,7 +6,10 @@
 #  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
+import datetime
 
+import pytz
+from django.db.models.query_utils import Q
 from django.shortcuts import render
 from rest_framework import viewsets, generics
 from django.contrib.auth.models import User
@@ -39,11 +42,19 @@ class LessonViewSet(viewsets.ModelViewSet):
     serializer_class = LessonSerializer
 
     def get_queryset(self):
+        qs = Q()
+
+        since = self.request.query_params.get('since', None)
+        if since is not None:
+            qs.add(Q(updated_at__gte=datetime.datetime.fromtimestamp(int(since), tz=pytz.UTC)), Q.AND)
         owner = self.request.query_params.get('owner', None)
-        if owner is None:
-            return Lesson.objects.all()
+        if owner is not None:
+            qs.add(Q(owner__username=owner), Q.AND)
+
+        if len(qs) == 0:
+            return Lesson.objects.all().order_by('-updated_at')
         else:
-            return Lesson.objects.filter(owner__username=owner)
+            return Lesson.objects.filter(qs).order_by('-updated_at')
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.serializer_class)
