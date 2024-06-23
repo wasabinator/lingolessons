@@ -10,7 +10,7 @@
 from django.urls import include, path
 from django.views.generic import RedirectView
 from rest_framework import routers
-from .views import UserViewSet, LessonViewSet
+from .views import UserViewSet, LessonViewSet, FactViewSet
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -31,6 +31,7 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'lessons', LessonViewSet, basename='LessonView')
+router.register(r'lessons/(?P<lesson_id>\d+)/facts', FactViewSet, basename='LessonFactView')
 
 urlpatterns = [
     path(r'', RedirectView.as_view(url='v1', permanent=False), name='index'),

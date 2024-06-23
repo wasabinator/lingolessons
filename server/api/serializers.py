@@ -40,10 +40,15 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = ['id', 'title', 'owner']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['updated_at'] = time.mktime(instance.updated_at.timetuple())  # Add updated at in utc format
+        return data
+
 
 class LessonDetailSerializer(serializers.ModelSerializer):
     facts = FactSerializer(source='fact_set', many=True)
-    owner = UserSerializer(many=False)
+    owner = serializers.SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:
         model = Lesson

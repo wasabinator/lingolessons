@@ -9,12 +9,12 @@
 import datetime
 
 import pytz
-from django.db.models.query_utils import Q
-from django.shortcuts import render
-from rest_framework import viewsets, generics
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
+from django.db.models.query_utils import Q
+from rest_framework import viewsets
+
 from .models import Lesson, Fact
+from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
 
 
 # ViewSets define the view behavior.
@@ -23,9 +23,12 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class LessonFactViewSet(viewsets.ModelViewSet):
-    queryset = Fact.objects.all()
+class FactViewSet(viewsets.ModelViewSet):
+    # queryset = Fact.objects.filter(lesson__id=1)
     serializer_class = FactSerializer
+
+    def get_queryset(self):
+        return Fact.objects.filter(lesson__id=int(self.kwargs['lesson_id']))
 
 
 class LessonViewSet(viewsets.ModelViewSet):
