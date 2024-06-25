@@ -20,6 +20,10 @@ ktorfit {
 }
 
 kotlin {
+    sourceSets.all {
+        languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+    }
+
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
@@ -70,6 +74,7 @@ kotlin {
             // Data Layer
             implementation(libs.ktor.core)
             implementation(libs.ktor.cio)
+            implementation(libs.ktor.auth)
             implementation(libs.ktor.logging)
             implementation(libs.ktor.logging.jvm)
             implementation(libs.ktor.serialization)

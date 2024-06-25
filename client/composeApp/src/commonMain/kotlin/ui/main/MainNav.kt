@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import org.koin.core.annotation.KoinExperimentalAPI
+import ui.common.AuthenticatedScreen
 import ui.lessons.LessonsScreen
 import ui.profile.ProfileScreen
 import ui.study.StudyScreen
@@ -19,7 +19,6 @@ enum class AppScreen {
     Lessons,
 }
 
-@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun MainNav(
     navController: NavHostController
@@ -30,16 +29,19 @@ fun MainNav(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
     ) {
         composable(route = AppScreen.Profile.name) {
-            ProfileScreen()
-            //LoginScreen(viewModel = koinViewModel<LoginViewModel>())
+            AuthenticatedScreen {
+                ProfileScreen()
+            }
         }
         composable(route = AppScreen.Study.name) {
-            StudyScreen()
-            //LoginScreen(viewModel = koinViewModel<LoginViewModel>())
+            AuthenticatedScreen {
+                StudyScreen()
+            }
         }
         composable(route = AppScreen.Lessons.name) {
-            LessonsScreen()
-            //LoginScreen(viewModel = koinViewModel<LoginViewModel>())
+            AuthenticatedScreen {
+                LessonsScreen()
+            }
         }
     }
 }

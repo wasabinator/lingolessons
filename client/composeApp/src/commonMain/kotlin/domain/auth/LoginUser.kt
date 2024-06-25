@@ -8,12 +8,12 @@ import kotlinx.coroutines.withContext
 
 class LoginUser(
     private val dispatcher: CoroutineDispatcher,
-    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager,
 ) : Operation<LoginDetails, Unit> {
     override suspend fun perform(param: LoginDetails): Result<Unit> =
         withContext(dispatcher) {
             suspendCatching {
-                userRepository.update(param)
+                sessionManager.login(param.username, param.password)
             }.onSuccess {
                 val context = currentCoroutineContext()
                 println("OK $context")

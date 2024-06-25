@@ -10,7 +10,7 @@ internal interface TokenApi {
     suspend fun login(
         @Field("username") username: String,
         @Field("password") password: String
-    ): LoginResult
+    ): LoginResponse
 
     @POST("token/logout")
     suspend fun logout()

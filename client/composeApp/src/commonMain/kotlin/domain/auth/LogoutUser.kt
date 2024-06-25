@@ -2,17 +2,17 @@ package domain.auth
 
 import common.suspendCatching
 import domain.Operation
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 class LogoutUser(
-    private val domainScope: CoroutineScope,
-    private val userRepository: UserRepository,
+    private val dispatcher: CoroutineContext,
+    private val sessionManager: SessionManager,
 ) : Operation<Unit, Unit> {
     override suspend fun perform(param: Unit): Result<Unit> =
-        withContext(domainScope.coroutineContext) {
+        withContext(dispatcher) {
             suspendCatching {
-                userRepository.update(null)
+                sessionManager.logout()
             }
         }
 }
