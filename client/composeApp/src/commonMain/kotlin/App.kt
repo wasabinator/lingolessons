@@ -1,4 +1,3 @@
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import data.di.dataModule
 import di.appModule
@@ -11,7 +10,7 @@ import ui.theme.AppTheme
 fun App() {
     AppTheme {
         KoinApplication(application = {
-            modules(appModule, domainModule, dataModule)
+            modules(appModule, domainModule, platformModule, dataModule)
         }) {
         }
         MainScreen()

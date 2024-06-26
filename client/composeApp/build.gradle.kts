@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.ktorfit)
     alias(libs.plugins.serialization)
     alias(libs.plugins.osdetector)
+    alias(libs.plugins.sqldelight)
 }
 
 ktorfit {
@@ -53,6 +54,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.sqldelight.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -86,8 +88,13 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
-            //implementation(libs.compose.runtime.desktop)
-            //implementation(libs.koin.jvm.compose)
+            implementation(libs.sqldelight.jvm)
+            implementation(libs.paths)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.darwin)
+            implementation(libs.sqldelight.native)
         }
     }
     task("testClasses")
@@ -150,6 +157,7 @@ compose.desktop {
             packageVersion = "1.0.0"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             modules("jdk.unsupported")
+            modules("java.sql")
             macOS {
                 bundleID = "com.lingolessons"
                 infoPlist { // ref: https://stackoverflow.com/questions/77350286/how-to-hide-the-dock-icon-in-jetpack-compose-desktop
@@ -169,6 +177,15 @@ compose.desktop {
         }
         if (osdetector.os.startsWith("mac", ignoreCase = true)) {
             jvmArgs("-Xdock:icon=src/desktopMain/resources/macOS.icns")
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("com.lingolessons.data.db")
+            dialect(libs.sqldelight.dialect)
         }
     }
 }

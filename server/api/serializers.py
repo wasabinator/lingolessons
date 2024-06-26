@@ -42,7 +42,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['updated_at'] = time.mktime(instance.updated_at.timetuple())  # Add updated at in utc format
+        data['updated_at'] = int(time.mktime(instance.updated_at.timetuple()))  # Add updated at in utc format
         return data
 
 
@@ -56,5 +56,5 @@ class LessonDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['updated_at'] = time.mktime(instance.updated_at.timetuple())  # Add updated at in utc format
+        data['updated_at'] = int(time.mktime(instance.updated_at.timetuple()))  # Add updated at in utc format
         return data

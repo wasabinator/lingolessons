@@ -1,5 +1,6 @@
 package data.manager.auth
 
+import com.lingolessons.data.db.SessionQueries
 import data.api.auth.TokenApi
 import data.api.common.ApiCallProcessor
 import domain.auth.SessionManager
@@ -11,9 +12,12 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.plugin
 import io.ktor.http.encodedPath
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * This class abstracts the token scheme. It makes it easy to change the scheme rather than
@@ -22,11 +26,16 @@ import kotlinx.coroutines.flow.update
 internal class SessionManagerImpl(
     private val client: HttpClient,
     private val tokenApi: TokenApi,
+    private val session: SessionQueries,
+    private val dispatcher: CoroutineDispatcher
 ) : SessionManager, ApiCallProcessor {
     private val _state = MutableStateFlow<SessionState?>(null)
     override val state = _state.asStateFlow()
 
     private var token: BearerTokens? = null
+    private val scope by lazy {
+        CoroutineScope(dispatcher)
+    }
 
     init {
         with(client.plugin(Auth)) {
@@ -47,6 +56,21 @@ internal class SessionManagerImpl(
                 }
             }
         }
+        scope.launch {
+            session.get().executeAsOneOrNull().let { sessionState ->
+                if (sessionState == null) {
+                    token = null
+                    _state.update { SessionState.None }
+                } else {
+                    token = BearerTokens(
+                        accessToken = sessionState.authToken,
+                        refreshToken = "TODO",
+                    )
+                    _state.update { SessionState.Authenticated(username = sessionState.username) }
+                }
+                flush()
+            }
+        }
     }
 
 //    override suspend fun stop() {
@@ -56,21 +80,23 @@ internal class SessionManagerImpl(
     override suspend fun login(username: String, password: String) = processCall(
         { tokenApi.login(username, password) }
     ) { result ->
-        token = result?.let {
-            BearerTokens(
+        if (result == null) {
+            session.clear()
+            _state.update { SessionState.None }
+            token = null
+        } else {
+            session.save(username, result.authToken, "TODO")
+            _state.update {
+                SessionState.Authenticated(
+                    username = username,
+                )
+            }
+            token = BearerTokens(
                 accessToken = result.authToken,
                 refreshToken = "TODO",
             )
         }
         flush()
-
-        _state.update {
-            result?.let {
-                SessionState.Authenticated(
-                    username = username,
-                )
-            } ?: SessionState.None
-        }
     }
 
     override suspend fun logout() {

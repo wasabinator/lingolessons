@@ -24,11 +24,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class FactViewSet(viewsets.ModelViewSet):
-    # queryset = Fact.objects.filter(lesson__id=1)
     serializer_class = FactSerializer
 
     def get_queryset(self):
-        return Fact.objects.filter(lesson__id=int(self.kwargs['lesson_id']))
+        if getattr(self, 'swagger_fake_view', False):  # Swagger inspection won't pass a lesson_id
+            return Fact.objects.none()
+        return Fact.objects.filter(lesson__id=int(self.kwargs['lesson_id'])).order_by('id')
 
 
 class LessonViewSet(viewsets.ModelViewSet):
