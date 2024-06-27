@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "server/**"
-      - '.github/workflows/**'
+      - '.github/workflows/django.xml'
     branches: [ "master" ]
   pull_request:
     paths:
