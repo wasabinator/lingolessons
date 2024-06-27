@@ -35,16 +35,9 @@ kotlin {
 
     jvm("desktop")
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     cocoapods {
         version = "1.0.0"
@@ -60,6 +53,7 @@ kotlin {
 
     sourceSets {
         val desktopMain by getting
+        val commonMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -106,9 +100,15 @@ kotlin {
             implementation(libs.paths)
         }
 
-        iosMain.dependencies {
-            implementation(libs.ktor.darwin)
-            implementation(libs.sqldelight.native)
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val iosMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.ktor.darwin)
+                implementation(libs.sqldelight.native)
+            }
         }
     }
     task("testClasses")
