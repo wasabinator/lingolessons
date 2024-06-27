@@ -31,6 +31,7 @@ jobs:
           bundler-cache: true
 
       - name: Generate framework file
+        working-directory: ./client
         run: ../gradlew :composeApp:generateDummyFramework
       
       - name: Install Cocoapods
