@@ -12,3 +12,8 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Desktop.
 
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+Compilation notes:
+
+  If you see MissingXCodeException when building iOS target, run the following:
+     sudo xcode-select -r

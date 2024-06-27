@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.serialization)
     alias(libs.plugins.osdetector)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.native.cocoapods)
 }
 
 ktorfit {
@@ -45,6 +46,18 @@ kotlin {
         }
     }
 
+    cocoapods {
+        version = "1.0.0"
+        summary = "Common core for LingoLessons"
+        homepage = "http://www.lingolessons.com"
+        ios.deploymentTarget = "15.3"
+        podfile = project.file("../iosApp/Podfile")
+        framework {
+            baseName = "composeApp"
+            isStatic = true
+        }
+    }
+
     sourceSets {
         val desktopMain by getting
 
@@ -56,6 +69,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.sqldelight.android)
         }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
