@@ -32,4 +32,4 @@ jobs:
       - name: Install Dependencies
         run: pod install --verbose
 
-      - run: xcodebuild build -workspace iosApp/iosApp.xcworkspace -configuration Debug -scheme iosApp -sdk iphoneos -destination name='iPhone 14' CODE_SIGNING_ALLOWED=NO -verbose
+      - run: xcodebuild build -workspace iosApp.xcworkspace -configuration Debug -scheme iosApp -sdk iphoneos -destination name='iPhone 14' CODE_SIGNING_ALLOWED=NO -verbose
