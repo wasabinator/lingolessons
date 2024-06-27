@@ -1,25 +1,18 @@
 PODS:
-  - composeApp (1.0.0)
   - "sqlite3 (3.46.0+1)":
     - "sqlite3/common (= 3.46.0+1)"
   - "sqlite3/common (3.46.0+1)"
 
 DEPENDENCIES:
-  - composeApp (from `../composeApp`)
   - sqlite3
 
 SPEC REPOS:
   trunk:
     - sqlite3
 
-EXTERNAL SOURCES:
-  composeApp:
-    :path: "../composeApp"
-
 SPEC CHECKSUMS:
-  composeApp: 2af71ac09ef7ee7d0ba19484b7f10fc597ce0abb
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
 
-PODFILE CHECKSUM: 3cff9286b212d2f14ae866e950fa62a0f6412599
+PODFILE CHECKSUM: 89ed4a778b2811402259e452e3e99c5ee851b9f1
 
 COCOAPODS: 1.15.2

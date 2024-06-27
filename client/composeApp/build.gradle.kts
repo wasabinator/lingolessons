@@ -36,9 +36,16 @@ kotlin {
 
     jvm("desktop")
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 
     cocoapods {
         version = "1.0.0"
@@ -46,10 +53,6 @@ kotlin {
         homepage = "http://www.lingolessons.com"
         ios.deploymentTarget = "15.3"
         podfile = project.file("../iosApp/Podfile")
-        framework {
-            baseName = "composeApp"
-            isStatic = true
-        }
         // Maps custom Xcode configuration to NativeBuildType
         xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
         xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
