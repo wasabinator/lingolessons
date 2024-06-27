@@ -18,13 +18,11 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: ./client
+        working-directory: ./client/iosApp
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - run: ./gradlew :composeApp:generateDummyFramework
 
       - name: Set up cocoapods
         uses: maxim-lobanov/setup-cocoapods@v1
@@ -32,8 +30,6 @@ jobs:
           version: latest
 
       - name: Install Dependencies
-        run: |
-          cd iosApp
-          pod install --verbose
+        run: pod install --verbose
 
-      - run: xcodebuild build -workspace iosApp/iosApp.xcworkspace -configuration Debug -scheme iosApp -sdk iphoneos -destination name='iPhone 14' -verbose
+      - run: xcodebuild build -workspace iosApp/iosApp.xcworkspace -configuration Debug -scheme iosApp -sdk iphoneos -destination name='iPhone 14' CODE_SIGNING_ALLOWED=NO -verbose
