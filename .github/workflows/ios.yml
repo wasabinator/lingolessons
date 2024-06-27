@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - "client/**"
-      - '.github/workflows/**'
+      - '.github/workflows/ios.yml'
     branches: [ "master" ]
   pull_request:
     paths:
       - "client/**"
-      - '.github/workflows/**'
+      - '.github/workflows/ios.yml'
     branches: [ "master" ]
 
 jobs:
@@ -30,15 +30,15 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
-      - name: Install Cocoapods
-        run: pod install --repo-update
-        
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")
           default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
           echo $default | cat >default
           echo Using default scheme: $default
+
+      - name: Install Cocoapods
+        run: pod install --repo-update
 
       - name: Build
         env:
