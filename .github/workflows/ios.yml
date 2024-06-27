@@ -35,8 +35,10 @@ jobs:
         run: ./gradlew :composeApp:generateDummyFramework
       
       - name: Install Cocoapods
-        run: pod install --repo-update
-
+        run: |
+          sudo gem install cocoapods
+          pod install
+          
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")
