@@ -1,4 +1,5 @@
 target 'iosApp' do
   use_frameworks!
+  pod 'sqlite3'
   pod 'composeApp', :path => '../composeApp'
 end
