@@ -1,6 +1,7 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalWindowInfo
+import com.lingolessons.data.db.DriverFactory
 import org.koin.dsl.module
 
 class JVMPlatform : Platform {
