@@ -32,7 +32,7 @@ jobs:
 
       - name: Generate framework file
         working-directory: ./client
-        run: ../gradlew :composeApp:generateDummyFramework
+        run: ./gradlew :composeApp:generateDummyFramework
       
       - name: Install Cocoapods
         run: pod install --repo-update
