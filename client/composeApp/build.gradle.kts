@@ -104,15 +104,9 @@ kotlin {
             implementation(libs.paths)
         }
 
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            dependencies {
-                implementation(libs.ktor.darwin)
-                implementation(libs.sqldelight.native)
-            }
+        iosMain.dependencies {
+            implementation(libs.ktor.darwin)
+            implementation(libs.sqldelight.native)
         }
     }
     task("testClasses")

@@ -1,10 +1,10 @@
 package data.di
 
-import DriverFactory
 import androidx.compose.ui.text.intl.Locale
 import com.lingolessons.data.db.AppDatabase
+import com.lingolessons.data.db.DriverFactory
 import com.lingolessons.data.db.SessionQueries
-import createDatabase
+import com.lingolessons.data.db.createDatabase
 import data.api.auth.TokenApi
 import data.api.auth.createTokenApi
 import data.api.lessons.LessonsApi

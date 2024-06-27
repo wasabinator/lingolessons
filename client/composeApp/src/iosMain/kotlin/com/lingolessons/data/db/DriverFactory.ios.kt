@@ -1,4 +1,5 @@
-import com.lingolessons.data.db.AppDatabase
+package com.lingolessons.data.db
+
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
 
