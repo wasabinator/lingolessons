@@ -68,6 +68,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.ktor.logging.android)
             implementation(libs.sqldelight.android)
         }
 
@@ -92,8 +93,7 @@ kotlin {
             implementation(libs.ktor.core)
             implementation(libs.ktor.cio)
             implementation(libs.ktor.auth)
-            //implementation(libs.ktor.logging)
-            //implementation(libs.ktor.logging.jvm)
+            implementation(libs.ktor.logging)
             implementation(libs.ktor.serialization)
             implementation(libs.ktorfit.lib)
             implementation(libs.ktorfit.content.negotiation)
@@ -103,6 +103,7 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.ktor.logging.jvm)
             implementation(libs.sqldelight.jvm)
             implementation(libs.paths)
         }
