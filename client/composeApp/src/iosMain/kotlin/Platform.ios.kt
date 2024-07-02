@@ -1,6 +1,4 @@
 import androidx.compose.runtime.Composable
-import com.lingolessons.data.db.DriverFactory
-import org.koin.dsl.module
 import platform.UIKit.UIDevice
 
 class IOSPlatform : Platform {
@@ -12,7 +10,3 @@ class IOSPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
-
-actual val platformModule = module {
-    single { DriverFactory() }
-}

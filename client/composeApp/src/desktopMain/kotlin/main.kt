@@ -18,6 +18,7 @@ import androidx.compose.ui.window.rememberNotification
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.lingolessons.data.di.dataModule
+import com.lingolessons.data.di.platformModule
 import com.lingolessons.di.appModule
 import com.lingolessons.domain.di.domainModule
 import org.koin.compose.KoinApplication

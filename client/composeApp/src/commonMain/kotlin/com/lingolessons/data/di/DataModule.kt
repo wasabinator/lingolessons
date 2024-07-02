@@ -2,15 +2,16 @@ package com.lingolessons.data.di
 
 import androidx.compose.ui.text.intl.Locale
 import com.lingolessons.data.db.AppDatabase
-import com.lingolessons.data.db.DriverFactory
-import com.lingolessons.data.db.SessionQueries
-import com.lingolessons.data.db.createDatabase
-import com.lingolessons.data.api.auth.TokenApi
-import com.lingolessons.data.api.auth.createTokenApi
-import com.lingolessons.data.api.lessons.LessonsApi
-import com.lingolessons.data.api.lessons.createLessonsApi
-import com.lingolessons.data.manager.auth.SessionManagerImpl
-import com.lingolessons.data.repository.lessons.LessonRepositoryImpl
+import com.lingolessons.data.auth.TokenApi
+import com.lingolessons.data.auth.createTokenApi
+import com.lingolessons.data.lessons.LessonsApi
+import com.lingolessons.data.lessons.createLessonsApi
+import com.lingolessons.data.auth.SessionManagerImpl
+import com.lingolessons.data.auth.TokenRepository
+import com.lingolessons.data.auth.TokenRepositoryImpl
+import com.lingolessons.data.db.DbUtils
+import com.lingolessons.data.db.TokenQueries
+import com.lingolessons.data.lessons.LessonRepositoryImpl
 import de.jensklingenberg.ktorfit.Ktorfit
 import com.lingolessons.domain.auth.SessionManager
 import com.lingolessons.domain.lessons.LessonRepository
@@ -18,6 +19,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -25,13 +28,23 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders.AcceptLanguage
+import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val dataModule = module {
+    single<TokenRepository> {
+        TokenRepositoryImpl(
+            lazy { get() },
+            get(),
+            get(named("domain"))
+        )
+    }
+
     single<HttpClient> {
+        val repository = get<TokenRepository>()
         HttpClient(CIO) {
             expectSuccess = true
             install(Logging) {
@@ -45,7 +58,28 @@ val dataModule = module {
                 header(AcceptLanguage, Locale.current.language)
             }
             install(Auth) {
-                // Details will be filled in by the SessionManager
+                bearer {
+                    loadTokens {
+                        repository.get().value?.let {
+                            BearerTokens(
+                                accessToken = it.authToken,
+                                refreshToken = it.refreshToken
+                            )
+                        }
+                    }
+                    refreshTokens {
+                        // TODO
+                        repository.get().value?.let {
+                            BearerTokens(
+                                accessToken = it.authToken,
+                                refreshToken = it.refreshToken
+                            )
+                        }
+                    }
+                    sendWithoutRequest { request ->
+                        request.url.encodedPath.contains("/token/login")
+                    }
+                }
             }
         }
     }
@@ -64,20 +98,15 @@ val dataModule = module {
         get<Ktorfit>().createLessonsApi()
     }
 
-    single {
-        get<DriverFactory>().createDriver()
-    }
+    single<AppDatabase> { DbUtils.createDatabase(get()) }
 
-    single<AppDatabase> { createDatabase(get()) }
-
-    single { SessionQueries(get()) }
+    single { TokenQueries(get()) }
 
     single<SessionManager> {
         SessionManagerImpl(
             get(),
             get(),
-            get(),
-            get(named("com/lingolessons/domain"))
+            get(named("domain"))
         )
     }
 

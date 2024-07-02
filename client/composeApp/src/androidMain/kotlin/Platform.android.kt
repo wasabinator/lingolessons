@@ -1,9 +1,6 @@
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
-import com.lingolessons.data.db.DriverFactory
-import org.koin.android.ext.koin.androidContext
-import org.koin.dsl.module
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -13,7 +10,3 @@ class AndroidPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = AndroidPlatform()
-
-actual val platformModule = module {
-    single { DriverFactory(androidContext()) }
-}

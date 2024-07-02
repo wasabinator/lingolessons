@@ -10,16 +10,16 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val domainModule = module {
-    single<CoroutineDispatcher>(named("com/lingolessons/domain")) { domainDispatcher }
+    single<CoroutineDispatcher>(named("domain")) { domainDispatcher }
     single {
         LoginUser(
-            dispatcher = get(named("com/lingolessons/domain")),
+            dispatcher = get(named("domain")),
             sessionManager = get(),
         )
     }
     single {
         LogoutUser(
-            dispatcher = get(named("com/lingolessons/domain")),
+            dispatcher = get(named("domain")),
             sessionManager = get(),
         )
     }
@@ -30,7 +30,7 @@ val domainModule = module {
     }
     single {
         GetLessons(
-            dispatcher = get(named("com/lingolessons/domain")),
+            dispatcher = get(named("domain")),
             lessonRepository = get(),
         )
     }

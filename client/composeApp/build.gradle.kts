@@ -2,10 +2,12 @@ import de.jensklingenberg.ktorfit.gradle.ErrorCheckingMode
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
@@ -15,6 +17,7 @@ plugins {
     alias(libs.plugins.osdetector)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.native.cocoapods)
+    alias(libs.plugins.mockkery)
 }
 
 ktorfit {
@@ -31,6 +34,16 @@ kotlin {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
+        }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        instrumentedTestVariant {
+            sourceSetTree.set(KotlinSourceSetTree.test)
+
+            dependencies {
+                //implementation(libs.androidx.ui.test.junit4.android)
+                debugImplementation(libs.androidx.ui.test.manifest)
+                implementation(libs.sqldelight.jvm)
+            }
         }
     }
 
@@ -100,6 +113,13 @@ kotlin {
             implementation(libs.serialization.json)
         }
 
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
+            implementation(libs.ktor.mock)
+        }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
@@ -112,7 +132,26 @@ kotlin {
             implementation(libs.ktor.darwin)
             implementation(libs.sqldelight.native)
         }
+
+        val commonTest by getting
+        val androidMain by getting
+
+        val androidUnitTest by getting {
+            //dependsOn(commonTest)
+            dependencies {
+                implementation(libs.sqldelight.jvm)
+            }
+        }
+
+        val desktopTest by getting {
+            //dependsOn(commonTest)
+            dependencies {
+                implementation(compose.desktop.uiTestJUnit4)
+                implementation(compose.desktop.currentOs)
+            }
+        }
     }
+
     task("testClasses")
 }
 
@@ -130,6 +169,11 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     packaging {
         resources {
@@ -149,6 +193,10 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        unitTests.isReturnDefaultValues = true
     }
     dependencies {
         debugImplementation(compose.uiTooling)
@@ -194,6 +242,15 @@ compose.desktop {
         if (osdetector.os.startsWith("mac", ignoreCase = true)) {
             jvmArgs("-Xdock:icon=src/desktopMain/resources/macOS.icns")
         }
+    }
+}
+
+val taskIsRunningTest = gradle.startParameter.taskNames
+    .any { it == "check" || it.startsWith("test") || it.contains("Test") }
+
+if (taskIsRunningTest) {
+    allOpen {
+        annotation("kotlin.Metadata")
     }
 }
 
