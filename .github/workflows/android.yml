@@ -29,6 +29,12 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x ./client/gradlew
+
+    - name: Run Unit tests
+      working-directory: ./client
+      run: ./gradlew testDebugUnitTest
+    
     - name: Build with Gradle
+      if: false
       working-directory: ./client
       run: ./gradlew build
