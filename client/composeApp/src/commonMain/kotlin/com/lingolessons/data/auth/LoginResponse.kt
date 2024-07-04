@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class LoginResponse(
-    @SerialName("auth_token") val authToken: String,
+    @SerialName("access") val authToken: String,
+    @SerialName("refresh") val refreshToken: String,
 )

@@ -4,17 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lingolessons.domain.auth.LoginDetails
 import com.lingolessons.domain.auth.LoginUser
+import com.lingolessons.ui.common.ScreenState
+import com.lingolessons.ui.common.getUiErrorMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import com.lingolessons.ui.common.ScreenState
-import com.lingolessons.ui.common.getUiErrorMessage
 
 class LoginViewModel(
     private val action: LoginUser
-) : ViewModel(), KoinComponent {
+) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
 

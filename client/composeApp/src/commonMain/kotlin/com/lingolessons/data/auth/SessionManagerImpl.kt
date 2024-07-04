@@ -5,10 +5,13 @@ import com.lingolessons.domain.auth.SessionManager
 import com.lingolessons.domain.auth.SessionState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * This class abstracts the token scheme. It makes it easy to change the scheme rather than
@@ -49,18 +52,13 @@ internal class SessionManagerImpl(
                 SessionTokens(
                     username = username,
                     authToken = result.authToken,
-                    refreshToken = "TODO",
+                    refreshToken = result.refreshToken,
                 )
             )
         }
     }
 
-    override suspend fun logout() = processCall(
-        { tokenApi.logout() },
-        always = {
-            tokenRepository.delete()
-        }
-    ) {
-        // No need to add anything here, as we're always doing the delete
+    override suspend fun logout() = withContext(Dispatchers.IO) {
+        tokenRepository.delete()
     }
 }

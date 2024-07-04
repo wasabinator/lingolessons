@@ -37,7 +37,7 @@ urlpatterns = [
     path(r'', RedirectView.as_view(url='v1', permanent=False), name='index'),
     path(r'v1/', include(router.urls)),
     path(r'v1/', include('djoser.urls')),
-    path(r'v1/', include('djoser.urls.authtoken')),
+    path(r'v1/', include('djoser.urls.jwt')),
     path(r'v1/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path(r'v1/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path(r'v1/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

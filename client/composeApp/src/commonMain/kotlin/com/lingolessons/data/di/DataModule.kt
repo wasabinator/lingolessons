@@ -1,20 +1,21 @@
 package com.lingolessons.data.di
 
 import androidx.compose.ui.text.intl.Locale
-import com.lingolessons.data.db.AppDatabase
-import com.lingolessons.data.auth.TokenApi
-import com.lingolessons.data.auth.createTokenApi
-import com.lingolessons.data.lessons.LessonsApi
-import com.lingolessons.data.lessons.createLessonsApi
 import com.lingolessons.data.auth.SessionManagerImpl
+import com.lingolessons.data.auth.TokenApi
 import com.lingolessons.data.auth.TokenRepository
 import com.lingolessons.data.auth.TokenRepositoryImpl
+import com.lingolessons.data.auth.createTokenApi
+import com.lingolessons.data.db.AppDatabase
 import com.lingolessons.data.db.DbUtils
 import com.lingolessons.data.db.TokenQueries
+import com.lingolessons.data.db.dao
 import com.lingolessons.data.lessons.LessonRepositoryImpl
-import de.jensklingenberg.ktorfit.Ktorfit
+import com.lingolessons.data.lessons.LessonsApi
+import com.lingolessons.data.lessons.createLessonsApi
 import com.lingolessons.domain.auth.SessionManager
 import com.lingolessons.domain.lessons.LessonRepository
+import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.DefaultRequest
@@ -28,7 +29,6 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders.AcceptLanguage
-import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.qualifier.named
@@ -37,8 +37,7 @@ import org.koin.dsl.module
 val dataModule = module {
     single<TokenRepository> {
         TokenRepositoryImpl(
-            lazy { get() },
-            get(),
+            TokenQueries(get()).dao,
             get(named("domain"))
         )
     }
@@ -61,6 +60,7 @@ val dataModule = module {
                 bearer {
                     loadTokens {
                         repository.get().value?.let {
+                            println("*** TOKENS: $it ***")
                             BearerTokens(
                                 accessToken = it.authToken,
                                 refreshToken = it.refreshToken
@@ -76,9 +76,9 @@ val dataModule = module {
                             )
                         }
                     }
-                    sendWithoutRequest { request ->
-                        request.url.encodedPath.contains("/token/login")
-                    }
+//                    sendWithoutRequest { request ->
+//                        request.url.encodedPath.contains("login")
+//                    }
                 }
             }
         }

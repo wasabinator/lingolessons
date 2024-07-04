@@ -14,5 +14,5 @@ save:
 INSERT OR REPLACE INTO token(id, username, authToken, refreshToken)
 VALUES (1, ?, ?, ?);
 
-clear:
+delete:
 DELETE FROM token;

@@ -77,13 +77,13 @@ class SessionManagerImplTest {
     fun `given a successful login there should be a session`() = runTest {
         everySuspend {
             tokenApi.login("user123", "password")
-        } returns (LoginResponse("a token"))
+        } returns (LoginResponse("a token", "refresh token"))
 
         sessionManager.login("user123", "password")
         scheduler.advanceUntilIdle()
 
         verify(exactly(1)) {
-            tokenRepository.put(SessionTokens("user123", "a token", "TODO"))
+            tokenRepository.put(SessionTokens("user123", "a token", "refresh token"))
         }
 
         assertEquals(SessionState.Authenticated("user123"), sessionManager.get().value)
@@ -101,7 +101,7 @@ class SessionManagerImplTest {
         }
 
         assertTrue { result.isFailure }
-        
+
         verify(exactly(0)) {
             tokenRepository.put(any())
         }

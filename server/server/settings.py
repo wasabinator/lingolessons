@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'theme',
     'django_browser_reload',
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'djoser',
     'ui',
     'api',
@@ -158,7 +158,7 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -200,8 +200,8 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
-    'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    # 'rest_framework.permissions.IsAuthenticated',  # DjangoModelPermissionsOrAnonReadOnly'
+    # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    'rest_framework.permissions.IsAuthenticated',  # DjangoModelPermissionsOrAnonReadOnly'
 ]
 
 # LOGIN_REDIRECT_URL = '/'
