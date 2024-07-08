@@ -1,5 +1,6 @@
 package com.lingolessons.data.auth
 
+import com.lingolessons.common.BaseTest
 import com.lingolessons.domain.auth.SessionManager
 import com.lingolessons.domain.auth.SessionState
 import dev.mokkery.answering.calls
@@ -12,17 +13,11 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.runTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class SessionManagerImplTest {
+class SessionManagerTest : BaseTest() {
     private lateinit var tokenApi: TokenApi
     private lateinit var tokenRepository: TokenRepository
 
@@ -30,14 +25,7 @@ class SessionManagerImplTest {
 
     private lateinit var sessionManager: SessionManager
 
-    private lateinit var scheduler: TestCoroutineScheduler
-    private lateinit var dispatcher: TestDispatcher
-
-    @BeforeTest
-    fun setup() {
-        scheduler = TestCoroutineScheduler()
-        dispatcher = StandardTestDispatcher(scheduler)
-
+    override fun setup() {
         tokenState = MutableStateFlow(null)
         tokenApi = mock()
 
@@ -62,14 +50,14 @@ class SessionManagerImplTest {
 
     @Test
     fun `given no tokens then there should be no session`() = runTest {
-        scheduler.advanceUntilIdle()
+        advanceUntilIdle()
         assertEquals(SessionState.None, sessionManager.get().value)
     }
 
     @Test
     fun `given tokens then there should be a session`() = runTest {
         tokenState.value = SessionTokens("username", "authToken", "refreshToken")
-        scheduler.advanceUntilIdle()
+        advanceUntilIdle()
         assertEquals(SessionState.Authenticated("username"), sessionManager.get().value)
     }
 
@@ -77,10 +65,10 @@ class SessionManagerImplTest {
     fun `given a successful login there should be a session`() = runTest {
         everySuspend {
             tokenApi.login("user123", "password")
-        } returns (LoginResponse("a token", "refresh token"))
+        } returns LoginResponse("a token", "refresh token")
 
         sessionManager.login("user123", "password")
-        scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         verify(exactly(1)) {
             tokenRepository.put(SessionTokens("user123", "a token", "refresh token"))
@@ -97,7 +85,7 @@ class SessionManagerImplTest {
 
         val result = runCatching {
             sessionManager.login("user123", "password")
-            scheduler.advanceUntilIdle()
+            advanceUntilIdle()
         }
 
         assertTrue { result.isFailure }
@@ -106,6 +94,6 @@ class SessionManagerImplTest {
             tokenRepository.put(any())
         }
 
-        assertNull(sessionManager.get().value)
+        assertEquals(SessionState.None, sessionManager.get().value)
     }
 }

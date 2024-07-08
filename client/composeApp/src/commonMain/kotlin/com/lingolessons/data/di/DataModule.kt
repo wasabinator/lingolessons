@@ -11,8 +11,8 @@ import com.lingolessons.data.db.DbUtils
 import com.lingolessons.data.db.TokenQueries
 import com.lingolessons.data.db.dao
 import com.lingolessons.data.lessons.LessonRepositoryImpl
-import com.lingolessons.data.lessons.LessonsApi
-import com.lingolessons.data.lessons.createLessonsApi
+import com.lingolessons.data.lessons.LessonApi
+import com.lingolessons.data.lessons.createLessonApi
 import com.lingolessons.domain.auth.SessionManager
 import com.lingolessons.domain.lessons.LessonRepository
 import de.jensklingenberg.ktorfit.Ktorfit
@@ -94,8 +94,8 @@ val dataModule = module {
         get<Ktorfit>().createTokenApi()
     }
 
-    single<LessonsApi> {
-        get<Ktorfit>().createLessonsApi()
+    single<LessonApi> {
+        get<Ktorfit>().createLessonApi()
     }
 
     single<AppDatabase> { DbUtils.createDatabase(get()) }

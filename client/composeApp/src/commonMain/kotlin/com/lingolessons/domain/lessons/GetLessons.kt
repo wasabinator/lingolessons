@@ -5,18 +5,15 @@ import com.lingolessons.domain.Operation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-class GetLessons(
+interface GetLessons : Operation<Int, LessonList>
+
+class GetLessonsImpl(
     private val dispatcher: CoroutineDispatcher,
     private val lessonRepository: LessonRepository,
-) : Operation<Int, LessonList> {
-    override suspend fun perform(param: Int): Result<LessonList> =
-        withContext(dispatcher) {
-            suspendCatching {
-                lessonRepository.getList(LessonRequest())
-            }.onSuccess {
-                println("OK $it")
-            }.onFailure {
-                println("YIKES $it")
-            }
+) : GetLessons {
+    override suspend fun perform(param: Int): Result<LessonList> = withContext(dispatcher) {
+        suspendCatching {
+            lessonRepository.getList(LessonRequest())
         }
+    }
 }

@@ -36,15 +36,13 @@ class LoginViewModel(
     }
 
     fun login() {
-        viewModelScope.launch {
-            if (state.value.username.isBlank() || state.value.password.isBlank()) {
-                return@launch
-            } else {
-                _state.update {
-                    it.copy(
-                        status = ScreenState.Status.Busy
-                    )
-                }
+        if (state.value.enabled) {
+            _state.update {
+                it.copy(
+                    status = ScreenState.Status.Busy
+                )
+            }
+            viewModelScope.launch {
                 val response = action.perform(
                     LoginDetails(
                         username = state.value.username,

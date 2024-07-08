@@ -6,7 +6,7 @@ import com.lingolessons.ui.lessons.LessonsViewModel
 import com.lingolessons.ui.login.LoginViewModel
 import com.lingolessons.ui.profile.ProfileViewModel
 
-val appModule = module {
+val uiModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { ProfileViewModel(get()) }
     viewModel { LessonsViewModel(get()) }

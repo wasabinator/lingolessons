@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -83,7 +84,7 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp).testTag("username"),
                 value = state.username,
                 onValueChange = updateUsername,
                 placeholder = { Text(stringResource(Res.string.username)) },
@@ -92,7 +93,7 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp).testTag("password"),
                 value = state.password,
                 onValueChange = updatePassword,
                 placeholder = { Text(stringResource(Res.string.password)) },
@@ -102,6 +103,7 @@ fun LoginScreen(
             )
 
             Button(
+                modifier = Modifier.testTag("login"),
                 enabled = state.enabled,
                 onClick = login,
             ) {

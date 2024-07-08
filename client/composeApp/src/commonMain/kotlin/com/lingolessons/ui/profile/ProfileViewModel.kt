@@ -15,7 +15,7 @@ class ProfileViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            logout.perform()
+            logout.perform(Unit)
         }
     }
 }

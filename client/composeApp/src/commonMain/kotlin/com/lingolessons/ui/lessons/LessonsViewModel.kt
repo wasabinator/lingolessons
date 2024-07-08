@@ -7,11 +7,10 @@ import com.lingolessons.domain.lessons.Lesson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
 
 class LessonsViewModel(
     private val action: GetLessons
-) : ViewModel(), KoinComponent {
+) : ViewModel() {
     private val _state = MutableStateFlow<State?>(null)
     val state = _state.asStateFlow()
 

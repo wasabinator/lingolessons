@@ -19,14 +19,14 @@ import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.lingolessons.data.di.dataModule
 import com.lingolessons.data.di.platformModule
-import com.lingolessons.di.appModule
-import com.lingolessons.domain.di.domainModule
+import com.lingolessons.di.uiModule
+import com.lingolessons.ui.di.domainModule
 import org.koin.compose.KoinApplication
 import java.awt.Dimension
 
 fun main() = application {
     KoinApplication(
-        application = { modules(appModule, domainModule, platformModule, dataModule) }
+        application = { modules(uiModule, domainModule, platformModule, dataModule) }
     ) {}
 
     var isOpen by remember { mutableStateOf(true) }

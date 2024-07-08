@@ -7,11 +7,11 @@ import com.lingolessons.domain.lessons.LessonRequest
 import com.lingolessons.domain.lessons.LessonRepository
 
 internal class LessonRepositoryImpl(
-    private val lessonsApi: LessonsApi,
+    private val lessonApi: LessonApi,
 ) : LessonRepository(), ApiCallProcessor {
     override suspend fun getList(key: LessonRequest): LessonList =
         processCall({
-            lessonsApi.getLessons(
+            lessonApi.getLessons(
                 owner = key.owner,
                 title = key.title,
                 since = key.since,
@@ -21,12 +21,12 @@ internal class LessonRepositoryImpl(
             it?.let { response ->
                 LessonList(
                     total = response.count,
-                    lessons = response.results.map {
+                    lessons = response.results.map { lesson ->
                         Lesson(
-                            id = it.id,
-                            title = it.title,
-                            owner = it.owner,
-                            updated = it.updated_at,
+                            id = lesson.id,
+                            title = lesson.title,
+                            owner = lesson.owner,
+                            updated = lesson.updated_at,
                         )
                     }.toList(),
                     hasMore = response.next != null,

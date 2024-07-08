@@ -144,7 +144,6 @@ kotlin {
         }
 
         val desktopTest by getting {
-            //dependsOn(commonTest)
             dependencies {
                 implementation(compose.desktop.uiTestJUnit4)
                 implementation(compose.desktop.currentOs)
@@ -194,6 +193,7 @@ android {
     buildFeatures {
         compose = true
     }
+    @Suppress("UnstableApiUsage")
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.isReturnDefaultValues = true

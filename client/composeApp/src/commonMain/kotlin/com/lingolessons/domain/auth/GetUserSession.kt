@@ -3,8 +3,10 @@ package com.lingolessons.domain.auth
 import com.lingolessons.domain.GetOperation
 import kotlinx.coroutines.flow.Flow
 
-class GetUserSession(
+typealias GetUserSession = GetOperation<Unit, SessionState>
+
+class GetUserSessionImpl(
     private val sessionManager: SessionManager,
-) : GetOperation<Unit, SessionState> {
+) : GetUserSession {
     override fun perform(param: Unit): Flow<SessionState?> = sessionManager.get()
 }

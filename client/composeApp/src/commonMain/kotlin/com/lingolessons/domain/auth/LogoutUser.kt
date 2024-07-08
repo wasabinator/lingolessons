@@ -5,10 +5,12 @@ import com.lingolessons.domain.Operation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-class LogoutUser(
+typealias LogoutUser = Operation<Unit, Unit>
+
+class LogoutUserImpl(
     private val dispatcher: CoroutineDispatcher,
     private val sessionManager: SessionManager,
-) : Operation<Unit, Unit> {
+) : LogoutUser {
     suspend fun perform() = perform(Unit)
 
     override suspend fun perform(param: Unit): Result<Unit> =
