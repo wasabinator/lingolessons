@@ -49,7 +49,7 @@ jobs:
       uses: mi-kas/kover-report@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        path: 'composeApp/build/reports/kover/reportDebug.xml'
+        path: 'client/composeApp/build/reports/kover/reportDebug.xml'
         title: Code Coverage
         update-comment: true
         min-coverage-overall: 25
