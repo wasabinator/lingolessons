@@ -12,7 +12,6 @@ on:
       - '.github/workflows/**'
     branches: [ "master" ]
 
-
 jobs:
   build:
 
@@ -33,6 +32,18 @@ jobs:
     - name: Run Unit tests
       working-directory: ./client
       run: ./gradlew testDebugUnitTest
+
+    - name: Publish test report
+      uses: mikepenz/action-junit-report@v4
+      with:
+        check_name: 'Android Test Report'
+        report_paths: '**/build/test-results/testDebugUnitTest/TEST-*.xml'
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@master
+      with:
+        name: all-android-test-reports
+        path: ./build/reports/testDebugUnitTest
     
     - name: Build with Gradle
       if: false
