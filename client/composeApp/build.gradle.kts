@@ -2,7 +2,6 @@ import de.jensklingenberg.ktorfit.gradle.ErrorCheckingMode
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
@@ -27,8 +26,9 @@ ktorfit {
 }
 
 kotlin {
-    sourceSets.all {
-        languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     androidTarget {
@@ -38,13 +38,9 @@ kotlin {
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
-
             dependencies {
-                //implementation(libs.androidx.ui.test.junit4.android)
                 debugImplementation(libs.androidx.ui.test.manifest)
                 implementation(libs.sqldelight.jvm)
-                implementation("org.robolectric:robolectric:4.8.1")
             }
         }
     }
