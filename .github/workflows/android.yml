@@ -38,14 +38,23 @@ jobs:
       uses: mikepenz/action-junit-report@v4
       with:
         check_name: 'Android Test Report'
+        token: ${{ secrets.GITHUB_TOKEN }}
         report_paths: '**/build/test-results/testDebugUnitTest/TEST-*.xml'
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@master
+
+    - name: Generate kover coverage report
+      run: ./gradlew koverXmlReportDebug
+
+    - name: Add coverage report to PR
+      id: kover
+      uses: mi-kas/kover-report@v1
       with:
-        name: all-android-test-reports
-        path: ./build/reports/testDebugUnitTest
-    
+        path: '**/build/reports/kover/reportDebug.xml'
+        title: Code Coverage
+        update-comment: true
+        min-coverage-overall: 25
+        min-coverage-changed-files: 25
+        coverage-counter-type: LINE
+
     - name: Build with Gradle
       if: false
       working-directory: ./client
