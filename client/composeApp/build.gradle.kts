@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.native.cocoapods)
     alias(libs.plugins.mockkery)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 ktorfit {
@@ -137,12 +138,10 @@ kotlin {
         val commonTest by getting
         val androidMain by getting
 
-
         val androidUnitTest by getting {
-            //dependsOn(commonTest)
             dependencies {
                 implementation(libs.sqldelight.jvm)
-                implementation("org.robolectric:robolectric:4.8.1")
+                implementation(libs.robolectric.robolectric)
             }
         }
 
@@ -262,6 +261,35 @@ sqldelight {
         create("AppDatabase") {
             packageName.set("com.lingolessons.data.db")
             dialect(libs.sqldelight.dialect)
+        }
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                packages(
+                    "*.db",
+                    "*.di",
+                    "*.generated.resources",
+                )
+
+                classes(
+                    "*ComposableSingletons$*",
+                    "*_*Impl*",
+                    "*_*Provider*",
+                    "*AppKt*",
+                    "*Platform*",
+                    "*.MainActivity*",
+                    "*.Platform*",
+                    "*.AppDatabase*",
+                )
+
+                annotatedBy(
+                    "androidx.compose.ui.tooling.preview.Preview",
+                )
+            }
         }
     }
 }
