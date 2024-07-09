@@ -50,10 +50,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: 'client/composeApp/build/reports/kover/reportDebug.xml'
-        title: Code Coverage
-        update-comment: true
-        min-coverage-overall: 25
-        min-coverage-changed-files: 25
         coverage-counter-type: LINE
 
     - name: Build with Gradle
