@@ -18,7 +18,7 @@ class LoginUserTest : BaseTest() {
     }
 
     @Test
-    fun `expect an interaction with the session manager when login is performed`() = runTest {
+    fun expectInteractionWithSessionManagerWhenLoginIsPerformed() = runTest {
         everySuspend {
             sessionManager.login("user123", "password")
         } returns Unit

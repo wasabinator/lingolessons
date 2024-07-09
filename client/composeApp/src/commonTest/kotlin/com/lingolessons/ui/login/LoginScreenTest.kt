@@ -3,16 +3,16 @@ package com.lingolessons.ui.login
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.runComposeUiTest
-import com.lingolessons.common.BaseTest
 import com.lingolessons.common.MockMethod
 import com.lingolessons.common.mockMethod
 import com.lingolessons.ui.login.LoginViewModel.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import androidx.compose.ui.test.*
+import com.lingolessons.common.BaseUiTest
 
 @OptIn(ExperimentalTestApi::class)
-class LoginScreenTest : BaseTest() {
+class LoginScreenTest : BaseUiTest() {
     private lateinit var state: MutableStateFlow<LoginState>
 
     private lateinit var updateUsername: MockMethod
@@ -41,7 +41,7 @@ class LoginScreenTest : BaseTest() {
     }
 
     @Test
-    fun `expect screen to be empty by default`() = runComposeUiTest {
+    fun expectScreenToBeEmptyWhenStateIsEmpty() = runComposeUiTest {
         setContent(LoginState())
 
         onNodeWithTag("username").assertExists() // TODO

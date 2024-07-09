@@ -18,7 +18,7 @@ class LogoutUserTest : BaseTest() {
     }
 
     @Test
-    fun `expect an interaction with the session manager when logout is performed`() =
+    fun expectInteractionWithSessionManagerWhenLogoutIsPerformed() =
         runTest {
             everySuspend {
                 sessionManager.logout()

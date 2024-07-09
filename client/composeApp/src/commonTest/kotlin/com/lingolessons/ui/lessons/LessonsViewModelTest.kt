@@ -27,7 +27,7 @@ class LessonsViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect an interaction with the use case on creation`() = runTest {
+    fun expectInteractionWithActionWhenGetLessonsIsPerformed() = runTest {
         advanceUntilIdle()
 
         verifySuspend(exactly(1)) {

@@ -33,7 +33,7 @@ kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         instrumentedTestVariant {
@@ -43,6 +43,7 @@ kotlin {
                 //implementation(libs.androidx.ui.test.junit4.android)
                 debugImplementation(libs.androidx.ui.test.manifest)
                 implementation(libs.sqldelight.jvm)
+                implementation("org.robolectric:robolectric:4.8.1")
             }
         }
     }
@@ -136,10 +137,12 @@ kotlin {
         val commonTest by getting
         val androidMain by getting
 
+
         val androidUnitTest by getting {
             //dependsOn(commonTest)
             dependencies {
                 implementation(libs.sqldelight.jvm)
+                implementation("org.robolectric:robolectric:4.8.1")
             }
         }
 
@@ -171,8 +174,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     packaging {
         resources {
@@ -187,8 +190,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true

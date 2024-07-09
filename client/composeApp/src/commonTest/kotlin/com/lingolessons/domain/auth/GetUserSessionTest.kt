@@ -22,7 +22,7 @@ class GetUserSessionTest : BaseTest() {
     }
 
     @Test
-    fun `expect an interaction with the session manager when get is performed`() {
+    fun expectInteractionWithSessionManagerWhenGetSessionIsPerformed() {
         operation.perform(Unit)
 
         verifySuspend(exactly(1)) {

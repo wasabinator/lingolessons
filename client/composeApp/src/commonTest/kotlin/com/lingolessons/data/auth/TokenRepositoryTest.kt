@@ -21,7 +21,7 @@ class TokenRepositoryTest : BaseTest() {
     }
 
     @Test
-    fun `should return null when there is no token`() {
+    fun expectNullWhenThereIsNoToken() {
         every {
             dao.get()
         } returns null

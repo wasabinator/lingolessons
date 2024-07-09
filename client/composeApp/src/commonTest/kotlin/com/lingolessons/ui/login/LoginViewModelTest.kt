@@ -21,7 +21,7 @@ class LoginViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect updated state when setting username`() {
+    fun expectUpdatedStateWhenUsernameIsUpdated() {
         viewModel.updateUsername("user123")
         advanceUntilIdle()
         assertEquals(
@@ -31,7 +31,7 @@ class LoginViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect updated state when setting password`() {
+    fun expectUpdatedStateWhenPasswordIsUpdated() {
         viewModel.updatePassword("pass")
         advanceUntilIdle()
         assertEquals(
@@ -41,7 +41,7 @@ class LoginViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect enabled state when setting both username and password`() = runTest {
+    fun expectEnabledStateWhenUsernameAndPasswordAreValid() = runTest {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
         assertEquals(
@@ -51,7 +51,7 @@ class LoginViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect correct state when login succeeds`() = runTest {
+    fun expectBusyStateWhenLoginIsPerformed() = runTest {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
 
@@ -85,7 +85,7 @@ class LoginViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `expect correct state when login fails`() = runTest {
+    fun expectErrorStateWhenLoginFails() = runTest {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
 

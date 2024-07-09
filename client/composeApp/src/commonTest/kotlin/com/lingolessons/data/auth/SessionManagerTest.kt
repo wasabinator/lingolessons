@@ -49,20 +49,20 @@ class SessionManagerTest : BaseTest() {
     }
 
     @Test
-    fun `given no tokens then there should be no session`() = runTest {
+    fun expectNoSessionWhenThereAreNoTokens() = runTest {
         advanceUntilIdle()
         assertEquals(SessionState.None, sessionManager.get().value)
     }
 
     @Test
-    fun `given tokens then there should be a session`() = runTest {
+    fun expectSessionWhenThereAreTokens() = runTest {
         tokenState.value = SessionTokens("username", "authToken", "refreshToken")
         advanceUntilIdle()
         assertEquals(SessionState.Authenticated("username"), sessionManager.get().value)
     }
 
     @Test
-    fun `given a successful login there should be a session`() = runTest {
+    fun expectSessionWhenLoginSucceeds() = runTest {
         everySuspend {
             tokenApi.login("user123", "password")
         } returns LoginResponse("a token", "refresh token")
@@ -78,7 +78,7 @@ class SessionManagerTest : BaseTest() {
     }
 
     @Test
-    fun `given a failed login there should be no session`() = runTest {
+    fun expectNoSessionWhenLoginFails() = runTest {
         everySuspend {
             tokenApi.login("user123", "password")
         } throws Exception()
