@@ -2,6 +2,8 @@ package com.lingolessons.ui.profile
 
 import com.lingolessons.common.BaseTest
 import com.lingolessons.domain.auth.LogoutUser
+import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verifySuspend
@@ -12,7 +14,11 @@ class ProfileViewModelTest : BaseTest() {
     private lateinit var viewModel: ProfileViewModel
 
     override fun setup() {
-        action = mock()
+        action = mock() {
+            everySuspend {
+                perform(Unit)
+            } returns Result.success(Unit)
+        }
         viewModel = ProfileViewModel(action)
     }
 
