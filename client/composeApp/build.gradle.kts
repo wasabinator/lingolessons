@@ -269,6 +269,7 @@ kover {
                     "*.db",
                     "*.di",
                     "*.generated.resources",
+                    "*.ui.theme",
                 )
 
                 classes(
@@ -276,6 +277,8 @@ kover {
                     "*_*Impl*",
                     "*_*Provider*",
                     "*AppKt*",
+                    "*MainKt*",
+                    "*TrayIcon*",
                     "*Platform*",
                     "*.MainActivity*",
                     "*.Platform*",

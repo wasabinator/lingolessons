@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -30,49 +32,56 @@ import lingolessons.composeapp.generated.resources.library_books_48px
 import lingolessons.composeapp.generated.resources.school_48px
 import org.jetbrains.compose.resources.vectorResource
 
-
 @Composable
-fun MainScreen(
-    navController: NavHostController = rememberNavController()
-) {
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val largeScreen = getPlatform().isLargeScreen()
-
+fun MainScreen() {
+    val navController: NavHostController = rememberNavController()
+    val backStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
     val currentRoute =
         derivedStateOf { backStackEntry?.destination?.route?.let { AppScreen.valueOf(it) } }
 
+    MainScreen(
+        largeScreen = getPlatform().isLargeScreen(),
+        mainNav = { MainNav(navController = navController) },
+        currentRoute = currentRoute.value,
+        onNavItemClick = { screen: AppScreen ->
+            navController.navigate(screen.name) {
+                launchSingleTop = true
+            }
+        }
+    )
+}
+
+@Composable
+fun MainScreen(
+    largeScreen: Boolean,
+    mainNav: @Composable () -> Unit,
+    currentRoute: AppScreen?,
+    onNavItemClick: (AppScreen) -> Unit,
+) {
     if (largeScreen) {
-        Scaffold {
+        Scaffold(modifier = Modifier.testTag("largeScreen")) {
             PermanentNavigationDrawer(
                 drawerContent = {
                     DrawerNavigation(
-                        currentScreen = currentRoute.value ?: AppScreen.Profile,
-                        onClick = {
-                            navController.navigate(it.name) {
-                                launchSingleTop = true
-                            }
-                        }
+                        currentScreen = currentRoute ?: AppScreen.Profile,
+                        onClick = onNavItemClick
                     )
                 }
             ) {
-                MainNav(navController = navController)
+                mainNav()
             }
         }
     } else {
         Scaffold(
+            modifier = Modifier.testTag("smallScreen"),
             bottomBar = {
                 BottomNavigationBar(
-                    currentScreen = currentRoute.value
-                        ?: AppScreen.Profile,
-                    onClick = {
-                        navController.navigate(it.name) {
-                            launchSingleTop = true
-                        }
-                    }
+                    currentScreen = currentRoute ?: AppScreen.Profile,
+                    onClick = onNavItemClick
                 )
             }
         ) {
-            MainNav(navController = navController)
+            mainNav()
         }
     }
 }
@@ -95,7 +104,7 @@ fun DrawerNavigation(
             label = { Text("Profile") },
             selected = currentScreen == AppScreen.Profile,
             onClick = { onClick(AppScreen.Profile) },
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("profile")
         )
         NavigationDrawerItem(
             icon = {
@@ -108,7 +117,7 @@ fun DrawerNavigation(
             label = { Text("Study") },
             selected = currentScreen == AppScreen.Study,
             onClick = { onClick(AppScreen.Study) },
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("study")
         )
         NavigationDrawerItem(
             icon = {
@@ -120,7 +129,7 @@ fun DrawerNavigation(
             }, label = { Text("Lessons") },
             selected = currentScreen == AppScreen.Lessons,
             onClick = { onClick(AppScreen.Lessons) },
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("lessons")
         )
     }
 }
@@ -147,7 +156,8 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Profile") }
+            label = { Text("Profile") },
+            modifier = Modifier.testTag("profile"),
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.Study,
@@ -160,7 +170,8 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Study") }
+            label = { Text("Study") },
+            modifier = Modifier.testTag("study"),
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.Lessons,
@@ -173,7 +184,8 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Lessons") }
+            label = { Text("Lessons") },
+            modifier = Modifier.testTag("lessons"),
         )
     }
 }

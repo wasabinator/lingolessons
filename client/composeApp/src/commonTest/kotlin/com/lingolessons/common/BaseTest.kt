@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.koin.core.context.stopKoin
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
@@ -28,6 +29,7 @@ abstract class BaseTest {
     @AfterTest
     fun after() {
         Dispatchers.resetMain()
+        stopKoin()
     }
 
     abstract fun setup()

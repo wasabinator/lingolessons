@@ -21,72 +21,73 @@ import com.lingolessons.data.di.dataModule
 import com.lingolessons.data.di.platformModule
 import com.lingolessons.di.uiModule
 import com.lingolessons.ui.di.domainModule
-import org.koin.compose.KoinApplication
+import org.koin.core.context.startKoin
 import java.awt.Dimension
 
-fun main() = application {
-    KoinApplication(
-        application = { modules(uiModule, domainModule, platformModule, dataModule) }
-    ) {}
+fun main() {
+    startKoin {
+        modules(uiModule, domainModule, platformModule, dataModule)
+    }
+    application {
+        var isOpen by remember { mutableStateOf(true) }
+        val isVisible by remember { mutableStateOf(true) }
 
-    var isOpen by remember { mutableStateOf(true) }
-    val isVisible by remember { mutableStateOf(true) }
-
-    //val systemTray = remember { SystemTray.get() }
-    val windowState = rememberWindowState(
-        position = WindowPosition(Alignment.Center),
-        size = DpSize(800.dp, 600.dp),
-        isMinimized = false
-    )
-
-    if (isOpen) {
-        val trayState = rememberTrayState()
-        val notification = rememberNotification("Notification", "Message from MyApp!")
-
-        Tray(
-            state = trayState,
-            icon = TrayIcon,
-            onAction = {
-                windowState.isMinimized = false
-            },
-            menu = {
-                // TODO: Change Tray source so that it doesn't set popupMenu if menu is null
-                if (!getPlatform().isLinux) {
-                    Item(
-                        "Increment value",
-                        onClick = {
-                        }
-                    )
-                    Item(
-                        "Send notification",
-                        onClick = {
-                            trayState.sendNotification(notification)
-                        }
-                    )
-                    Item(
-                        "Exit",
-                        onClick = {
-                            isOpen = false
-                        }
-                    )
-                }
-            }
+        //val systemTray = remember { SystemTray.get() }
+        val windowState = rememberWindowState(
+            position = WindowPosition(Alignment.Center),
+            size = DpSize(800.dp, 600.dp),
+            isMinimized = false
         )
 
-        Window(
-            state = windowState,
-            onCloseRequest = {
-                //::exitApplication,
-                isOpen = false
-            },
-            title = "LingoLessons",
-            resizable = true,
-            visible = isVisible,
-        ) {
-            with(LocalDensity.current) {
-                window.minimumSize = Dimension(400.dp.toPx().toInt(), 600.dp.toPx().toInt())
+        if (isOpen) {
+            val trayState = rememberTrayState()
+            val notification = rememberNotification("Notification", "Message from MyApp!")
+
+            Tray(
+                state = trayState,
+                icon = TrayIcon,
+                onAction = {
+                    windowState.isMinimized = false
+                },
+                menu = {
+                    // TODO: Change Tray source so that it doesn't set popupMenu if menu is null
+                    if (!getPlatform().isLinux) {
+                        Item(
+                            "Increment value",
+                            onClick = {
+                            }
+                        )
+                        Item(
+                            "Send notification",
+                            onClick = {
+                                trayState.sendNotification(notification)
+                            }
+                        )
+                        Item(
+                            "Exit",
+                            onClick = {
+                                isOpen = false
+                            }
+                        )
+                    }
+                }
+            )
+
+            Window(
+                state = windowState,
+                onCloseRequest = {
+                    //::exitApplication,
+                    isOpen = false
+                },
+                title = "LingoLessons",
+                resizable = true,
+                visible = isVisible,
+            ) {
+                with(LocalDensity.current) {
+                    window.minimumSize = Dimension(400.dp.toPx().toInt(), 600.dp.toPx().toInt())
+                }
+                App()
             }
-            App()
         }
     }
 }
