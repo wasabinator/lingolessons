@@ -5,7 +5,7 @@ import com.lingolessons.domain.Operation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-typealias LogoutUser = Operation<Unit, Unit>
+interface LogoutUser : Operation<Unit, Unit>
 
 class LogoutUserImpl(
     private val dispatcher: CoroutineDispatcher,

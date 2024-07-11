@@ -3,7 +3,7 @@ package com.lingolessons.domain.auth
 import com.lingolessons.domain.GetOperation
 import kotlinx.coroutines.flow.Flow
 
-typealias GetUserSession = GetOperation<Unit, SessionState>
+interface GetUserSession : GetOperation<Unit, SessionState>
 
 class GetUserSessionImpl(
     private val sessionManager: SessionManager,

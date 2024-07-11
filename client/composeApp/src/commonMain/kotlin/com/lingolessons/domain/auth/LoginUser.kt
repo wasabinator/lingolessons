@@ -5,7 +5,7 @@ import com.lingolessons.domain.Operation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-typealias LoginUser = Operation<LoginDetails, Unit>
+interface LoginUser : Operation<LoginDetails, Unit>
 
 class LoginUserImpl(
     private val dispatcher: CoroutineDispatcher,
