@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS setting(
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT,
+    created INTEGER DEFAULT (CAST(strftime('%s', 'now') AS INTEGER)),
+    modified INTEGER DEFAULT (CAST(strftime('%s', 'now') AS INTEGER))
+);
+
+get:
+SELECT value
+FROM setting
+WHERE key = ?;
+
+save:
+INSERT OR REPLACE INTO setting(key, value, modified)
+VALUES (?, ?, CAST(strftime('%s', 'now') AS INTEGER));
