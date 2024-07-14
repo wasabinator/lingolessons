@@ -3,8 +3,8 @@ package com.lingolessons.data.lessons
 import com.lingolessons.data.common.ApiCallProcessor
 import com.lingolessons.domain.lessons.Lesson
 import com.lingolessons.domain.lessons.LessonList
-import com.lingolessons.domain.lessons.LessonRequest
 import com.lingolessons.domain.lessons.LessonRepository
+import com.lingolessons.domain.lessons.LessonRequest
 
 internal class LessonRepositoryImpl(
     private val lessonApi: LessonApi,
@@ -20,6 +20,7 @@ internal class LessonRepositoryImpl(
         }) {
             it?.let { response ->
                 LessonList(
+                    page = key.page,
                     total = response.count,
                     lessons = response.results.map { lesson ->
                         Lesson(

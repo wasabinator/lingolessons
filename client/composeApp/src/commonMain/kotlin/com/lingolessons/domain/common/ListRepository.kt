@@ -14,6 +14,7 @@ abstract class ListRepository<ItemKey, ItemType> {
 }
 
 data class ItemList<T>(
+    val page: Int = 0,
     val total: Int = 0,
     val lessons: List<T> = emptyList(),
     val hasMore: Boolean = false,

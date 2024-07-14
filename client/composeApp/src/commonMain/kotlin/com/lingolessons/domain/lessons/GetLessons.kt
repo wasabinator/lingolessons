@@ -13,7 +13,7 @@ class GetLessonsImpl(
 ) : GetLessons {
     override suspend fun perform(param: Int): Result<LessonList> = withContext(dispatcher) {
         suspendCatching {
-            lessonRepository.getList(LessonRequest())
+            lessonRepository.getList(LessonRequest(page = param))
         }
     }
 }

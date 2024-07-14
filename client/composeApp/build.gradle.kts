@@ -99,7 +99,6 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.androidx.navigation)
             implementation(libs.kotlinx.coroutines.core)
-            //implementation(libs.kotlinx.coroutines.debug)
 
             // Data Layer
             implementation(libs.ktor.core)
