@@ -7,6 +7,7 @@ import com.lingolessons.domain.auth.LoginUserImpl
 import com.lingolessons.domain.auth.LogoutUser
 import com.lingolessons.domain.auth.LogoutUserImpl
 import com.lingolessons.domain.common.domainDispatcher
+import com.lingolessons.domain.lesson.SaveLesson
 import com.lingolessons.domain.lessons.GetLessons
 import com.lingolessons.domain.lessons.GetLessonsImpl
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,4 +39,16 @@ val domainModule = module {
             lessonRepository = get(),
         )
     }
+//    single<GetLesson> {
+//        GetLessonImpl(
+//            dispatcher = get(named("domain")),
+//            lessonRepository = get(),
+//        )
+//    }
+//    single<SaveLesson> {
+//        SaveLessonImpl(
+//            dispatcher = get(named("domain")),
+//            lessonRepository = get(),
+//        )
+//    }
 }

@@ -25,6 +25,7 @@ class Language(models.Model):
 
 
 class Lesson(models.Model):
+    id = models.CharField(max_length=36, primary_key=True)
     title = models.CharField(max_length=255)
     owner = models.ForeignKey(User, related_name='lesson_owner', on_delete=models.CASCADE)
     language1 = models.ForeignKey(Language, related_name='language1', on_delete=models.CASCADE)
@@ -51,6 +52,7 @@ class Lesson(models.Model):
 
 
 class Fact(models.Model):
+    id = models.CharField(max_length=36, primary_key=True)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     element1 = models.CharField(max_length=255)
     element2 = models.CharField(max_length=255)

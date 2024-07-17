@@ -23,6 +23,9 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.mixins import UpdateModelMixin
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -164,8 +167,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
 }
 
 DJOSER = {
@@ -200,8 +201,8 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
-    # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    'rest_framework.permissions.IsAuthenticated',  # DjangoModelPermissionsOrAnonReadOnly'
+    'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+    # 'rest_framework.permissions.IsAuthenticated',
 ]
 
 SIMPLE_JWT = {
@@ -214,3 +215,9 @@ SIMPLE_JWT = {
 
 # LOGIN_REDIRECT_URL = '/'
 # LOGOUT_REDIRECT_URL = "/"
+
+# Remove patch support from drf
+del UpdateModelMixin.partial_update
+del UpdateAPIView.patch
+del RetrieveUpdateAPIView.patch
+del RetrieveUpdateDestroyAPIView.patch

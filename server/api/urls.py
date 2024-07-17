@@ -22,7 +22,7 @@ schema_view = get_schema_view(
         description="LingoLessons Server API",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@lingolessons.com"),
-        license=openapi.License(name="BSD License"),
+        license=openapi.License(name="AGPL License"),
     ),
     public=True,
     permission_classes=[permissions.AllowAny, ],
@@ -31,12 +31,12 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'lessons', LessonViewSet, basename='LessonView')
-router.register(r'lessons/(?P<lesson_id>\d+)/facts', FactViewSet, basename='LessonFactView')
+router.register(r'lessons/(?P<lesson_id>[\w-]+)/facts', FactViewSet, basename='LessonFactView')
 
 urlpatterns = [
     path(r'', RedirectView.as_view(url='v1', permanent=False), name='index'),
     path(r'v1/', include(router.urls)),
-    path(r'v1/', include('djoser.urls')),
+    # path(r'v1/', include('djoser.urls')),
     path(r'v1/', include('djoser.urls.jwt')),
     path(r'v1/swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path(r'v1/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

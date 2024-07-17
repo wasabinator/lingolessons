@@ -38,7 +38,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'owner']
+        fields = ['id', 'title', 'type', 'language1', 'language2', 'owner']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -52,7 +52,7 @@ class LessonDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ['title', 'owner', 'facts']
+        fields = ['title', 'type', 'language1', 'language2', 'owner', 'facts']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

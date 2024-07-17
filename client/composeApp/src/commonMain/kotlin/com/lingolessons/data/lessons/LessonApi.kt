@@ -4,7 +4,7 @@ import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Query
 
 internal interface LessonApi {
-    @GET("lessons")
+    @GET("lessons/")
     suspend fun getLessons(
         @Query("owner") owner: String? = null,
         @Query("title") title: String? = null,

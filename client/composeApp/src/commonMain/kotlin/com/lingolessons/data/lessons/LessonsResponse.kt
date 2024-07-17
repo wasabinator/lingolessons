@@ -12,7 +12,7 @@ internal data class LessonsResponse(
 
 @Serializable
 internal data class LessonResponse(
-    val id: Int,
+    val id: String,
     val title: String,
     val owner: String,
     val updated_at: Int,
