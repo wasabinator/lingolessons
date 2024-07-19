@@ -24,12 +24,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up cocoapods
-        uses: maxim-lobanov/setup-cocoapods@v1
-        with:
-          version: latest
-
-      - name: Install Dependencies
-        run: pod install --verbose
-
       - run: xcodebuild build -workspace iosApp.xcworkspace -configuration Debug -scheme iosApp -sdk iphoneos -destination name='iPhone 14' CODE_SIGNING_ALLOWED=NO -verbose
