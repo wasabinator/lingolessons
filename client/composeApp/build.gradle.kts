@@ -2,7 +2,6 @@ import de.jensklingenberg.ktorfit.gradle.ErrorCheckingMode
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -15,7 +14,6 @@ plugins {
     alias(libs.plugins.serialization)
     alias(libs.plugins.osdetector)
     alias(libs.plugins.sqldelight)
-    alias(libs.plugins.native.cocoapods)
     alias(libs.plugins.mockkery)
     alias(libs.plugins.kotlinx.kover)
 }
@@ -57,17 +55,9 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
-    }
-
-    cocoapods {
-        version = "1.0.0"
-        summary = "Common core for LingoLessons"
-        homepage = "http://www.lingolessons.com"
-        ios.deploymentTarget = "15.3"
-        podfile = project.file("../iosApp/Podfile")
-        // Maps custom Xcode configuration to NativeBuildType
-        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
-        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
+        iosTarget.compilations.forEach {
+            it.kotlinOptions.freeCompilerArgs += arrayOf("-linker-options", "-lsqlite3")
+        }
     }
 
     sourceSets {
