@@ -11,33 +11,38 @@ import datetime
 import pytz
 from django.contrib.auth.models import User
 from django.db.models.query_utils import Q
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import GenericViewSet
 
 from .models import Lesson, Fact
 from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
 
 
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
+class Pagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
+class UserViewSet(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-class FactViewSet(viewsets.ModelViewSet):
+class FactViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    pagination_class = Pagination
     serializer_class = FactSerializer
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):  # Swagger inspection won't pass a lesson_id
             return Fact.objects.none()
-        return Fact.objects.filter(lesson__id=int(self.kwargs['lesson_id'])).order_by('id')
+        return Fact.objects.filter(lesson__id=int(self.kwargs['id'])).order_by('id')
 
 
-class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-
-
-class LessonViewSet(viewsets.ModelViewSet):
+class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin, GenericViewSet):
+    pagination_class = Pagination
     serializer_classes = {
         'list': LessonSerializer,
         'retrieve': LessonDetailSerializer,
