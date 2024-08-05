@@ -17,4 +17,8 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
-Pods
+Pods.devenv
+
+#Nix
+.android
+.direnv
