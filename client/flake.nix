@@ -20,14 +20,7 @@
         "x86_64-darwin"
       ];
 
-      perSystem = {
-        config,
-        self',
-        inputs',
-        pkgs,
-        system,
-        ...
-      }: {
+      perSystem = { config, self', inputs', pkgs, system, ... }: {
         _module.args.pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
@@ -51,15 +44,6 @@
 
           scripts.create-avd.exec =
             "avdmanager create avd --force --name 'Pixel6a' --package 'system-images;android-34-ext10;google_apis_playstore;x86_64' --device 'pixel_6a'";
-
-          languages = {
-          };
-
-          processes = {
-          };
-
-          enterShell = ''
-          '';
         };
       };
     };
