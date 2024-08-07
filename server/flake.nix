@@ -1,57 +1,28 @@
 {
-  description = "Flake for LingoLessons client";
+  description = "Flake for ESP32 dev";
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    systems.url = "github:nix-systems/default";
     devenv.url = "github:cachix/devenv";
   };
 
-  outputs = inputs @ {flake-parts, nixpkgs, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs = inputs@{ flake-parts, nixpkgs, systems, devenv, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        inputs.devenv.flakeModule
+        devenv.flakeModule
       ];
-
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
-        "x86_64-darwin"
-      ];
-
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        _module.args.pkgs = import nixpkgs {
+      systems = import systems;
+      perSystem = { config, self', inputs', pkgs, system, lib, ... }: {
+        _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
           config.allowUnfree = true;
         };
-
-        devenv.shells.default = {
-          packages = with pkgs; [
-          ];
-
-          languages = {
-            javascript = {
-              enable = true;
-              npm = {
-                enable = true;
-                install.enable = true;
-              };
-            };
-
-            python = {
-              enable = true;
-              venv = {
-                enable = true;
-                requirements = ./requirements.txt;
-              };
-            };
-          };
-
-          scripts = {
-            tailwind.exec = "python manage.py tailwind start";
-            run.exec = "python manage.py runserver";
-          };
+        devenv.shells = import ./nix/python.nix {
+            inherit config;
+            inherit pkgs;
+            inherit devenv;
         };
       };
     };
