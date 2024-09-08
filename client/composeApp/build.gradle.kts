@@ -9,19 +9,19 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.ktorfit)
-    alias(libs.plugins.serialization)
+//    alias(libs.plugins.ksp)
+//    alias(libs.plugins.ktorfit)
+//    alias(libs.plugins.serialization)
     alias(libs.plugins.osdetector)
-    alias(libs.plugins.sqldelight)
-    alias(libs.plugins.mockkery)
+//    alias(libs.plugins.sqldelight)
+//    alias(libs.plugins.mockkery)
     alias(libs.plugins.kotlinx.kover)
 }
 
-ktorfit {
-    errorCheckingMode = ErrorCheckingMode.ERROR
-    generateQualifiedTypeName = false
-}
+//ktorfit {
+//    errorCheckingMode = ErrorCheckingMode.ERROR
+//    generateQualifiedTypeName = false
+//}
 
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -51,6 +51,7 @@ kotlin {
         }
     }
 
+    /*
     listOf(
         iosX64(),
         iosArm64(),
@@ -64,9 +65,19 @@ kotlin {
             it.kotlinOptions.freeCompilerArgs += arrayOf("-linker-options", "-lsqlite3")
         }
     }
+     */
+
+//    listOf(
+//        linuxX64(),
+//        linuxArm64()
+//    ).forEach { nativeTarget ->
+//        nativeTarget.binaries {
+//            executable();
+//        }
+//    }
 
     sourceSets {
-        val desktopMain by getting
+        //val desktopMain by getting
         val commonMain by getting
 
         androidMain.dependencies {
@@ -96,14 +107,17 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
 
             // Data Layer
-            implementation(libs.ktor.core)
-            implementation(libs.ktor.cio)
-            implementation(libs.ktor.auth)
-            implementation(libs.ktor.logging)
-            implementation(libs.ktor.serialization)
-            implementation(libs.ktorfit.lib)
-            implementation(libs.ktorfit.content.negotiation)
-            implementation(libs.serialization.json)
+            implementation(libs.ktor.core) // TODO: Prevent this bleeding from data layer
+//            implementation(libs.ktor.cio)
+//            implementation(libs.ktor.auth)
+//            implementation(libs.ktor.logging)
+//            implementation(libs.ktor.serialization)
+//            implementation(libs.ktorfit.lib)
+//            implementation(libs.ktorfit.content.negotiation)
+//            implementation(libs.serialization.json)
+
+            // Shared Module
+            implementation(projects.shared)
         }
 
         commonTest.dependencies {
@@ -113,6 +127,7 @@ kotlin {
             implementation(libs.ktor.mock)
         }
 
+        /*
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
@@ -125,6 +140,7 @@ kotlin {
             implementation(libs.ktor.darwin)
             implementation(libs.sqldelight.native)
         }
+         */
 
         val commonTest by getting
         val androidMain by getting
@@ -136,12 +152,14 @@ kotlin {
             }
         }
 
+        /*
         val desktopTest by getting {
             dependencies {
                 implementation(compose.desktop.uiTestJUnit4)
                 implementation(compose.desktop.currentOs)
             }
         }
+         */
     }
 
     task("testClasses")
@@ -247,14 +265,14 @@ if (taskIsRunningTest) {
     }
 }
 
-sqldelight {
-    databases {
-        create("AppDatabase") {
-            packageName.set("com.lingolessons.data.db")
-            dialect(libs.sqldelight.dialect)
-        }
-    }
-}
+//sqldelight {
+//    databases {
+//        create("AppDatabase") {
+//            packageName.set("com.lingolessons.data.db")
+//            dialect(libs.sqldelight.dialect)
+//        }
+//    }
+//}
 
 kover {
     reports {

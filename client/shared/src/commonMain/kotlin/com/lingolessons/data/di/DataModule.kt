@@ -1,6 +1,6 @@
 package com.lingolessons.data.di
 
-import androidx.compose.ui.text.intl.Locale
+//import androidx.compose.ui.text.intl.Locale
 import com.lingolessons.data.auth.SessionManagerImpl
 import com.lingolessons.data.auth.TokenApi
 import com.lingolessons.data.auth.TokenRepository
@@ -38,7 +38,7 @@ val dataModule = module {
     single<TokenRepository> {
         TokenRepositoryImpl(
             TokenQueries(get()).dao,
-            get(named("domain"))
+            get(named("com/lingolessons/domain"))
         )
     }
 
@@ -54,7 +54,7 @@ val dataModule = module {
                 json(Json { isLenient = true; ignoreUnknownKeys = true })
             }
             install(DefaultRequest) {
-                header(AcceptLanguage, Locale.current.language)
+                // TODO: header(AcceptLanguage, Locale.current.language)
             }
             install(Auth) {
                 bearer {
@@ -106,7 +106,7 @@ val dataModule = module {
         SessionManagerImpl(
             get(),
             get(),
-            get(named("domain"))
+            get(named("com/lingolessons/domain"))
         )
     }
 
