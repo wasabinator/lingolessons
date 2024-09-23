@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "shared",
+    "uniffi-bindgen",
+]
+resolver = "2"
+
+[workspace.dependencies]
+

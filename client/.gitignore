@@ -22,3 +22,9 @@ Pods.devenv
 #Nix
 .android
 .direnv
+
+#Rust
+debug/
+target/
+**/*.rs.bk
+*.pdb

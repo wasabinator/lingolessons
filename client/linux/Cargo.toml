@@ -1,0 +1,41 @@
+[package]
+name = "lingolessons"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+adw = { version = "0.7.0", package = "libadwaita", features = ["v1_5"] }
+gtk = { version = "0.9.1", package = "gtk4", features = ["v4_12", "blueprint"] }
+shared = { path = "../rust/shared" }
+ksni = "0.2.2"
+gdk-pixbuf = "0.20.1"
+tokio = { version = "1", features = ["full"] }
+dirs = "5.0.1"
+relm4 = { version = "0.9.0", features = ["libadwaita", "gnome_45"] }
+relm4-icons = { version = "0.9.0" }
+
+#png = "0.17.13"
+#cargo-bundle = { version = "0.6.1" }
+#cargo-appimage = { version = "2.2.0" }
+
+[build-dependencies]
+glib-build-tools = "0.20"
+
+[package.metadata.bundle]
+name = "LingoLessons"
+identifier = "com.lingolessons.app"
+icon = ["icon.png"]
+copyright = "Copyright (c) Anthony Miceli 2002-2024"
+short_description = "A language education system."
+long_description = """
+TODO
+"""
+
+[package.metadata.appimage]
+auto_link = true
+auto_link_exclude_list = [
+    "libc.so*",
+    "libdl.so*",
+    "libpthread.so*",
+    "libz.so.*",
+]
