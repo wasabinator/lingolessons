@@ -19,6 +19,7 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 Pods.devenv
+shared.xcframework
 
 #Nix
 .android

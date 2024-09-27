@@ -1,6 +1,6 @@
 use include_dir::{include_dir, Dir};
 use lazy_static::lazy_static;
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 use rusqlite_migration::Migrations;
 use crate::domain::DomainError;
 
@@ -18,7 +18,7 @@ pub(crate) struct Db {
 impl From<rusqlite::Error> for DomainError {
     #[inline]
     fn from(value: rusqlite::Error) -> Self {
-        DomainError::Database(value.to_string())
+        DomainError::Database(format!("{:?}", value))
     }
 }
 
@@ -30,7 +30,7 @@ impl From<rusqlite_migration::Error> for DomainError {
 }
 
 impl Db {
-    #[cfg(not(test))]
+    //#[cfg(not(test))]
     pub(crate) fn open(path: String) -> std::result::Result<Self, DomainError> {
         let conn = Connection::open(path)?;
         Self::init(conn)
@@ -44,15 +44,15 @@ impl Db {
 
     fn init(mut conn: Connection) -> std::result::Result<Self, DomainError> {
         match MIGRATIONS.to_latest(&mut conn) {
-            Ok(_) => {
+           Ok(_) => {
                 Ok(Self {
                     connection: conn
                 })
-            },
-            Err(err) => {
-                let _ = conn.close();
-                Err(err.into())
-            }
+           },
+           Err(err) => {
+               let _ = conn.close();
+               Err(err.into())
+           }
         }
     }
 }
@@ -66,4 +66,10 @@ mod tests {
     fn migrations_test() {
         assert!(MIGRATIONS.validate().is_ok());
     }
+
+    // #[test]
+    // fn dm_test() {
+    //     let db = Db::open("/Users/amiceli/app.db".to_string());
+    //     println!("OK");
+    // }
 }
