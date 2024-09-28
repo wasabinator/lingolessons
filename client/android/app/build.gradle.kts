@@ -1,7 +1,6 @@
 import java.util.Locale
 
 plugins {
-    alias(libs.plugins.cargo.android)
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
@@ -91,38 +90,12 @@ kapt {
     correctErrorTypes = true
 }
 
-// This will generate the static lib, along with the uniffi generated wrapper in shared.kt/
-cargo {
-    verbose = true
-    module = "../../rust/shared"
-    targetDirectory = "../../rust/target"
-    libname = "shared"
-    targets = listOf("arm64", "x86_64")
-
-    exec = { spec, toolchain ->
-        if (toolchain.target == "x86_64-linux-android") {
-            val tc = when (System.getProperties()["os.name"].toString().lowercase()) {
-                "windows" -> "windows-x86_64"
-                else -> "linux-x86_64"
-            }
-            spec.environment(
-                "RUSTFLAGS",
-                "-L${android.sdkDirectory}/ndk/${android.ndkVersion}/toolchains/llvm/prebuilt/$tc/lib/clang/18/lib/linux/ -lstatic=clang_rt.builtins-x86_64-android"
-            )
-        }
-    }
-}
-
 tasks.register("generateUniFFIBindings") {
-    dependsOn("cargoBuild")
-    mustRunAfter("cargoBuild")
-    abiTargets.forEach { arch ->
-        doLast {
-            exec {
-                this.workingDir("../../rust")
-                this.executable("cargo")
-                this.args("run", "--bin", "uniffi-bindgen", "generate", "--library", "${layout.buildDirectory.asFile.get()}/rustJniLibs/android/${arch}/libshared.so", "--language", "kotlin", "--out-dir", "${layout.buildDirectory.asFile.get()}/generated-sources/shared")
-            }
+    doLast {
+        exec {
+            this.workingDir("../../rust")
+            this.executable("./make_android.sh")
+            this.args("if_not_exists")
         }
     }
 }

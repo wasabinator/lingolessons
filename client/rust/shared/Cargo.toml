@@ -28,4 +28,4 @@ android_logger = "0.14.1"
 [lib]
 name = "shared"
 path = "src/lib.rs"
-crate-type = ["staticlib", "lib"]
+crate-type = ["cdylib", "staticlib", "lib"]

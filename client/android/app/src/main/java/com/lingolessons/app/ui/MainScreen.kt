@@ -1,5 +1,6 @@
 package com.lingolessons.app.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ fun MainScreen() {
     )
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(
     largeScreen: Boolean,
@@ -56,7 +58,7 @@ fun MainScreen(
     onNavItemClick: (AppScreen) -> Unit,
 ) {
     if (largeScreen) {
-        Scaffold(modifier = Modifier.testTag("largeScreen")) { padding ->
+        Scaffold(modifier = Modifier.testTag("largeScreen")) { _ ->
             PermanentNavigationDrawer(
                 drawerContent = {
                     DrawerNavigation(
