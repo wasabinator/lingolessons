@@ -30,7 +30,7 @@ impl From<rusqlite_migration::Error> for DomainError {
 }
 
 impl Db {
-    //#[cfg(not(test))]
+    #[cfg(not(test))]
     pub(crate) fn open(path: String) -> std::result::Result<Self, DomainError> {
         let conn = Connection::open(path)?;
         Self::init(conn)
