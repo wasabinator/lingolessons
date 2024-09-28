@@ -1,19 +1,22 @@
 use crate::data::db::Db;
-use rusqlite::{Error, OptionalExtension};
+use rusqlite::OptionalExtension;
 
 /**
  * Setting
  */
+#[allow(dead_code)]
 pub(super) struct Token {
     pub(super) username: String,
     auth_token: String,
     refresh_token: String,
 }
+
 pub(super) trait TokenDao {
     fn get_token(&self) -> rusqlite::Result<Option<Token>>;
     fn set_token(&self, username: String, auth_token: String, refresh_token: String) -> rusqlite::Result<()>;
     fn del_token(&self) -> rusqlite::Result<()>;
 }
+
 impl TokenDao for Db {
     fn get_token(&self) -> rusqlite::Result<Option<Token>> {
         self.connection.query_row(

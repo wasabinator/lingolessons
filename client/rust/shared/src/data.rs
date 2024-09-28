@@ -13,8 +13,6 @@ use crate::data::db::Db;
 use crate::{arc_mutex, ArcMutex};
 
 pub(crate) struct DataServiceProvider {
-    pub(super) db: ArcMutex<Db>,
-    pub(super) api: ArcMutex<Api>,
     pub(super) session_manager: ArcMutex<SessionManager>
 }
 
@@ -27,8 +25,6 @@ impl DataServiceProvider {
         let db = arc_mutex(Db::open(data_path)?);
         let sm = SessionManager::new(api.clone(), db.clone());
         Ok(Self {
-            db,
-            api,
             session_manager: arc_mutex(sm),
         })
     }

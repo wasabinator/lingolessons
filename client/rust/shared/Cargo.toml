@@ -8,7 +8,7 @@ async-compat = "0.2.4"
 #async-std = { version = "1", features = ["attributes", "tokio1"] }
 #uniffi.workspace = true
 serde = "1.0.210"
-thiserror = "1.0.56"
+thiserror = "1.0.64"
 openssl = { version = "0.10", features = ["vendored"] }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", features = ["json"] }

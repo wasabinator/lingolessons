@@ -13,9 +13,9 @@ pub enum Session {
 }
 
 pub trait Auth {
-    async fn get_session(&self) -> DomainResult<Session>;
-    async fn login(&self, username: String, password: String) -> DomainResult<Session>;
-    async fn logout(&self) -> DomainResult<()>;
+    fn get_session(&self) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
+    fn login(&self, username: String, password: String) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
+    fn logout(&self) -> impl std::future::Future<Output = DomainResult<()>> + Send;
 }
 
 #[uniffi::export(async_runtime = "tokio")]

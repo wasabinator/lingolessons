@@ -4,10 +4,13 @@ use rusqlite::OptionalExtension;
 /**
  * Setting
  */
+#[allow(dead_code)]
 pub(super) struct Setting {
     key: String,
     value: String,
 }
+
+#[allow(dead_code)]
 pub(super) trait SettingDao {
     fn get_setting(&self, key: String) -> rusqlite::Result<Option<Setting>>;
     fn set_setting(&self, key: String, value: String) -> rusqlite::Result<()>;

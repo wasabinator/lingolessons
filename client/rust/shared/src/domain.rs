@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use uniffi::deps::log::{info, trace};
+use uniffi::deps::log::info;
 
 use crate::data::DataServiceProvider;
 

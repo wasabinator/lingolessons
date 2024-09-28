@@ -1,8 +1,6 @@
-use std::any::Any;
 
 use reqwest::RequestBuilder;
 use concat_string::concat_string;
-use uniffi::deps::log::{info, trace};
 
 use crate::domain::{DomainError, DomainResult};
 
