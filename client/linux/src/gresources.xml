@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/lingolessons/app">
+    <file compressed="true">images/logo.png</file>
+  </gresource>
+</gresources>

@@ -20,9 +20,7 @@
           config.allowUnfree = true;
         };
         devenv.shells = import ./nix/python.nix {
-            inherit config;
-            inherit pkgs;
-            inherit devenv;
+            inherit config pkgs devenv;
         };
       };
     };

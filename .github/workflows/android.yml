@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./client
+        working-directory: ./client/android
         
     steps:
     - uses: actions/checkout@v4
@@ -28,29 +28,57 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    #- name: Install NDK
+    #  run: sdkmanager "ndk;27.1.12297006"
+
+    - name: Setup NDK
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r27b
+
+    #- name: Set NDK path
+    #  run: echo "{$ANDROID_HOME}/ndk/27.1.12297006/" >> $GITHUB_PATH
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+
+    #- name: Make shared lib
+    #  working-directory: ./client/rust
+    #  run: ./make_android.sh
+    #  env:
+    #    ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Run Unit tests
       run: ./gradlew testDebugUnitTest
+      env:
+        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-    - name: Publish test report
-      uses: mikepenz/action-junit-report@v4
-      with:
-        check_name: 'Android Test Report'
-        token: ${{ secrets.GITHUB_TOKEN }}
-        report_paths: '**/build/test-results/testDebugUnitTest/TEST-*.xml'
+#    - name: Publish test report
+#      uses: mikepenz/action-junit-report@v4
+#      with:
+#        check_name: 'Android Test Report'
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        report_paths: '**/build/test-results/testDebugUnitTest/TEST-*.xml'
 
-    - name: Generate kover coverage report
-      run: ./gradlew koverXmlReportDebug
+#    - name: Generate kover coverage report
+#      run: ./gradlew koverXmlReportDebug
 
-    - name: Add coverage report
-      id: kover
-      uses: mi-kas/kover-report@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        path: 'client/composeApp/build/reports/kover/reportDebug.xml'
-        coverage-counter-type: LINE
+#    - name: Add coverage report
+#      id: kover
+#      uses: mi-kas/kover-report@v1
+#      with:
+#        token: ${{ secrets.GITHUB_TOKEN }}
+#        path: 'client/composeApp/build/reports/kover/reportDebug.xml'
+#        coverage-counter-type: LINE
 
     - name: Build with Gradle
       if: false

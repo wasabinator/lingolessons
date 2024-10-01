@@ -2,6 +2,7 @@
 .kotlin
 .gradle
 **/build/
+**/libs/
 xcuserdata
 !src/**/build/
 local.properties
@@ -18,7 +19,14 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 Pods.devenv
+shared.xcframework
 
 #Nix
 .android
 .direnv
+
+#Rust
+debug/
+target/
+**/*.rs.bk
+*.pdb
