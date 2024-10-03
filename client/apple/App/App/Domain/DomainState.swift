@@ -8,22 +8,26 @@
 import Combine
 
 class DomainState {
-    public let session = CurrentValueSubject<Bool, Never>(false)
-    public var domain: Domain
+    public let session = CurrentValueSubject<Bool?, Never>(nil)
+    public var domain: Domain? = nil
 
-    init(domain: Domain) {
+    func attach(domain: Domain) {
         self.domain = domain
         refresh()
     }
     
     func refresh() {
+        print("refreshing session state")
+        assert(self.domain != nil, "Attempt to call refresh() on an uninitialised domain")
         Task {
+            print("Begin refresh session")
             do {
-                let session = try await self.domain.getSession()
+                let session = try await self.domain!.getSession()
+                print("Refreshed session: \(session)")
                 switch session {
                 case .authenticated(let username):
                     self.session.send(true)
-                default:
+                case .none:
                     self.session.send(false)
                 }
             } catch {

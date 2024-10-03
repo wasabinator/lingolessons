@@ -23,17 +23,10 @@ fileprivate var dataPath: URL {
 }
 
 func domainState() -> DomainState {
-#if canImport(AppKit)
-    let appDelegate = NSApplication.shared.delegate
-#elseif canImport(UIKit)
-    let appDelegate = UIApplication.shared.delegate
-#endif
-    if let domainState = (appDelegate as? AppDelegate)?.domainState {
-        return domainState
-    } else {
-        fatalError("Exception: AppDelegate was nil")
-    }
+    return state
 }
+
+private let state = DomainState()
 
 class AppDelegate: NSObject {
     private static let logger = Logger(
@@ -41,18 +34,20 @@ class AppDelegate: NSObject {
         category: String(describing: AppDelegate.self)
     )
     
-    var domainState: DomainState
-    
-    override init() {
+    private func initDomain() {
+        print("Init domain")
         do {
+            print("App Delegate init")
             try FileManager.default.createDirectory(at: dataPath, withIntermediateDirectories: true, attributes: nil)
             
+            print("Creating domain")
             let domain = try DomainBuilder()
                 .baseUrl(url: "http://10.0.2.2:8000/api/v1/")
                 .dataPath(path: dataPath.appendingPathComponent("app.db").path)
                 .build()
             
-            domainState = DomainState(domain: domain)
+            print("Setting domain state")
+            state.attach(domain: domain)
         } catch {
             // No errors here are currently recoverable
             switch (error) {
@@ -67,22 +62,20 @@ class AppDelegate: NSObject {
             }
             fatalError("Failed to initialise the app")
         }
-        super.init()
     }
 }
 
 #if canImport(AppKit)
 extension AppDelegate: NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        print("Launched")
-//        initDomain()
+        initDomain()
     }
 }
 #elseif canImport(UIKit)
 extension AppDelegate: UIApplicationDelegate {
-//    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-//        initDomain()
-//        return true
-//    }
+    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        initDomain()
+        return true
+    }
 }
 #endif

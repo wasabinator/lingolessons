@@ -8,20 +8,41 @@
 import SwiftUI
 
 struct LoginView: View {
-    @EnvironmentObject var viewmodel: LoginViewModel
-    //@State private var viewModel: LoginViewModel
-    
-    //init(viewModel: LoginViewModel) {
-    //    self.viewModel = viewModel
-    //}
+    @EnvironmentObject var viewModel: LoginViewModel
     
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Login View!")
+            VStack {
+                TextField(
+                    "Username",
+                    text: $viewModel.username
+                )
+                .disableAutocorrection(true)
+                .padding(.top, 20)
+                
+                SecureField(
+                    "Password",
+                    text: $viewModel.password
+                )
+                .padding(.top, 5)
+            }
+            
+            Button(
+                action: viewModel.login,
+                label: {
+                    Text("Login")
+                        .font(.system(size: 24, weight: .bold, design: .default))
+                        .frame(maxWidth: .infinity, maxHeight: 60)
+                        .foregroundColor(Color.white)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+            )
+            .padding(.top, 20)
+            
+            Spacer()
         }
-        .padding()
+        .frame(maxWidth: 200)
+        .padding(30)
     }
 }
