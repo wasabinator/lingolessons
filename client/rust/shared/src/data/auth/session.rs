@@ -47,7 +47,7 @@ mod tests {
     #[tokio::test]
     async fn test_no_session() {
         let manager = SessionManager {
-            api: arc_mutex(Api::new("http://127.0.0.1:8000/api/v1/".to_string()).unwrap()),
+            api: arc_mutex(Api::new("http://10.0.2.2:8000/api/v1/".to_string()).unwrap()),
             db: arc_mutex(Db::open("blah.txt".to_string()).unwrap())
         };
         let session = manager.get_session().await.unwrap();
@@ -57,7 +57,7 @@ mod tests {
     #[tokio::test]
     async fn test_login_and_logout() {
         let manager = SessionManager {
-            api: arc_mutex(Api::new("http://127.0.0.1:8000/api/v1/".to_string()).unwrap()),
+            api: arc_mutex(Api::new("http://10.0.2.2:8000/api/v1/".to_string()).unwrap()),
             db: arc_mutex(Db::open("blah.txt".to_string()).unwrap())
         };
         let result = manager.login("admin".to_string(), "admin".to_string()).await;
