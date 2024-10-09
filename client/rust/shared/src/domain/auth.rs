@@ -60,6 +60,6 @@ mod tests {
         let r = binding.login("admin".to_string(), "admin".to_string()).await;
         let s = format!("{:?}", r.err());
         println!("{}", s);
-        //assert!(r.clone().is_ok());
+        assert!(r.clone().is_ok());
     }
 }
