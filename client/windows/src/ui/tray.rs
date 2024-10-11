@@ -1,62 +1,41 @@
 use anyhow::Context;
-use windows::Win32::UI::{Shell::NOTIFYICONDATAW, WindowsAndMessaging::{CreateIconFromResourceEx, LookupIconIdFromDirectoryEx, HICON, IDI_APPLICATION, IMAGE_ICON, LR_DEFAULTCOLOR}};
-use windows::*;
-use Win32::UI::{Shell::{Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP, NIM_ADD}, WindowsAndMessaging::{LoadImageW, LR_DEFAULTSIZE, LR_SHARED, WM_USER}};
-use Win32::System::LibraryLoader::GetModuleHandleW;
 use anyhow::Result;
-
-use super::flashcard::FlashCard;
+use winsafe::co::{IDI, NIF, NIM, WM};
+use winsafe::gui;
+use winsafe::prelude::kernel_Hinstance;
+use winsafe::prelude::GuiParent;
+use winsafe::prelude::GuiWindow;
+use winsafe::prelude::Handle;
+use winsafe::Shell_NotifyIcon;
+use winsafe::HINSTANCE;
+use winsafe::NOTIFYICONDATA;
 
 static TRAY_ICON: u32 = 1;
-static WM_USER_TRAYICON: u32 = WM_USER + 500;
+pub(crate) static WM_USER_TRAYICON: WM = unsafe { WM::from_raw(WM::USER.raw()) };
 
-pub struct Tray {
-    data: NOTIFYICONDATAW,
+pub(crate) struct Tray {
+    data: NOTIFYICONDATA,
 }
 
 impl Tray {
-    pub fn new(flash_card: &FlashCard) -> Self {
-        let icon = Self::load_icon();
-        let mut tip = [0u16; 128];
+    pub fn new(
+        parent: &impl GuiParent,
+    ) -> Self {
+        let hinst = HINSTANCE::GetModuleHandle(None).unwrap();
+        let icon = gui::Icon::Id(100);
 
-        let mut tooltip: Vec<u16> = "LingoLessons"
-            .encode_utf16()
-            .collect();
-        tooltip.resize(128, 0);
-        tip = tooltip.try_into().unwrap();
-        tip[127] = 0;
+        let mut data = NOTIFYICONDATA::default();
+        data.hWnd = unsafe { parent.hwnd().raw_copy() };
+        data.uID = TRAY_ICON;
+        data.uFlags = NIF::ICON | NIF::MESSAGE | NIF::TIP;
+        data.uCallbackMessage = WM_USER_TRAYICON;
+        data.hIcon = icon.as_hicon(&hinst).unwrap();
+        data.set_szTip("LingoLessons");
+
+        let _ = Shell_NotifyIcon(NIM::ADD, &data);
 
         Self {
-            data: NOTIFYICONDATAW {
-                cbSize: std::mem::size_of::<NOTIFYICONDATAW>() as u32,
-                hWnd: flash_card.window,
-                uID: TRAY_ICON,
-                uFlags: NIF_ICON | NIF_MESSAGE | NIF_TIP,
-                uCallbackMessage: WM_USER_TRAYICON,
-                hIcon: icon.unwrap_or_default(),
-                szTip: tip,
-                ..Default::default()
-            }
-        }
-    }
-
-    pub fn show(&self) {
-        unsafe { Shell_NotifyIconW(NIM_ADD, &self.data); }
-    }
-
-    fn load_icon() -> Result<HICON> {
-        unsafe {
-            let module = GetModuleHandleW(None).context("unable to get module handle")?;
-            let handle = LoadImageW(
-                    module,
-                    IDI_APPLICATION,
-                    IMAGE_ICON,
-                    0,
-                    0,
-                    LR_DEFAULTSIZE | LR_SHARED,
-                )
-                .context("unable to load icon file")?;
-            Ok(HICON(handle.0))
+            data: data
         }
     }
 }

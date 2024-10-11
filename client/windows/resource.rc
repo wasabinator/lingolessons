@@ -1,0 +1,5 @@
+#define RT_MANIFEST 24
+1               RT_MANIFEST "lingolessons.exe.manifest"
+
+#define IDI_APPICON 100
+IDI_APPICON     ICON        "appicon.ico"

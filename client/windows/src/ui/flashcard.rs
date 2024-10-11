@@ -1,93 +1,36 @@
-use anyhow::{anyhow, Result};
-use windows::{
-    core::*,
-    Win32::{
-        Foundation::*,
-        Graphics::Gdi::*,
-        System::{Com::*, LibraryLoader::*, Ole::*, SystemServices::*},
-        UI::{Input::KeyboardAndMouse::*, Shell::*, WindowsAndMessaging::*},
-    },
-};
+use winsafe::{gui, prelude::*, POINT, SIZE};
+use winsafe::co::{CS, WS, WS_EX};
 
+#[derive(Clone)]
 pub struct FlashCard {
-    pub(super) window: HWND,
+    pub wnd:    gui::WindowModeless , // responsible for managing the window
+    //btn_hello:  gui::Button,     // a button
 }
 
 impl FlashCard {
-    const PROP_THIS: PCWSTR = w!("LingoLessons_This");
+    pub fn new(parent: &impl GuiParent) -> Self {
+        let wnd = gui::WindowModeless::new(
+            parent, // instantiate the window manager
+            gui::WindowModelessOpts {
+                position: (-100, 0),
+                size: (300, 150),
+                class_style: CS::HREDRAW | CS::VREDRAW,
+                style: WS::BORDER|WS::POPUP|WS::CLIPCHILDREN|WS::VISIBLE,
+                ex_style: WS_EX::TOPMOST|WS_EX::TOOLWINDOW, 
+                ..Default::default() // leave all other options as default
+            },
+        );
 
-    pub fn new(instance: HINSTANCE) -> Result<FlashCard> {
-        let class_name = Self::register_wnd_class(instance)?;
-        let window = unsafe { 
-            CreateWindowExW(
-                WS_EX_TOOLWINDOW,
-                class_name,
-                None,
-                WS_BORDER|WS_POPUP|WS_CLIPCHILDREN,
-                0, 0,
-                0, 0, None, None,
-                instance, None
-            ) 
-        }?;
-        let flash_card = FlashCard {
-            window: window
-        };
-        let this: *const FlashCard = &flash_card;
-        unsafe {
-            SetPropW(
-                window,
-                Self::PROP_THIS,
-                HANDLE(this as *mut _),
-            )?;
-        }
-        Ok(flash_card)
+        let new_self = Self { wnd };//, btn_hello };
+        new_self.events(); // attach our events
+        new_self
     }
 
-    pub fn get(window: HWND) -> Option<*mut FlashCard> {
-        unsafe {
-            let handle = GetPropW(
-                window,
-                Self::PROP_THIS,
-            );
-            if handle.is_invalid() {
-                None
-            } else {
-                Some(handle.0 as *mut FlashCard)
-            }
-        }
-    }
-
-    fn register_wnd_class(instance: HINSTANCE) -> Result<PCWSTR> {
-        const CLASS_NAME: PCWSTR = w!("LingoLessons_FlashCard");
-        unsafe {
-            let wnd_class = WNDCLASSW {
-                style: CS_HREDRAW | CS_VREDRAW,
-                lpfnWndProc: Some(wnd_proc),
-                hInstance: instance,
-                hCursor: LoadCursorW(None, IDC_ARROW)?,
-                lpszClassName: CLASS_NAME,
-                ..Default::default()
-            };
-            if RegisterClassW(&wnd_class) == 0 {
-                Err(anyhow!("Failed to register window class"))
-            } else {
-                Ok(CLASS_NAME)
-            }
-        }
-    }
-}
-
-unsafe extern "system" fn wnd_proc(
-    hwnd: HWND,
-    msg: u32,
-    wparam: WPARAM,
-    lparam: LPARAM,
-) -> LRESULT {
-    unsafe {
-        match FlashCard::get(hwnd) {
-            Some(_) => println!("Flashcard"),
-            None => println!("No flashcard")
-        }
-        DefWindowProcW(hwnd, msg, wparam, lparam)
+    fn events(&self) {
+        let wnd = self.wnd.clone(); // clone so it can be passed into the closure
+        self.wnd.on().wm_create(move |_| {
+            let _x = wnd.hwnd().MoveWindow(POINT::new(0, 0), SIZE::new(10, 10), false);
+            Ok(0)
+        });
     }
 }
