@@ -10,7 +10,7 @@ use winsafe::Shell_NotifyIcon;
 use winsafe::HINSTANCE;
 use winsafe::NOTIFYICONDATA;
 
-static TRAY_ICON: u32 = 1;
+pub(crate) static TRAY_ICON: u32 = 1;
 pub(crate) static WM_USER_TRAYICON: WM = unsafe { WM::from_raw(WM::USER.raw()) };
 
 pub(crate) struct Tray {

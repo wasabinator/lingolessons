@@ -1,6 +1,12 @@
-use winsafe::{gui::{self, WmRet}, prelude::*};
+use std::os::windows::raw::HANDLE;
 
-use super::tray::{Tray, WM_USER_TRAYICON};
+use winsafe::{co::{self, TPM, WM}, gui::{self, WmRet}, prelude::*, seq_ids, GetCursorPos, MenuItem, PostQuitMessage, HMENU};
+
+use super::tray::{Tray, TRAY_ICON, WM_USER_TRAYICON};
+
+seq_ids! {
+	MENU_EXIT = 2000u16;
+}
 
 #[derive(Clone)]
 pub struct MainWindow {
@@ -38,8 +44,24 @@ impl MainWindow {
             let _tray = Tray::new(&wnd.clone());
             Ok(0)
         });
-        self.wnd.on().wm(WM_USER_TRAYICON, move |_| {
-            println!("WM_USER_TRAYICON");
+        let wnd = self.wnd.clone();
+        self.wnd.on().wm(WM_USER_TRAYICON, move |msg| {
+            if msg.wparam as u32 == TRAY_ICON && msg.lparam as i32 == WM::RBUTTONDOWN.raw() as i32 {
+                let m = HMENU::CreatePopupMenu()?;
+                m.append_item(&[
+                    MenuItem::Separator,
+                    MenuItem::Entry(MENU_EXIT, "E&xit"),
+                ])?;
+                let pt= GetCursorPos()?;
+                if let Ok(Some(id)) = m.TrackPopupMenu(
+                    TPM::RETURNCMD | TPM::RIGHTBUTTON | TPM::TOPALIGN | TPM::LEFTALIGN,
+                    pt, wnd.hwnd()
+                ) {
+                    if (id == MENU_EXIT as i32) {
+                        PostQuitMessage(0);
+                    }
+                }
+            }
             Ok(WmRet::HandledOk)
         });
         let wnd = self.wnd.clone();
