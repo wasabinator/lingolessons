@@ -1,6 +1,6 @@
 use std::os::windows::raw::HANDLE;
 
-use winsafe::{co::{self, TPM, WM}, gui::{self, WmRet}, prelude::*, seq_ids, GetCursorPos, MenuItem, PostQuitMessage, HMENU};
+use winsafe::{co::{self, TPM, WM}, gui::{self, WmRet}, prelude::*, seq_ids, GetCursorPos, MenuItem, PostQuitMessage, HMENU, POINT};
 
 use super::tray::{Tray, TRAY_ICON, WM_USER_TRAYICON};
 
@@ -10,17 +10,34 @@ seq_ids! {
 
 #[derive(Clone)]
 pub struct MainWindow {
-    pub wnd:    gui::WindowMain, // responsible for managing the window
-    btn_hello:  gui::Button,     // a button
+    pub wnd:       gui::WindowMain, // responsible for managing the window
+    pub list_menu: gui::ListView,
+    btn_hello:     gui::Button,     // a button
 }
+
+const WIDTH: u32 = 640;
+const HEIGHT: u32 = 480;
+const MARGIN: u32 = 10;
+const MENU_WIDTH: u32 = 120;
 
 impl MainWindow {
     pub fn new() -> Self {
         let wnd = gui::WindowMain::new( // instantiate the window manager
             gui::WindowMainOpts {
                 title: "My window title".to_owned(),
-                size: (300, 150),
+                size: (WIDTH, HEIGHT),
+                style: gui::WindowMainOpts::default().style | co::WS::MINIMIZEBOX | co::WS::SIZEBOX,
                 ..Default::default() // leave all other options as default
+            },
+        );
+
+        let list_menu = gui::ListView::new(
+            &wnd,
+            gui::ListViewOpts {
+                position: (MARGIN as i32, MARGIN as i32),
+                size: (MENU_WIDTH, HEIGHT - MARGIN - MARGIN),
+                resize_behavior: (gui::Horz::None, gui::Vert::Resize),
+                ..Default::default()
             },
         );
 
@@ -33,7 +50,7 @@ impl MainWindow {
             },
         );
 
-        let new_self = Self { wnd, btn_hello };
+        let new_self = Self { wnd, list_menu, btn_hello };
         new_self.events(); // attach our events
         new_self
     }
@@ -63,6 +80,11 @@ impl MainWindow {
                 }
             }
             Ok(WmRet::HandledOk)
+        });
+        let wnd = self.wnd.clone();
+        self.wnd.on().wm_get_min_max_info(move |msg| {
+            msg.info.ptMinTrackSize = POINT::new(400, 200);
+            Ok(())
         });
         let wnd = self.wnd.clone();
         self.btn_hello.on().bn_clicked(move || {
