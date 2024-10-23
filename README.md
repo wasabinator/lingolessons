@@ -1,4 +1,6 @@
-[![Django CI](https://github.com/wasabinator/lingolessons/actions/workflows/django.yml/badge.svg)](https://github.com/wasabinator/lingolessons/actions/workflows/django.yml) [![Android CI](https://github.com/wasabinator/lingolessons/actions/workflows/android.yml/badge.svg)](https://github.com/wasabinator/lingolessons/actions/workflows/android.yml)
+[![Django CI](https://github.com/wasabinator/lingolessons/actions/workflows/django.yml/badge.svg)](https://github.com/wasabinator/lingolessons/actions/workflows/django.yml)
+[![Rust CI](https://github.com/wasabinator/lingolessons/actions/workflows/rust.yml/badge.svg)](https://github.com/wasabinator/lingolessons/actions/workflows/rust.yml)
+[![Android CI](https://github.com/wasabinator/lingolessons/actions/workflows/android.yml/badge.svg)](https://github.com/wasabinator/lingolessons/actions/workflows/android.yml)
 
 # LingoLessons
 Language education system
