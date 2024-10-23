@@ -1,0 +1,26 @@
+name: Rust CI
+
+on:
+  push:
+    paths:
+      - 'client/rust/**'
+      - '.github/workflows/rust.yml'
+    branches: [ "master" ]
+  pull_request:
+    paths:
+      - 'client/rust/**'
+      - '.github/workflows/rust.yml'
+    branches: [ "master" ]
+
+jobs:
+  build_and_test:
+    name: Rust project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: clechasseur/rs-cargo@v2
+        with:
+          command: build
+          working-directory: ./client/rust
+          #args: --debug --all-features
