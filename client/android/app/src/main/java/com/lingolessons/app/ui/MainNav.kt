@@ -6,7 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -16,6 +15,7 @@ import androidx.navigation.compose.composable
 import com.lingolessons.app.ui.common.AuthenticatedScreen
 import com.lingolessons.app.ui.profile.ProfileScreen
 import com.lingolessons.app.ui.profile.ProfileViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 enum class AppScreen {
     Profile,
@@ -33,7 +33,7 @@ fun MainNav(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
         composable(route = AppScreen.Profile.name) {
-            val viewModel = hiltViewModel<ProfileViewModel>()
+            val viewModel: ProfileViewModel = koinViewModel()
             AuthenticatedScreen(viewModel = viewModel) {
                 ProfileScreen(
                     viewModel = viewModel,
@@ -53,13 +53,14 @@ fun MainNav(
     }
 }
 
-@Composable
-inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
-    navController: NavController
-): T {
-    val navGraphRoute = destination.parent?.route ?: return hiltViewModel()
-    val parentEntry = remember(this) {
-        navController.getBackStackEntry(navGraphRoute)
-    }
-    return hiltViewModel(parentEntry)
-}
+
+//@Composable
+//inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
+//    navController: NavController
+//): T {
+//    val navGraphRoute = destination.parent?.route ?: return hiltViewModel()
+//    val parentEntry = remember(this) {
+//        navController.getBackStackEntry(navGraphRoute)
+//    }
+//    return koinViewModel(parentEntry)
+//}

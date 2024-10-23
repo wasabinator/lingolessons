@@ -10,10 +10,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
+import org.koin.core.context.GlobalContext.stopKoin
 
 abstract class BaseTest {
-    protected lateinit var scheduler: TestCoroutineScheduler
-    protected lateinit var dispatcher: TestDispatcher
+    private lateinit var scheduler: TestCoroutineScheduler
+    private lateinit var dispatcher: TestDispatcher
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
@@ -22,12 +23,14 @@ abstract class BaseTest {
         dispatcher = StandardTestDispatcher(scheduler)
         Dispatchers.setMain(dispatcher)
         setup()
+        advanceUntilIdle()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun after() {
         Dispatchers.resetMain()
+        stopKoin()
     }
 
     abstract fun setup()

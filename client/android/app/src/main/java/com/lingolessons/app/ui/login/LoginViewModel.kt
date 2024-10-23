@@ -5,15 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.shared.DomainException
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class LoginViewModel @Inject constructor(
+class LoginViewModel(
     private val domainState: DomainState
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())

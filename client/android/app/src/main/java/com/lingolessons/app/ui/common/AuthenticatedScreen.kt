@@ -3,9 +3,10 @@ package com.lingolessons.app.ui.common
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.lingolessons.app.ui.login.LoginScreen
 import com.lingolessons.shared.Session
+import com.lingolessons.ui.login.LoginViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AuthenticatedScreen(
@@ -17,7 +18,7 @@ fun AuthenticatedScreen(
     when (val currentState = state) {
         is Session.None -> {
             LoginScreen(
-                viewModel = hiltViewModel()
+                viewModel = koinViewModel<LoginViewModel>()
             )
         }
 

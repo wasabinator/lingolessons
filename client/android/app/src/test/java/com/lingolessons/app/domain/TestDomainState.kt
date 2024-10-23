@@ -20,17 +20,16 @@ class TestDomainState : BaseTest() {
             coEvery { getSession() } answers { currentSession }
         }
         domainState = DomainState(domain)
-        advanceUntilIdle()
     }
 
     @Test
-    fun expectOneRefreshOnInit() {
+    fun expectOneRefreshOnInit() = runTest {
         coVerify(exactly = 1) { domain.getSession() }
         assertTrue(domainState.state.value == Session.None)
     }
 
     @Test
-    fun expectRefreshWithUpdateTheStateFlow() {
+    fun expectRefreshWithUpdateTheStateFlow() = runTest {
         currentSession = Session.Authenticated("test user")
         domainState.refresh()
         advanceUntilIdle()
