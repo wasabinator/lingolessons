@@ -7,9 +7,9 @@ This is a multiplatform system, which is designed for you to self host via docke
 
 ### Server (Python Django)
 
-### Shared Client Domain + Data Library (cross platform Rust)
+### All Clients: Shared Domain + Data Library (cross platform Rust)
  
-### Android (Kotlin)
+### Android (Kotlin + Jetpack Compose)
 
 ### macOS & iOS (SwiftUI)
 
