@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [[ $1 == "if_not_exists" ]]; then
-  if [ -f ../android/app/build/rustJniLibs/android/arm64-v8a/libshared.so ] &&
-     [ -f ../android/app/build/rustJniLibs/android/x86_64/libshared.so ]; then
+  if [ -f ../android/app/src/main/jniLibs/android/arm64-v8a/libshared.so ] &&
+     [ -f ../android/app/src/main/jniLibs/android/x86_64/libshared.so ]; then
     echo "libshared.so already exists, skipping Rust compilation"
     exit 0
   fi
@@ -28,9 +28,8 @@ rm -rf ../android/app/build/generated-sources/shared/
 mkdir -p ../android/app/build/generated-sources/shared/
 cp -r target/uniffi/ ../android/app/build/generated-sources/shared/
 
-rm -rf ../android/app/build/rustJniLibs/android/
-mkdir -p ../android/app/build/rustJniLibs/android/arm64-v8a
-cp target/aarch64-linux-android/debug/libshared.so ../android/app/build/rustJniLibs/android/arm64-v8a/
-mkdir -p ../android/app/build/rustJniLibs/android/x86_64
-cp target/x86_64-linux-android/debug/libshared.so ../android/app/build/rustJniLibs/android/x86_64/
-
+rm -rf ../android/app/src/main/jniLibs/android/
+mkdir -p ../android/app/src/main/jniLibs/android/arm64-v8a
+cp target/aarch64-linux-android/debug/libshared.so ../android/app/src/main/jniLibs/android/arm64-v8a/
+mkdir -p ../android/app/src/main/jniLibs/android/x86_64
+cp target/x86_64-linux-android/debug/libshared.so ../android/app/src/main/jniLibs/android/x86_64/
