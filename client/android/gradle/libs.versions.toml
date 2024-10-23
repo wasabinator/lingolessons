@@ -8,11 +8,11 @@ uiTestJunit4Android = "1.7.4"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
 composeBom = "2024.10.00"
-cargo = "0.9.4"
 jna = "5.14.0"
 navigation = "2.8.3"
 mockk = "1.13.13"
 koin = "4.0.0"
+kover = "0.8.2"
 
 [libraries]
 androidx-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "uiTestJunit4Android" }
@@ -43,4 +43,4 @@ koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-view
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
-cargo-android = { id = "org.mozilla.rust-android-gradle.rust-android", version.ref = "cargo" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

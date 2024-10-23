@@ -1,9 +1,8 @@
-import java.util.Locale
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 val abiTargets = setOf("arm64-v8a", "x86_64")
@@ -104,6 +103,7 @@ kapt {
     correctErrorTypes = true
 }
 
+// Generation tasks for building the shared Rust lib plus bindings to interact with it
 tasks.register("generateUniFFIBindings") {
     doLast {
         exec {
@@ -119,6 +119,38 @@ tasks.whenTaskAdded {
         "compileDebugKotlin", "compileReleaseKotlin", "compileReleaseTestKotlin" -> {
             dependsOn("generateUniFFIBindings")
             mustRunAfter("generateUniFFIBindings")
+        }
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                packages(
+                    "*.db",
+                    "*.di",
+                    "*.generated.resources",
+                    "*.ui.theme",
+                )
+
+                classes(
+                    "*ComposableSingletons$*",
+                    "*_*Impl*",
+                    "*_*Provider*",
+                    "*AppKt*",
+                    "*MainKt*",
+                    "*TrayIcon*",
+                    "*Platform*",
+                    "*.MainActivity*",
+                    "*.Platform*",
+                    "*.AppDatabase*",
+                )
+
+                annotatedBy(
+                    "androidx.compose.ui.tooling.preview.Preview",
+                )
+            }
         }
     }
 }
