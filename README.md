@@ -3,7 +3,9 @@
 # lingolessons
 Language education system
 
-This is a multiplatform system, which is designed for you to self host via docker. It is comprised of the following platform components:
+This is a multiplatform system, which is designed for you to self host via docker. 
+
+It is comprised of the following platform components. The goal is for each target to be natively compiled into their respective executable format without external dependencies, utilising the native ui controls of each platform so that they have a native look & feel. Kotlin Multiplatform was first considered, but the results did not look native outside of Android, and also I was not comfortable with the fact that the desktop targets all required a JVM:
 
 ### Server (Python Django)
 
