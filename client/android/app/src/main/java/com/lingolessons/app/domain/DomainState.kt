@@ -1,6 +1,6 @@
 package com.lingolessons.app.domain
 
-import com.lingolessons.shared.Domain
+import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DomainState(
-    val domain: Domain
+    val domain: DomainInterface
 ) {
     private val _state = MutableStateFlow<Session>(Session.None)
     val state = _state.asStateFlow()
