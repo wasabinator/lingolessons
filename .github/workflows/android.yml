@@ -67,7 +67,7 @@ jobs:
       uses: mi-kas/kover-report@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        path: 'client/android/app/build/kover/reportDebug.xml'
+        path: 'client/android/app/build/reports/kover/reportDebug.xml'
         coverage-counter-type: LINE
 
     - name: Build with Gradle
