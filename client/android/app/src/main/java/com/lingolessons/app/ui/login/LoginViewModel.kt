@@ -53,10 +53,14 @@ class LoginViewModel(
                         )
                     }
                 } catch(e: DomainException) {
+                    val message = when {
+                        e is DomainException.Api -> e.v1
+                        else -> "Something went wrong"
+                    }
                     _state.update {
                         it.copy(
                             status = ScreenState.Status.Error(
-                                message = e.message ?: "Error, please try again",
+                                message = message,
                             ),
                         )
                     }
