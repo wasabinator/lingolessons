@@ -1,5 +1,6 @@
-package com.lingolessons.app.domain
+package com.lingolessons.app.di
 
+import com.lingolessons.app.domain.DomainState
 import com.lingolessons.shared.DomainBuilder
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module

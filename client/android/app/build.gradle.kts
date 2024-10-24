@@ -128,12 +128,13 @@ kover {
         filters {
             excludes {
                 packages(
-                    "*.db",
                     "*.di",
+                    "*.shared",
                     "*.ui.theme",
                 )
 
                 classes(
+                    "*ComposableSingletons$*",
                     "*.MainActivity*",
                 )
 

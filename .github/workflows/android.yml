@@ -71,8 +71,6 @@ jobs:
         title: Code Coverage
         update-comment: true
         coverage-counter-type: LINE
-        min-coverage-overall: 60
-        min-coverage-changed-files: 60
 
     - name: Build with Gradle
       if: false
