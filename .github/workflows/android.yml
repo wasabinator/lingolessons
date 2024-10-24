@@ -64,7 +64,7 @@ jobs:
 
     - name: Add coverage report
       id: kover
-      uses: mi-kas/kover-report@v1
+      uses: mi-kas/kover-report@v1.5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: 'client/android/app/build/reports/kover/reportDebug.xml'
