@@ -128,23 +128,14 @@ kover {
         filters {
             excludes {
                 packages(
-                    "*.db",
                     "*.di",
-                    "*.generated.resources",
+                    "*.shared",
                     "*.ui.theme",
                 )
 
                 classes(
                     "*ComposableSingletons$*",
-                    "*_*Impl*",
-                    "*_*Provider*",
-                    "*AppKt*",
-                    "*MainKt*",
-                    "*TrayIcon*",
-                    "*Platform*",
                     "*.MainActivity*",
-                    "*.Platform*",
-                    "*.AppDatabase*",
                 )
 
                 annotatedBy(
