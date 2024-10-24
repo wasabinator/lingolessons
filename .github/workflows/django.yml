@@ -9,7 +9,7 @@ on:
   pull_request:
     paths:
       - "server/**"
-      - '.github/workflows/**'
+      - '.github/workflows/django.yml'
     branches: [ "master" ]
 
 jobs:
