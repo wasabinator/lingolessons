@@ -130,21 +130,11 @@ kover {
                 packages(
                     "*.db",
                     "*.di",
-                    "*.generated.resources",
                     "*.ui.theme",
                 )
 
                 classes(
-                    "*ComposableSingletons$*",
-                    "*_*Impl*",
-                    "*_*Provider*",
-                    "*AppKt*",
-                    "*MainKt*",
-                    "*TrayIcon*",
-                    "*Platform*",
                     "*.MainActivity*",
-                    "*.Platform*",
-                    "*.AppDatabase*",
                 )
 
                 annotatedBy(
