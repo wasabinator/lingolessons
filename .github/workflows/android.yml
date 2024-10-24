@@ -68,7 +68,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: 'client/android/app/build/reports/kover/reportDebug.xml'
+        title: Code Coverage
+        update-comment: true
         coverage-counter-type: LINE
+        min-coverage-overall: 60
+        min-coverage-changed-files: 60
 
     - name: Build with Gradle
       if: false
