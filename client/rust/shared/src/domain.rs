@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use anyhow::Result;
 
 use uniffi::deps::log::info;
 
@@ -6,7 +7,7 @@ use crate::data::DataServiceProvider;
 
 pub mod auth;
 
-#[derive(Debug, PartialEq, thiserror::Error, uniffi::Error)]
+#[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {
     Unexpected(String),
     Database(String),
@@ -28,7 +29,7 @@ pub type DomainResult<T = ()> = Result<T, DomainError>;
 #[derive(uniffi::Object)]
 #[derive(Clone)]
 pub struct Domain {
-    provider: Arc<DataServiceProvider>
+    provider: Arc<DataServiceProvider>,
 }
 
 #[derive(uniffi::Object)]
@@ -93,13 +94,13 @@ impl Domain {
 }
 
 #[cfg(test)]
-pub(crate) fn fake_domain() -> Result<Domain, DomainError> {
+pub(crate) fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
     Ok(
         Domain {
             provider: Arc::new(DataServiceProvider::new(
-                "http://127.0.0.1:8000/api/v1/".to_string(),
-                "fake_path".to_string()
-            )?)
+                base_url,
+                "fake_path".to_string() // Unimportant path as not used with the in memory test db
+            )?),
         }
     )
 }
@@ -109,8 +110,9 @@ mod tests {
     use crate::domain::fake_domain;
 
     #[tokio::test]
-    async fn test() {
-        let domain = fake_domain();
+    async fn test_mock_ctor() {
+        let server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url());
         assert!(domain.is_ok());
     }
 }

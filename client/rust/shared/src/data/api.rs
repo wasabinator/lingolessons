@@ -1,6 +1,7 @@
 
 use reqwest::RequestBuilder;
 use concat_string::concat_string;
+use std::collections::HashMap;
 
 use crate::domain::{DomainError, DomainResult};
 
@@ -12,7 +13,7 @@ pub(crate) struct Api {
 impl From<reqwest::Error> for DomainError {
     #[inline]
     fn from(value: reqwest::Error) -> Self {
-        DomainError::Api(value.to_string())
+        DomainError::Api(format!("{:?}", value))
     }
 }
 
@@ -21,7 +22,7 @@ impl Api {
         let client = reqwest::Client::builder().build()?;
         Ok(Api {
             base_url: base_url,
-            client: client
+            client: client,
         })
     }
 

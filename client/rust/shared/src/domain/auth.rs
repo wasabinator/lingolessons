@@ -1,7 +1,6 @@
 use uniffi::deps::log::trace;
 
 use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
-//use async_compat::Compat;
 
 use super::DomainResult;
 
@@ -28,12 +27,14 @@ impl Auth for Domain {
     }
 
     async fn login(&self, username: String, password: String) -> DomainResult<Session> {
+        trace!("login");
         let manager = self.provider.session_manager.lock().await;
         let session = manager.login(username, password).await?;
         Ok(session)
     }
 
     async fn logout(&self) -> DomainResult<()> {
+        trace!("logout");
         let manager = self.provider.session_manager.lock().await;
         manager.logout().await?;
         Ok(())
@@ -47,19 +48,31 @@ pub(crate) struct SessionManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::domain::fake_domain;
+    use std::ops::DerefMut;
+
+    use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
 
     use super::*;
 
     #[tokio::test]
-    async fn test_callback() {
-        env_logger::init();
+    async fn test_login_success() {
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").unwrap();
 
-        let domain = fake_domain();
-        let binding = domain.unwrap();
-        let r = binding.login("admin".to_string(), "admin".to_string()).await;
-        let s = format!("{:?}", r.err());
-        println!("{}", s);
-        assert!(r.clone().is_ok());
+        server.deref_mut().mock_login_success();
+
+        let r = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_login_failure() {
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").unwrap();
+
+        server.deref_mut().mock_login_failure();
+
+        let r = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r.is_err());
     }
 }
