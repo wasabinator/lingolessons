@@ -49,7 +49,9 @@ jobs:
         uses: mikepenz/action-junit-report@main
         if: always() # always run even if the previous step fails
         with:
-          check_name: Test Report
+          check_name: Rust Test Report
           fail_on_failure: true
           require_tests: true
+          comment: true
           summary: ${{ steps.cargo_reporter.outputs.summary }}
+
