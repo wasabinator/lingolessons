@@ -53,11 +53,13 @@ jobs:
         ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     - name: Publish test report
-      uses: mikepenz/action-junit-report@v4
+      uses: mikepenz/action-junit-report@v5.0.0-a02
       with:
         check_name: 'Android Test Report'
         token: ${{ secrets.GITHUB_TOKEN }}
         report_paths: '**/build/test-results/testDebugUnitTest/TEST-*.xml'
+        comment: true
+        updateComment: true
 
     - name: Generate kover coverage report
       run: ./gradlew koverXmlReportDebug
@@ -68,7 +70,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: 'client/android/app/build/reports/kover/reportDebug.xml'
-        title: Code Coverage
+        title: Android Code Coverage
         update-comment: true
         coverage-counter-type: LINE
         min-coverage-overall: 70

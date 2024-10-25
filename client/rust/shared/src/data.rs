@@ -13,7 +13,7 @@ use crate::data::db::Db;
 use crate::{arc_mutex, ArcMutex};
 
 pub(crate) struct DataServiceProvider {
-    pub(super) session_manager: ArcMutex<SessionManager>
+    pub(super) session_manager: ArcMutex<SessionManager>,
 }
 
 impl DataServiceProvider {

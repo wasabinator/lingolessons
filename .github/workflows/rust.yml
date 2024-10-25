@@ -12,15 +12,46 @@ on:
       - '.github/workflows/rust.yml'
     branches: [ "master" ]
 
+# Make sure CI fails on all warnings, including Clippy lints
+env:
+  RUSTFLAGS: "-Dwarnings -C instrument-coverage=all"
+  
 jobs:
   build_and_test:
     name: Rust project
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client/rust
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - uses: clechasseur/rs-cargo@v2
+
+      - name: Install nightly toolchain
+        run: |
+          rustup update nightly
+          rustup default nightly
+          rustup component add clippy
+
+      - name: Run Clippy
+        run: cargo clippy --all-features
+
+      - name: Run tests
+        run: |
+          cargo +nightly test -- -Z unstable-options --format json --report-time | tee results.json
+
+      - name: Prepare junit report
+        id: cargo_reporter 
+        uses: innoq/action-cargo-test-report@v1
         with:
-          command: build
-          working-directory: ./client/rust
-          #args: --debug --all-features
+          cargo-test-report-json: './client/rust/results.json'
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@main
+        if: always() # always run even if the previous step fails
+        with:
+          check_name: Rust Test Report
+          fail_on_failure: true
+          require_tests: true
+          comment: true
+          summary: ${{ steps.cargo_reporter.outputs.summary }}
+

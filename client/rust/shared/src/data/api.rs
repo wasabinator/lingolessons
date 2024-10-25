@@ -12,7 +12,7 @@ pub(crate) struct Api {
 impl From<reqwest::Error> for DomainError {
     #[inline]
     fn from(value: reqwest::Error) -> Self {
-        DomainError::Api(value.to_string())
+        DomainError::Api(format!("{:?}", value))
     }
 }
 
@@ -20,8 +20,8 @@ impl Api {
     pub(super) fn new(base_url: String) -> DomainResult<Self> {
         let client = reqwest::Client::builder().build()?;
         Ok(Api {
-            base_url: base_url,
-            client: client
+            base_url,
+            client,
         })
     }
 

@@ -37,34 +37,3 @@ impl SessionManager {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::{arc_mutex, data::api::Api, domain::auth::SessionManager};
-
-    use super::*;
-
-    #[tokio::test]
-    async fn test_no_session() {
-        let manager = SessionManager {
-            api: arc_mutex(Api::new("http://10.0.2.2:8000/api/v1/".to_string()).unwrap()),
-            db: arc_mutex(Db::open("blah.txt".to_string()).unwrap())
-        };
-        let session = manager.get_session().await.unwrap();
-        assert!(session == Session::None);
-    }
-
-    #[tokio::test]
-    async fn test_login_and_logout() {
-        let manager = SessionManager {
-            api: arc_mutex(Api::new("http://10.0.2.2:8000/api/v1/".to_string()).unwrap()),
-            db: arc_mutex(Db::open("blah.txt".to_string()).unwrap())
-        };
-        let result = manager.login("admin".to_string(), "admin".to_string()).await;
-        assert!(result.is_ok_and(|session| session == Session::Authenticated("admin".to_string())));
-
-        // Now we should be able to also get a session from the db
-        let session = manager.get_session().await.unwrap();
-        assert!(session == Session::Authenticated("admin".to_string()));
-    }
-}

@@ -20,7 +20,7 @@ impl SettingDao for Db {
         self.connection.query_row(
             "SELECT value FROM setting WHERE key = ?;",
             [key.clone()],
-            |row| Ok(Setting { key: key, value: row.get(0)? })
+            |row| Ok(Setting { key, value: row.get(0)? })
         ).optional()
     }
 
