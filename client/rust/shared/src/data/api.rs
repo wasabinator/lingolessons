@@ -1,7 +1,6 @@
 
 use reqwest::RequestBuilder;
 use concat_string::concat_string;
-use std::collections::HashMap;
 
 use crate::domain::{DomainError, DomainResult};
 
@@ -21,8 +20,8 @@ impl Api {
     pub(super) fn new(base_url: String) -> DomainResult<Self> {
         let client = reqwest::Client::builder().build()?;
         Ok(Api {
-            base_url: base_url,
-            client: client,
+            base_url,
+            client,
         })
     }
 

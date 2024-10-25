@@ -40,6 +40,7 @@ pub struct DomainBuilder {
 }
 
 #[uniffi::export]
+#[allow(clippy::new_without_default)]
 impl DomainBuilder {
     #[uniffi::constructor]
     pub fn new() -> Self {
