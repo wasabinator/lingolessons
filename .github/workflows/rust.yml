@@ -26,11 +26,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Clippy
-        run: cargo clippy --all-features
-
       - name: Install nightly toolchain
         run: rustup update nightly && rustup default nightly
+
+      - name: Run Clippy
+        run: cargo clippy --all-features
 
       - name: Run tests
         run: |
