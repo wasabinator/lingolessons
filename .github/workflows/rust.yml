@@ -52,6 +52,6 @@ jobs:
           check_name: Rust Test Report
           fail_on_failure: true
           require_tests: true
-          comment: true
+          comment: ${{ github.event_name == 'pull_request' }}
           summary: ${{ steps.cargo_reporter.outputs.summary }}
 
