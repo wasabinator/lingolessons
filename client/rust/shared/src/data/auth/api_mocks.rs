@@ -12,19 +12,17 @@ pub(crate) trait TokenApiMocks {
 impl TokenApiMocks for Server {
     fn mock_login_success(&mut self) -> Mock {
         let r = LoginResponse { access: "a".to_string(), refresh: "b".to_string() };
-        let mock = self.mock("POST", "/jwt/create")
+        self.mock("POST", "/jwt/create")
             .with_status(200)
             .with_body(
                 serde_json::to_string(&r).unwrap()
             )
-            .create();
-        mock
+            .create()
     }
 
     fn mock_login_failure(&mut self) -> Mock {
-        let mock = self.mock("POST", "/jwt/create")
+        self.mock("POST", "/jwt/create")
             .with_status(403)
-            .create();
-        mock
+            .create()
     }
 }

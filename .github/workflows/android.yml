@@ -68,7 +68,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         path: 'client/android/app/build/reports/kover/reportDebug.xml'
-        title: Code Coverage
+        title: Android Code Coverage
         update-comment: true
         coverage-counter-type: LINE
         min-coverage-overall: 70
