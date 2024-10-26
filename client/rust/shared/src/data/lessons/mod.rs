@@ -1,4 +1,4 @@
-pub(super) mod manager;
+pub(super) mod repository;
 pub(super) mod db;
 pub(super) mod api;
 

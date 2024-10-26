@@ -7,6 +7,7 @@
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
 import datetime
+from uuid import uuid4
 
 import pytz
 from django.contrib.auth.models import User
@@ -37,7 +38,7 @@ class FactViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.Destroy
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):  # Swagger inspection won't pass a lesson_id
             return Fact.objects.none()
-        return Fact.objects.filter(lesson__id=int(self.kwargs['id'])).order_by('id')
+        return Fact.objects.filter(lesson__id=self.kwargs['id']).order_by('id')
 
 
 class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
