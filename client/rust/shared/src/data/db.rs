@@ -63,6 +63,11 @@ impl Db {
     }
 }
 
+/// Generic trait for a model that maps from a rusqlite Row
+pub(super) trait RowMapper<T> {
+    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<T>;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

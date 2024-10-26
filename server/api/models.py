@@ -7,6 +7,7 @@
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
 
+import uuid
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -25,7 +26,7 @@ class Language(models.Model):
 
 
 class Lesson(models.Model):
-    id = models.CharField(max_length=36, primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     owner = models.ForeignKey(User, related_name='lesson_owner', on_delete=models.CASCADE)
     language1 = models.ForeignKey(Language, related_name='language1', on_delete=models.CASCADE)
@@ -52,7 +53,7 @@ class Lesson(models.Model):
 
 
 class Fact(models.Model):
-    id = models.CharField(max_length=36, primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     element1 = models.CharField(max_length=255)
     element2 = models.CharField(max_length=255)

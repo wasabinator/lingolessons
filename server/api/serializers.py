@@ -35,6 +35,8 @@ class FactSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(read_only=True, slug_field='username')
+    language1 = serializers.SlugRelatedField(read_only=True, slug_field='code')
+    language2 = serializers.SlugRelatedField(read_only=True, slug_field='code')
 
     class Meta:
         model = Lesson

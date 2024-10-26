@@ -1,4 +1,5 @@
 pub(crate) mod auth;
+pub(crate) mod lessons;
 pub(crate) mod settings;
 pub(crate) mod db;
 pub(crate) mod api;
