@@ -1,22 +1,19 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
+use chrono::Utc;
 use mockito::{Mock, Server};
 use uuid::Uuid;
 
 use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
-pub(crate) trait LessonApiMocks {
+pub(crate) trait ApiMocks {
     fn mock_lessons(&mut self, count: u16) -> Mock;
     fn mock_lessons_failure(&mut self) -> Mock;
 }
 
 #[cfg(test)]
-impl LessonApiMocks for Server {
+impl ApiMocks for Server {
     fn mock_lessons(&mut self, count: u16) -> Mock {
-        let current_time = SystemTime::now();
-        let epoch_time = current_time.duration_since(UNIX_EPOCH).unwrap();
-        let millis = epoch_time.as_millis();
+        let epoc_time = Utc::now().timestamp();
 
         let lessons: Vec<LessonResponse> = (1..count).map(|i|
             LessonResponse {
@@ -26,7 +23,7 @@ impl LessonApiMocks for Server {
                 language1: 0,
                 language2: 0,
                 owner: "owner".to_string(),
-                updated_at: millis + (i as u128),
+                updated_at: epoc_time + (i as i64),
             }
         ).collect();
 
