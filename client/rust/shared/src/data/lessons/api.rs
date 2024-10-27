@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-//use crate::data::api::Api;
-
 #[derive(Serialize, Deserialize, Debug)]
 pub(super) struct LessonsResponse {
     pub count: u16,

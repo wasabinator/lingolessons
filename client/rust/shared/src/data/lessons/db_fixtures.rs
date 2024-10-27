@@ -1,17 +1,17 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use super::db::Lesson;
+use super::db::LessonData;
 
 pub(super) struct DbFixtures {
 }
 
 impl DbFixtures {
-    pub fn create_lessons(count: u16) -> Vec<Lesson> {
+    pub fn create_lessons(count: u16) -> Vec<LessonData> {
         let epoc_time = Utc::now().timestamp();
 
         (0..count).map(|i|
-            Lesson {
+            LessonData {
                 id: Uuid::new_v4(),
                 title: format!("Lesson {}", i),
                 r#type: 0,

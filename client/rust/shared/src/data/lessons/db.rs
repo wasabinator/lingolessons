@@ -1,9 +1,10 @@
-use crate::data::db::{Db, RowMapper};
+use crate::{data::db::Db, domain::lessons::{Lesson, LessonType}};
+use chrono::{TimeZone, Utc};
 use rusqlite::OptionalExtension;
 use uuid::Uuid;
 
 #[derive(PartialEq)]
-pub(super) struct Lesson {
+pub(super) struct LessonData {
     pub(super) id: Uuid,
     pub(super) title: String,
     pub(super) r#type: u8,
@@ -13,10 +14,11 @@ pub(super) struct Lesson {
     pub(super) updated_at: i64,
 }
 
-impl RowMapper<Lesson> for Lesson {
-    fn from_row(row: &rusqlite::Row) -> rusqlite::Result<Lesson> {
+impl TryFrom<&rusqlite::Row<'_>> for LessonData {
+    type Error = rusqlite::Error;
+    fn try_from(row: &rusqlite::Row) -> rusqlite::Result<LessonData> {
         Ok(
-            Lesson { 
+            LessonData { 
                 id: row.get(0)?, 
                 title: row.get(1)?, 
                 r#type: row.get(2)?,
@@ -29,15 +31,40 @@ impl RowMapper<Lesson> for Lesson {
     }
 }
 
+impl From<u8> for LessonType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Grammar,
+            _ => Self::Vocabulary
+        }
+    }
+}
+
+impl Into<Lesson> for LessonData {
+    fn into(self) -> Lesson {
+        let utc = Utc.timestamp_opt(self.updated_at, 0).unwrap();
+
+        Lesson {
+            id: self.id.into(),
+            title: self.title,
+            r#type: LessonType::from(self.r#type),
+            language1: self.language1,
+            language2: self.language2,
+            owner: self.owner,
+            updated_at: utc.into(),
+        }
+    }
+}
+
 pub(super) trait LessonDao {
-    fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<Lesson>>;
-    fn get_lessons(&self) -> rusqlite::Result<Vec<Lesson>>;
-    fn set_lesson(&self, lesson: &Lesson) -> rusqlite::Result<()>;
+    fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>>;
+    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>>;
+    fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()>;
     fn del_lesson(&self, id: Uuid) -> rusqlite::Result<()>;
 }
 
 impl LessonDao for Db {
-    fn get_lessons(&self) -> rusqlite::Result<Vec<Lesson>> {
+    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>> {
         let mut statement = self.connection.prepare(
             r#"
             SELECT id, title, type, language1, language2, owner, updated_at
@@ -47,7 +74,7 @@ impl LessonDao for Db {
         )?;
         let rows = statement.query_map(
             [],
-            |row| Lesson::from_row(row),
+            |row| LessonData::try_from(row),
         )?;
 
         let mut lessons = Vec::new();
@@ -58,17 +85,17 @@ impl LessonDao for Db {
         Ok(lessons)
     }
 
-    fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<Lesson>> {
+    fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>> {
         self.connection.query_row(
             r#"
             SELECT id, title, type, language1, language2, owner, updated_at
             FROM lesson WHERE id = ?;"#,
             [id],
-            |row| Lesson::from_row(row)
+            |row| LessonData::try_from(row)
         ).optional()
     }
 
-    fn set_lesson(&self, lesson: &Lesson) -> rusqlite::Result<()> {
+    fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()> {
         self.connection.execute(
             r#"
             INSERT OR REPLACE 
