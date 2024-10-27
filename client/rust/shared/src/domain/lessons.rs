@@ -49,3 +49,35 @@ impl Lessons for Domain {
         Ok(None) // TODO: Implement when client has a need to fetch lesson details
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::ops::DerefMut;
+
+    use crate::{data::lessons::api_mocks::LessonApiMocks, domain::fake_domain};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_lessons_success() {
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").unwrap();
+
+        server.deref_mut().mock_lessons_success(5);
+
+        let r = domain.get_lessons().await;
+        assert!(r.is_ok());
+        assert_eq!(5, r.unwrap().len());
+    }
+
+    #[tokio::test]
+    async fn test_get_lessons_failure() {
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").unwrap();
+
+        server.deref_mut().mock_lessons_failure();
+
+        let r = domain.get_lessons().await;
+        assert!(r.is_err());
+    }
+}

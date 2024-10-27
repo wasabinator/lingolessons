@@ -5,18 +5,17 @@ use uuid::Uuid;
 use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
-#[allow(dead_code)]
-pub(crate) trait ApiMocks {
-    fn mock_lessons(&mut self, count: u16) -> Mock;
+pub(crate) trait LessonApiMocks {
+    fn mock_lessons_success(&mut self, count: u16) -> Mock;
     fn mock_lessons_failure(&mut self) -> Mock;
 }
 
 #[cfg(test)]
-impl ApiMocks for Server {
-    fn mock_lessons(&mut self, count: u16) -> Mock {
+impl LessonApiMocks for Server {
+    fn mock_lessons_success(&mut self, count: u16) -> Mock {
         let epoc_time = Utc::now().timestamp();
 
-        let lessons: Vec<LessonResponse> = (1..count).map(|i|
+        let lessons: Vec<LessonResponse> = (0..count).map(|i|
             LessonResponse {
                 id: Uuid::new_v4(),
                 title: format!("Lesson {}", i),
