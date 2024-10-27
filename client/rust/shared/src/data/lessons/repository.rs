@@ -45,7 +45,7 @@ impl LessonRepository {
             // Save to the db
             for lesson in &lessons {
                 db.set_lesson(
-                    &lesson
+                    lesson
                 )?;
             }
 
