@@ -5,6 +5,7 @@ use uuid::Uuid;
 use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
+#[allow(dead_code)]
 pub(crate) trait ApiMocks {
     fn mock_lessons(&mut self, count: u16) -> Mock;
     fn mock_lessons_failure(&mut self) -> Mock;
@@ -19,9 +20,9 @@ impl ApiMocks for Server {
             LessonResponse {
                 id: Uuid::new_v4(),
                 title: format!("Lesson {}", i),
-                type_id: 0,
-                language1: 0,
-                language2: 0,
+                r#type: 0,
+                language1: "en".to_string(),
+                language2: "jp".to_string(),
                 owner: "owner".to_string(),
                 updated_at: epoc_time + (i as i64),
             }

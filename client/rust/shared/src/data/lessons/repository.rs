@@ -1,4 +1,20 @@
-use crate::{data::{api::Api, db::Db}, domain::lessons::LessonRepository, ArcMutex};
+use crate::{data::{api::Api, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, DomainError}, ArcMutex};
+
+use super::{api::LessonResponse, db::LessonData};
+
+impl From<LessonResponse> for LessonData {
+    fn from(lesson: LessonResponse) -> Self {
+        LessonData {
+            id: lesson.id,
+            title: lesson.title,
+            r#type: lesson.r#type,
+            language1: lesson.language1,
+            language2: lesson.language2,
+            owner: lesson.owner,
+            updated_at: lesson.updated_at,
+        }
+    }
+}
 
 impl LessonRepository {
     pub(in crate::data) fn new(api: ArcMutex<Api>, db: ArcMutex<Db>) -> Self {
@@ -8,29 +24,34 @@ impl LessonRepository {
         }
     }
 
-    // pub(crate) async fn get_session(&self) -> uniffi::Result<Session, DomainError> {
-    //     use super::db::TokenDao;
+    pub(crate) async fn get_lessons(&self) -> uniffi::Result<Vec<Lesson>, DomainError> {
+        use super::db::LessonDao;
 
-    //     let db = self.db.lock().await;
-    //     let state = db.get_token()?;
-    //     let session = state.map_or(Session::None, |token| Session::Authenticated(token.username));
-    //     Ok(session)
-    // }
+        let db = self.db.lock().await;
+        let lessons = db.get_lessons()?;
 
-    // pub(crate) async fn login(&self, username: String, password: String) -> uniffi::Result<Session, DomainError> {
-    //     use super::api::TokenApi;
-    //     use super::db::TokenDao;
+        if !lessons.is_empty() {
+            // Lessons have already been cached to the db
+            let lessons = lessons.iter().map(
+                Lesson::from
+            ).collect();
+            Ok(lessons)
+        } else {
+            // Try to fetch from the server
+            let api = self.api.lock().await;
+            let response = api.get_lessons().await?;
+            let lessons: Vec<LessonData> = response.results.into_iter().map(LessonData::from).collect();
 
-    //     let api = self.api.lock().await;
-    //     let session = api.login(username.clone(), password).await?;
-    //     let db = self.db.lock().await;
-    //     db.set_token(username.clone(), session.access, session.refresh)?;
-    //     uniffi::Result::Ok(Session::Authenticated(username))
-    // }
+            // Save to the db
+            for lesson in &lessons {
+                db.set_lesson(
+                    &lesson
+                )?;
+            }
 
-    // pub(crate) async fn logout(&self) -> uniffi::Result<(), DomainError> {
-    //     let db = self.db.lock().await;
-    //     db.del_token()?;
-    //     Ok(())
-    // }
+            // Now map to domain type
+            let domain = lessons.iter().map(Lesson::from).collect();
+            Ok(domain)
+        }
+    }
 }

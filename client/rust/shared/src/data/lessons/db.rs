@@ -40,26 +40,28 @@ impl From<u8> for LessonType {
     }
 }
 
-impl Into<Lesson> for LessonData {
-    fn into(self) -> Lesson {
-        let utc = Utc.timestamp_opt(self.updated_at, 0).unwrap();
+impl From<&LessonData> for Lesson {
+    fn from(lesson: &LessonData) -> Self {
+        let utc = Utc.timestamp_opt(lesson.updated_at, 0).unwrap();
 
         Lesson {
-            id: self.id.into(),
-            title: self.title,
-            r#type: LessonType::from(self.r#type),
-            language1: self.language1,
-            language2: self.language2,
-            owner: self.owner,
+            id: lesson.id.into(),
+            title: lesson.title.clone(),
+            r#type: LessonType::from(lesson.r#type),
+            language1: lesson.language1.clone(),
+            language2: lesson.language2.clone(),
+            owner: lesson.owner.clone(),
             updated_at: utc.into(),
         }
     }
 }
 
 pub(super) trait LessonDao {
+    #[allow(dead_code)] // Will be used in the future
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>>;
     fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>>;
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()>;
+    #[allow(dead_code)] // Will be used in the future
     fn del_lesson(&self, id: Uuid) -> rusqlite::Result<()>;
 }
 
@@ -148,7 +150,7 @@ mod tests {
         db.del_lesson(id).unwrap();
         let r = db.get_lesson(id).unwrap();
         assert!(r.is_none());
-        
+
         // Make sure we have 4 lessons left in the db
         let lessons = db.get_lessons().unwrap();
         assert_eq!(4, lessons.len());

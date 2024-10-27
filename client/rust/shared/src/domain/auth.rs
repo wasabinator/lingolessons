@@ -4,11 +4,18 @@ use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
 
 use super::DomainResult;
 
+/// Session domain model
 #[derive(uniffi::Enum, PartialEq)]
 #[derive(Clone)]
 pub enum Session {
     None,
     Authenticated(String),
+}
+
+/// Manager the domain requires for managing the session
+pub(crate) struct SessionManager {
+    pub(crate) api: ArcMutex<Api>,
+    pub(crate) db: ArcMutex<Db>,
 }
 
 pub trait Auth {
@@ -39,11 +46,6 @@ impl Auth for Domain {
         manager.logout().await?;
         Ok(())
     }
-}
-
-pub(crate) struct SessionManager {
-    pub(crate) api: ArcMutex<Api>,
-    pub(crate) db: ArcMutex<Db>,
 }
 
 #[cfg(test)]

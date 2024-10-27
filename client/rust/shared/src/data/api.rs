@@ -25,6 +25,11 @@ impl Api {
         })
     }
 
+    pub(super) fn get(&self, url: String) -> RequestBuilder {
+        self.client.get(concat_string!(self.base_url, url))
+            // TODO: .bearer_auth(token)
+    }
+
     pub(super) fn post(&self, url: String) -> RequestBuilder {
         self.client.post(concat_string!(self.base_url, url))
     }

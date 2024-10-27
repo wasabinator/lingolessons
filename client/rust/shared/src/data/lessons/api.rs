@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::data::api::Api;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub(super) struct LessonsResponse {
     pub count: u16,
@@ -13,9 +15,26 @@ pub(super) struct LessonsResponse {
 pub(super) struct LessonResponse {
     pub id: Uuid,
     pub title: String,
-    pub type_id: u8,
-    pub language1: u8,
-    pub language2: u8,
+    pub r#type: u8,
+    pub language1: String,
+    pub language2: String,
     pub owner: String,
     pub updated_at: i64,
 }
+
+pub(super) trait LessonsApi {
+    async fn get_lessons(&self) -> reqwest::Result<LessonsResponse>;
+}
+
+const LESSONS_URL: &str = "lessons";
+
+impl LessonsApi for Api {
+    async fn get_lessons(&self) -> reqwest::Result<LessonsResponse> {
+        let r = self.get(LESSONS_URL.to_string())
+            .send().await?
+            .json::<LessonsResponse>()
+            .await?;
+        Ok(r)
+    }
+}
+
