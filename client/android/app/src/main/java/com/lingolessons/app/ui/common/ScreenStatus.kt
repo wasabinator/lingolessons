@@ -7,7 +7,7 @@ interface ScreenState {
         data object None : Status()
         data object Busy : Status()
         data class Error(
-            val message: String,
+            val message: String? = null,
             val canRetry: Boolean = false,
         ) : Status()
     }

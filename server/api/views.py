@@ -15,6 +15,9 @@ from django.db.models.query_utils import Q
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated
+#from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Lesson, Fact
 from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
@@ -51,12 +54,18 @@ class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Upd
     }
     serializer_class = LessonSerializer
 
+    # TODO: Eventually allow querying of *public* lessons if signed out
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication, )
+
     def get_queryset(self):
         qs = Q()
 
         since = self.request.query_params.get('since', None)
         if since is not None:
             qs.add(Q(updated_at__gte=datetime.datetime.fromtimestamp(int(since), tz=pytz.UTC)), Q.AND)
+
+        # TODO: We need to filter on the user's logged in name OR the lesson is public
         owner = self.request.query_params.get('owner', None)
         if owner is not None:
             qs.add(Q(owner__username=owner), Q.AND)

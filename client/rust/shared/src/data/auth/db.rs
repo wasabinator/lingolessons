@@ -7,8 +7,8 @@ use rusqlite::OptionalExtension;
 #[allow(dead_code)]
 pub(super) struct Token {
     pub(super) username: String,
-    auth_token: String,
-    refresh_token: String,
+    pub(super) auth_token: String,
+    pub(super) refresh_token: String,
 }
 
 pub(super) trait TokenDao {

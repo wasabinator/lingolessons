@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::data::api::Api;
+use crate::data::api::AuthApi;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub(super) struct LessonsResponse {
@@ -28,13 +28,12 @@ pub(super) trait LessonsApi {
 
 const LESSONS_URL: &str = "lessons";
 
-impl LessonsApi for Api {
+impl LessonsApi for AuthApi {
     async fn get_lessons(&self) -> reqwest::Result<LessonsResponse> {
-        let r = self.get(LESSONS_URL.to_string())
+        let r = self.get(LESSONS_URL.to_string()).await
             .send().await?
             .json::<LessonsResponse>()
             .await?;
         Ok(r)
     }
 }
-

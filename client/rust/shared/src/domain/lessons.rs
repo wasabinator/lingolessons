@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use uniffi::deps::log::trace;
 
-use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
+use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
 use super::DomainResult;
 
@@ -26,7 +26,7 @@ pub enum LessonType {
 
 /// Repository the domain requires for getting and updating lessons
 pub(crate) struct LessonRepository {
-    pub(crate) api: ArcMutex<Api>,
+    pub(crate) api: ArcMutex<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
 }
 

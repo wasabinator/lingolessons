@@ -45,6 +45,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 // A rust-owned buffer is represented by its capacity, its current length, and a
 // pointer to the underlying data.
 
+/**
+ * @suppress
+ */
 @Structure.FieldOrder("capacity", "len", "data")
 open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
@@ -97,6 +100,8 @@ open class RustBuffer : Structure() {
  * Required for callbacks taking in an out pointer.
  *
  * Size is the sum of all values in the struct.
+ *
+ * @suppress
  */
 class RustBufferByReference : ByReference(16) {
     /**
@@ -131,16 +136,20 @@ class RustBufferByReference : ByReference(16) {
 // completeness.
 
 @Structure.FieldOrder("len", "data")
-open class ForeignBytes : Structure() {
+internal open class ForeignBytes : Structure() {
     @JvmField var len: Int = 0
     @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
-// The FfiConverter interface handles converter types to and from the FFI
-//
-// All implementing objects should be public to support external types.  When a
-// type is external we need to import it's FfiConverter.
+/**
+ * The FfiConverter interface handles converter types to and from the FFI
+ *
+ * All implementing objects should be public to support external types.  When a
+ * type is external we need to import it's FfiConverter.
+ *
+ * @suppress
+ */
 public interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
@@ -203,7 +212,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     }
 }
 
-// FfiConverter that uses `RustBuffer` as the FfiType
+/**
+ * FfiConverter that uses `RustBuffer` as the FfiType
+ *
+ * @suppress
+ */
 public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
@@ -246,7 +259,11 @@ internal open class UniffiRustCallStatus : Structure() {
 
 class InternalException(message: String) : kotlin.Exception(message)
 
-// Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+/**
+ * Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+ *
+ * @suppress
+ */
 interface UniffiRustCallStatusErrorHandler<E> {
     fun lift(error_buf: RustBuffer.ByValue): E;
 }
@@ -283,7 +300,11 @@ private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustC
     }
 }
 
-// UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+/**
+ * UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+ *
+ * @suppress
+ */
 object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
@@ -718,6 +739,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -741,6 +766,10 @@ internal interface UniffiLib : Library {
     ): Pointer
     fun uniffi_shared_fn_free_domain(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_shared_fn_method_domain_get_lesson(`ptr`: Pointer,`id`: RustBuffer.ByValue,
+    ): Long
+    fun uniffi_shared_fn_method_domain_get_lessons(`ptr`: Pointer,
+    ): Long
     fun uniffi_shared_fn_method_domain_get_session(`ptr`: Pointer,
     ): Long
     fun uniffi_shared_fn_method_domain_login(`ptr`: Pointer,`username`: RustBuffer.ByValue,`password`: RustBuffer.ByValue,
@@ -871,6 +900,10 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_shared_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_shared_checksum_method_domain_get_lesson(
+    ): Short
+    fun uniffi_shared_checksum_method_domain_get_lessons(
+    ): Short
     fun uniffi_shared_checksum_method_domain_get_session(
     ): Short
     fun uniffi_shared_checksum_method_domain_login(
@@ -902,6 +935,12 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_shared_checksum_method_domain_get_lesson() != 61168.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 60447.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_shared_checksum_method_domain_get_session() != 47455.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -988,6 +1027,9 @@ interface Disposable {
     }
 }
 
+/**
+ * @suppress
+ */
 inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
     try {
         block(this)
@@ -1000,9 +1042,16 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
+/** 
+ * Used to instantiate an interface without an actual pointer, for fakes in tests, mostly.
+ *
+ * @suppress
+ * */
 object NoPointer
 
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1054,6 +1103,49 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTimestamp: FfiConverterRustBuffer<java.time.Instant> {
+    override fun read(buf: ByteBuffer): java.time.Instant {
+        val seconds = buf.getLong()
+        // Type mismatch (should be u32) but we check for overflow/underflow below
+        val nanoseconds = buf.getInt().toLong()
+        if (nanoseconds < 0) {
+            throw java.time.DateTimeException("Instant nanoseconds exceed minimum or maximum supported by uniffi")
+        }
+        if (seconds >= 0) {
+            return java.time.Instant.EPOCH.plus(java.time.Duration.ofSeconds(seconds, nanoseconds))
+        } else {
+            return java.time.Instant.EPOCH.minus(java.time.Duration.ofSeconds(-seconds, nanoseconds))
+        }
+    }
+
+    // 8 bytes for seconds, 4 bytes for nanoseconds
+    override fun allocationSize(value: java.time.Instant) = 12UL
+
+    override fun write(value: java.time.Instant, buf: ByteBuffer) {
+        var epochOffset = java.time.Duration.between(java.time.Instant.EPOCH, value)
+
+        var sign = 1
+        if (epochOffset.isNegative()) {
+            sign = -1
+            epochOffset = epochOffset.negated()
+        }
+
+        if (epochOffset.nano < 0) {
+            // Java docs provide guarantee that nano will always be positive, so this should be impossible
+            // See: https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html
+            throw IllegalArgumentException("Invalid timestamp, nano value must be non-negative")
+        }
+
+        buf.putLong(sign * epochOffset.seconds)
+        // Type mismatch (should be u32) but since values will always be between 0 and 999,999,999 it should be OK
+        buf.putInt(epochOffset.nano)
     }
 }
 
@@ -1156,12 +1248,16 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 //
 
 
-// The cleaner interface for Object finalization code to run.
-// This is the entry point to any implementation that we're using.
-//
-// The cleaner registers objects and returns cleanables, so now we are
-// defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
-// different implmentations available at compile time.
+/**
+ * The cleaner interface for Object finalization code to run.
+ * This is the entry point to any implementation that we're using.
+ *
+ * The cleaner registers objects and returns cleanables, so now we are
+ * defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
+ * different implmentations available at compile time.
+ *
+ * @suppress
+ */
 interface UniffiCleaner {
     interface Cleanable {
         fun clean()
@@ -1216,6 +1312,10 @@ private class AndroidSystemCleanable(
     override fun clean() = cleanable.clean()
 }
 public interface DomainInterface {
+    
+    suspend fun `getLesson`(`id`: kotlin.String): Lesson?
+    
+    suspend fun `getLessons`(): List<Lesson>
     
     suspend fun `getSession`(): Session
     
@@ -1310,6 +1410,48 @@ open class Domain: Disposable, AutoCloseable, DomainInterface {
     
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getLesson`(`id`: kotlin.String) : Lesson? {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lesson(
+                thisPtr,
+                FfiConverterString.lower(`id`),
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_shared_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterOptionalTypeLesson.lift(it) },
+        // Error FFI converter
+        DomainException.ErrorHandler,
+    )
+    }
+
+    
+    @Throws(DomainException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getLessons`() : List<Lesson> {
+        return uniffiRustCallAsync(
+        callWithPointer { thisPtr ->
+            UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lessons(
+                thisPtr,
+                
+            )
+        },
+        { future, callback, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(future, callback, continuation) },
+        { future, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_complete_rust_buffer(future, continuation) },
+        { future -> UniffiLib.INSTANCE.ffi_shared_rust_future_free_rust_buffer(future) },
+        // lift function
+        { FfiConverterSequenceTypeLesson.lift(it) },
+        // Error FFI converter
+        DomainException.ErrorHandler,
+    )
+    }
+
+    
+    @Throws(DomainException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
     override suspend fun `getSession`() : Session {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
@@ -1379,6 +1521,9 @@ open class Domain: Disposable, AutoCloseable, DomainInterface {
     
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDomain: FfiConverter<Domain, Pointer> {
 
     override fun lower(value: Domain): Pointer {
@@ -1647,6 +1792,9 @@ open class DomainBuilder: Disposable, AutoCloseable, DomainBuilderInterface {
     
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDomainBuilder: FfiConverter<DomainBuilder, Pointer> {
 
     override fun lower(value: DomainBuilder): Pointer {
@@ -1669,6 +1817,61 @@ public object FfiConverterTypeDomainBuilder: FfiConverter<DomainBuilder, Pointer
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+/**
+ * Lesson domain model
+ */
+data class Lesson (
+    var `id`: kotlin.String, 
+    var `title`: kotlin.String, 
+    var `type`: LessonType, 
+    var `language1`: kotlin.String, 
+    var `language2`: kotlin.String, 
+    var `owner`: kotlin.String, 
+    var `updatedAt`: DateTime
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLesson: FfiConverterRustBuffer<Lesson> {
+    override fun read(buf: ByteBuffer): Lesson {
+        return Lesson(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeLessonType.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeDateTime.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Lesson) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`title`) +
+            FfiConverterTypeLessonType.allocationSize(value.`type`) +
+            FfiConverterString.allocationSize(value.`language1`) +
+            FfiConverterString.allocationSize(value.`language2`) +
+            FfiConverterString.allocationSize(value.`owner`) +
+            FfiConverterTypeDateTime.allocationSize(value.`updatedAt`)
+    )
+
+    override fun write(value: Lesson, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`title`, buf)
+            FfiConverterTypeLessonType.write(value.`type`, buf)
+            FfiConverterString.write(value.`language1`, buf)
+            FfiConverterString.write(value.`language2`, buf)
+            FfiConverterString.write(value.`owner`, buf)
+            FfiConverterTypeDateTime.write(value.`updatedAt`, buf)
     }
 }
 
@@ -1710,6 +1913,9 @@ sealed class DomainException: kotlin.Exception() {
     
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainException> {
     override fun read(buf: ByteBuffer): DomainException {
         
@@ -1772,6 +1978,42 @@ public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainExcepti
 
 
 
+/**
+ * Lesson type domain model
+ */
+
+enum class LessonType {
+    
+    VOCABULARY,
+    GRAMMAR;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeLessonType: FfiConverterRustBuffer<LessonType> {
+    override fun read(buf: ByteBuffer) = try {
+        LessonType.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: LessonType) = 4UL
+
+    override fun write(value: LessonType, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+/**
+ * Session domain model
+ */
 sealed class Session {
     
     object None : Session()
@@ -1787,6 +2029,9 @@ sealed class Session {
     companion object
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSession : FfiConverterRustBuffer<Session>{
     override fun read(buf: ByteBuffer): Session {
         return when(buf.getInt()) {
@@ -1830,6 +2075,76 @@ public object FfiConverterTypeSession : FfiConverterRustBuffer<Session>{
 }
 
 
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeLesson: FfiConverterRustBuffer<Lesson?> {
+    override fun read(buf: ByteBuffer): Lesson? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeLesson.read(buf)
+    }
+
+    override fun allocationSize(value: Lesson?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeLesson.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Lesson?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeLesson.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeLesson: FfiConverterRustBuffer<List<Lesson>> {
+    override fun read(buf: ByteBuffer): List<Lesson> {
+        val len = buf.getInt()
+        return List<Lesson>(len) {
+            FfiConverterTypeLesson.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Lesson>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeLesson.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Lesson>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeLesson.write(it, buf)
+        }
+    }
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias DateTime = java.time.Instant
+public typealias FfiConverterTypeDateTime = FfiConverterTimestamp
 
 
 

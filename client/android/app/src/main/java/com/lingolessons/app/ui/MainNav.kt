@@ -13,6 +13,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.lingolessons.app.ui.common.AuthenticatedScreen
+import com.lingolessons.app.ui.lessons.LessonsScreen
+import com.lingolessons.app.ui.lessons.LessonsViewModel
 import com.lingolessons.app.ui.profile.ProfileScreen
 import com.lingolessons.app.ui.profile.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,9 +48,12 @@ fun MainNav(
 //            }
         }
         composable(route = AppScreen.Lessons.name) {
-//            AuthenticatedScreen {
-//                LessonsScreen()
-//            }
+            val viewModel: LessonsViewModel = koinViewModel()
+            AuthenticatedScreen(viewModel = viewModel) {
+                LessonsScreen(
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }

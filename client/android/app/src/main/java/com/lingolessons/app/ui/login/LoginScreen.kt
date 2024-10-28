@@ -55,7 +55,7 @@ fun LoginScreen(
 
 @Composable
 fun LoginScreen(
-    state: LoginViewModel.LoginState,
+    state: LoginViewModel.State,
     updateUsername: (String) -> Unit,
     updatePassword: (String) -> Unit,
     login: () -> Unit,

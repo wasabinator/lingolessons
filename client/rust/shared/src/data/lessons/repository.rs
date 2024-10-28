@@ -1,4 +1,4 @@
-use crate::{data::{api::Api, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, DomainError}, ArcMutex};
+use crate::{data::{api::AuthApi, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, DomainError}, ArcMutex};
 
 use super::{api::LessonResponse, db::LessonData};
 
@@ -17,10 +17,13 @@ impl From<LessonResponse> for LessonData {
 }
 
 impl LessonRepository {
-    pub(in crate::data) fn new(api: ArcMutex<Api>, db: ArcMutex<Db>) -> Self {
+    pub(in crate::data) fn new(
+        api: ArcMutex<AuthApi>, 
+        db: ArcMutex<Db>, 
+    ) -> Self {
         LessonRepository {
             api: api.clone(),
-            db: db.clone()
+            db: db.clone(),
         }
     }
 
@@ -29,6 +32,7 @@ impl LessonRepository {
 
         let db = self.db.lock().await;
         let lessons = db.get_lessons()?;
+        drop(db);
 
         if !lessons.is_empty() {
             // Lessons have already been cached to the db
@@ -41,6 +45,8 @@ impl LessonRepository {
             let api = self.api.lock().await;
             let response = api.get_lessons().await?;
             let lessons: Vec<LessonData> = response.results.into_iter().map(LessonData::from).collect();
+
+            let db = self.db.lock().await;
 
             // Save to the db
             for lesson in &lessons {

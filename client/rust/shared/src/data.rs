@@ -6,7 +6,7 @@ pub(crate) mod api;
 
 use std::result::Result;
 
-use api::Api;
+use api::{Api, AuthApi};
 
 use crate::domain::auth::SessionManager;
 use crate::domain::lessons::LessonRepository;
@@ -26,10 +26,11 @@ impl DataServiceProvider {
     ) -> Result<DataServiceProvider, DomainError> {
         let api = arc_mutex(Api::new(base_url)?);
         let db = arc_mutex(Db::open(data_path)?);
-        let session_manager = SessionManager::new(api.clone(), db.clone());
-        let lesson_repository = LessonRepository::new(api.clone(), db.clone());
+        let session_manager = arc_mutex(SessionManager::new(api.clone(), db.clone()));
+        let auth_api = arc_mutex(AuthApi::new(api.clone(), session_manager.clone()));
+        let lesson_repository = LessonRepository::new(auth_api.clone(), db.clone());
         Ok(Self {
-            session_manager: arc_mutex(session_manager),
+            session_manager: session_manager,
             lesson_repository: arc_mutex(lesson_repository),
         })
     }
