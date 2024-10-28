@@ -32,7 +32,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user123")
         advanceUntilIdle()
         assertEquals(
-            LoginViewModel.LoginState(username = "user123", enabled = false),
+            LoginViewModel.State(username = "user123", enabled = false),
             viewModel.state.value
         )
     }
@@ -42,7 +42,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updatePassword("pass")
         advanceUntilIdle()
         assertEquals(
-            LoginViewModel.LoginState(password = "pass", enabled = false),
+            LoginViewModel.State(password = "pass", enabled = false),
             viewModel.state.value
         )
     }
@@ -52,7 +52,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
         assertEquals(
-            LoginViewModel.LoginState(username = "user1234", password = "pass", enabled = true),
+            LoginViewModel.State(username = "user1234", password = "pass", enabled = true),
             viewModel.state.value
         )
     }
@@ -68,7 +68,7 @@ class LoginViewModelTest : BaseTest() {
 
         viewModel.login()
 
-        val expectedState = LoginViewModel.LoginState(
+        val expectedState = LoginViewModel.State(
             username = "user1234",
             password = "pass",
             enabled = true,
@@ -104,7 +104,7 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         assertEquals(
-            LoginViewModel.LoginState(
+            LoginViewModel.State(
                 username = "user1234",
                 password = "pass",
                 enabled = true,

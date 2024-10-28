@@ -30,7 +30,7 @@ schema_view = get_schema_view(
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'lessons/', LessonViewSet, basename='LessonView')
+router.register(r'lessons', LessonViewSet, basename='LessonView')
 router.register(r'lesson/(?P<id>[\w-]+)/facts', FactViewSet, basename='LessonFactView')
 
 urlpatterns = [

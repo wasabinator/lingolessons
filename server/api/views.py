@@ -7,6 +7,7 @@
 #  You should have received a copy of the GNU General Public License along with LingoLessons.
 #  If not, see <https://www.gnu.org/licenses/>.
 import datetime
+from uuid import uuid4
 
 import pytz
 from django.contrib.auth.models import User
@@ -14,6 +15,9 @@ from django.db.models.query_utils import Q
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated
+#from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Lesson, Fact
 from .serializers import UserSerializer, LessonSerializer, LessonDetailSerializer, FactSerializer
@@ -37,7 +41,7 @@ class FactViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.Destroy
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):  # Swagger inspection won't pass a lesson_id
             return Fact.objects.none()
-        return Fact.objects.filter(lesson__id=int(self.kwargs['id'])).order_by('id')
+        return Fact.objects.filter(lesson__id=self.kwargs['id']).order_by('id')
 
 
 class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
@@ -50,12 +54,18 @@ class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Upd
     }
     serializer_class = LessonSerializer
 
+    # TODO: Eventually allow querying of *public* lessons if signed out
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication, )
+
     def get_queryset(self):
         qs = Q()
 
         since = self.request.query_params.get('since', None)
         if since is not None:
             qs.add(Q(updated_at__gte=datetime.datetime.fromtimestamp(int(since), tz=pytz.UTC)), Q.AND)
+
+        # TODO: We need to filter on the user's logged in name OR the lesson is public
         owner = self.request.query_params.get('owner', None)
         if owner is not None:
             qs.add(Q(owner__username=owner), Q.AND)

@@ -6,6 +6,7 @@ use uniffi::deps::log::info;
 use crate::data::DataServiceProvider;
 
 pub mod auth;
+pub mod lessons;
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {

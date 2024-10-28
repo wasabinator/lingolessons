@@ -24,9 +24,9 @@ cargo build --target x86_64-linux-android \
   --config "target.x86_64-linux-android.rustflags=\"-L${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/ -lstatic=clang_rt.builtins-x86_64-android -llog\"" \
   --config "target.x86_64-linux-android.linker=\"${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android30-clang\""
 
-rm -rf ../android/app/build/generated-sources/shared/
-mkdir -p ../android/app/build/generated-sources/shared/
-cp -r target/uniffi/ ../android/app/build/generated-sources/shared/
+rm -rf ../android/app/src/main/java/com/lingolessons/shared/
+mkdir -p ../android/app/src/main/java/com/lingolessons/shared/
+cp -r target/uniffi/com/lingolessons/shared/* ../android/app/src/main/java/com/lingolessons/shared/
 
 rm -rf ../android/app/src/main/jniLibs/android/
 mkdir -p ../android/app/src/main/jniLibs/android/arm64-v8a

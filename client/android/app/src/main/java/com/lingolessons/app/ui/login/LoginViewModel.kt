@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(
     private val domainState: DomainState
 ) : ViewModel() {
-    private val _state = MutableStateFlow(LoginState())
+    private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
     fun updateUsername(username: String) {
@@ -79,7 +79,7 @@ class LoginViewModel(
         }
     }
 
-    data class LoginState(
+    data class State(
         val username: String = "",
         val password: String = "",
         val enabled: Boolean = false,

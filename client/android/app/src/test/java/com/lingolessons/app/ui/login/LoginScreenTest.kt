@@ -13,7 +13,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalTestApi::class)
 class LoginScreenTest : BaseUiTest() {
-    private lateinit var state: MutableStateFlow<LoginState>
+    private lateinit var state: MutableStateFlow<State>
 
     private lateinit var updateUsername: MockMethod
     private lateinit var updatePassword: MockMethod
@@ -21,14 +21,14 @@ class LoginScreenTest : BaseUiTest() {
     private lateinit var dismissDialog: MockMethod
 
     override fun setup() {
-        state = MutableStateFlow(LoginState())
+        state = MutableStateFlow(State())
         updateUsername = mockMethod()
         updatePassword = mockMethod()
         login = mockMethod()
         dismissDialog = mockMethod()
     }
 
-    private fun ComposeUiTest.setContent(state: LoginState) {
+    private fun ComposeUiTest.setContent(state: State) {
         setContent {
             LoginScreen(
                 state = state,
@@ -42,7 +42,7 @@ class LoginScreenTest : BaseUiTest() {
 
     @Test
     fun expectScreenToBeEmptyWhenStateIsEmpty() = runComposeUiTest {
-        setContent(LoginState())
+        setContent(State())
 
         onNodeWithTag("username").assertExists() // TODO
     }

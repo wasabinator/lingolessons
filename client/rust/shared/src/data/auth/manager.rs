@@ -1,3 +1,5 @@
+use reqwest::RequestBuilder;
+
 use crate::{data::{api::Api, db::Db}, domain::{auth::SessionManager, DomainError}, ArcMutex};
 use crate::domain::auth::Session;
 
@@ -35,5 +37,19 @@ impl SessionManager {
         let db = self.db.lock().await;
         db.del_token()?;
         Ok(())
+    }
+
+    pub(crate) async fn decorate(&self, builder: RequestBuilder) -> RequestBuilder {
+        let db = self.db.lock().await;
+        match db.get_token() {
+            Ok(session) => match session {
+                Some(token) => builder.bearer_auth(token.auth_token),
+                None => builder
+            },
+            Err(e) => {
+                print!("{:?}", e);
+                builder
+            }
+        }
     }
 }
