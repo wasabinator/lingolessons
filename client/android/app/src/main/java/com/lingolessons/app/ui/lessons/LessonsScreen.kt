@@ -23,8 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lingolessons.app.R
+import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
+import com.lingolessons.shared.LessonType
 
 @Composable
 fun LessonsScreen(
@@ -53,7 +59,7 @@ fun LessonsScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("Lessons")
+                    Text(stringResource(R.string.feature_lessons))
                 }
             )
         }
@@ -66,18 +72,18 @@ fun LessonsScreen(
         ) {
             when {
                 state.isBusy -> {
-                    Text("Loading lessons")
+                    Text(stringResource(R.string.text_loading))
                 }
 
                 state.isError -> {
-                    Text("Error loading lessons")
+                    Text(stringResource(R.string.text_error))
                 }
 
                 else -> {
                     if (state.lessons.isNotEmpty()) {
                         LessonList(state.lessons)
                     } else {
-                        Text("No lessons found")
+                        Text(stringResource(R.string.feature_lessons_none))
                     }
                 }
             }
@@ -102,7 +108,7 @@ private fun LessonList(lessons: List<Lesson>) {
                     .padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("You have ${lessons.count()} lessons available to study")
+                Text(pluralStringResource(R.plurals.feature_lessons_total, lessons.count()))
             }
         }
         items(lessons) {
@@ -122,4 +128,36 @@ private fun LessonList(lessons: List<Lesson>) {
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun LessonsScreen_Empty_Preview() {
+    LessonsScreen(
+        state = LessonsViewModel.State(),
+        onLessonSelected = {},
+        onRefresh = {},
+    )
+}
+
+@Composable
+@Preview
+fun LessonsScreen_List_Preview() {
+    LessonsScreen(
+        state = LessonsViewModel.State(
+            lessons = listOf(
+                Lesson(
+                    id = "",
+                    title = "",
+                    type = LessonType.GRAMMAR,
+                    language1 = "",
+                    language2 = "",
+                    owner = "owner",
+                    updatedAt = DateTime.now(),
+                )
+            )
+        ),
+        onLessonSelected = {},
+        onRefresh = {},
+    )
 }
