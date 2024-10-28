@@ -12,4 +12,19 @@
     // Errors
     <string name="error_connection">Could not connect to the server. Please check your connection and try again.</string>
     <string name="error_other">Something went wrong. Please try again later.</string>
+    <string name="feature_profile">Profile</string>
+    <string name="feature_study">Study</string>
+    <string name="feature_lessons">Lessons</string>
+    <string name="title_error">Error</string>
+    <string name="text_loading">Loading</string>
+    <string name="text_error">Error</string>
+    <string name="feature_lessons_none">No lessons found</string>
+    <string name="btn_login">Login</string>
+    <string name="btn_logout">Logout</string>
+    <string name="btn_ok">OK</string>
+    <plurals name="feature_lessons_total">
+        <item quantity="zero">You have no lessons available to study</item>
+        <item quantity="one">You have one lesson available to study</item>
+        <item quantity="other">You have %1$s lessons available to study</item>
+    </plurals>
 </resources>

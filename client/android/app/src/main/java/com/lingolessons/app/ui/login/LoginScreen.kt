@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -62,7 +63,9 @@ fun LoginScreen(
     dismissDialog: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.background)
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
         Box(modifier = Modifier.weight(0.2f)) {}
         Column(
@@ -80,7 +83,9 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                modifier = Modifier.padding(bottom = 16.dp).testTag("username"),
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .testTag("username"),
                 value = state.username,
                 onValueChange = updateUsername,
                 placeholder = { Text(stringResource(id = R.string.username)) },
@@ -89,7 +94,9 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                modifier = Modifier.padding(bottom = 24.dp).testTag("password"),
+                modifier = Modifier
+                    .padding(bottom = 24.dp)
+                    .testTag("password"),
                 value = state.password,
                 onValueChange = updatePassword,
                 placeholder = { Text(stringResource(id = R.string.password)) },
@@ -104,7 +111,7 @@ fun LoginScreen(
                 onClick = login,
             ) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    Text("Login")
+                    Text(stringResource(R.string.btn_login))
                 }
             }
         }
@@ -113,13 +120,13 @@ fun LoginScreen(
         if (state.isError) {
             AlertDialog(
                 onDismissRequest = dismissDialog,
-                title = { Text("Error") },
+                title = { Text(stringResource(R.string.title_error)) },
                 text = { Text(state.errorMessage!!) },
                 confirmButton = {
                     Button(
                         onClick = dismissDialog
                     ) {
-                        Text("OK")
+                        Text(stringResource(R.string.btn_ok))
                     }
                 }
             )
@@ -144,4 +151,16 @@ fun LoginScreen(
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun LoginScreenPreview() {
+    LoginScreen(
+        state = LoginViewModel.State(),
+        updateUsername = {},
+        updatePassword = {},
+        login = {},
+        dismissDialog = {},
+    )
 }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
@@ -80,7 +81,9 @@ fun MainScreen(
                 )
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)) {
                 mainNav()
             }
         }
@@ -102,10 +105,12 @@ fun DrawerNavigation(
                     tint = drawerIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Profile") },
+            label = { Text(stringResource(R.string.feature_profile)) },
             selected = currentScreen == AppScreen.Profile,
             onClick = { onClick(AppScreen.Profile) },
-            modifier = Modifier.padding(horizontal = 12.dp).testTag("profile")
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .testTag("profile")
         )
         NavigationDrawerItem(
             icon = {
@@ -115,10 +120,12 @@ fun DrawerNavigation(
                     tint = drawerIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Study") },
+            label = { Text(stringResource(R.string.feature_study)) },
             selected = currentScreen == AppScreen.Study,
             onClick = { onClick(AppScreen.Study) },
-            modifier = Modifier.padding(horizontal = 12.dp).testTag("study")
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .testTag("study")
         )
         NavigationDrawerItem(
             icon = {
@@ -127,10 +134,12 @@ fun DrawerNavigation(
                     contentDescription = "",
                     tint = drawerIconColor(currentScreen == AppScreen.Study)
                 )
-            }, label = { Text("Lessons") },
+            }, label = { Text(stringResource(R.string.feature_lessons)) },
             selected = currentScreen == AppScreen.Lessons,
             onClick = { onClick(AppScreen.Lessons) },
-            modifier = Modifier.padding(horizontal = 12.dp).testTag("lessons")
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .testTag("lessons")
         )
     }
 }
@@ -157,7 +166,7 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Profile") },
+            label = { Text(stringResource(R.string.feature_profile)) },
             modifier = Modifier.testTag("profile"),
         )
         NavigationBarItem(
@@ -171,7 +180,7 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Study") },
+            label = { Text(stringResource(R.string.feature_study)) },
             modifier = Modifier.testTag("study"),
         )
         NavigationBarItem(
@@ -185,7 +194,7 @@ fun BottomNavigationBar(
                     tint = navBarIconColor(currentScreen == AppScreen.Study)
                 )
             },
-            label = { Text("Lessons") },
+            label = { Text(stringResource(R.string.feature_lessons)) },
             modifier = Modifier.testTag("lessons"),
         )
     }
