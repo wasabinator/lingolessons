@@ -28,10 +28,10 @@ impl DataServiceProvider {
         let db = arc_mutex(Db::open(data_path)?);
         let session_manager = arc_mutex(SessionManager::new(api.clone(), db.clone()));
         let auth_api = arc_mutex(AuthApi::new(api.clone(), session_manager.clone()));
-        let lesson_repository = LessonRepository::new(auth_api.clone(), db.clone());
+        let lesson_repository = arc_mutex(LessonRepository::new(auth_api.clone(), db.clone()));
         Ok(Self {
-            session_manager: session_manager,
-            lesson_repository: arc_mutex(lesson_repository),
+            session_manager,
+            lesson_repository,
         })
     }
 }
