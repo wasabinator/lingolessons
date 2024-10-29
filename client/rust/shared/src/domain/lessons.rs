@@ -63,11 +63,23 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         let domain = fake_domain(server.url() + "/").unwrap();
 
-        server.deref_mut().mock_lessons_success(5);
+        server.deref_mut().mock_lessons_success(5, 0);
 
         let r = domain.get_lessons().await;
         assert!(r.is_ok());
         assert_eq!(5, r.unwrap().len());
+    }
+
+    #[tokio::test]
+    async fn test_get_lessons_doesnt_persist_deleted_items() {
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").unwrap();
+
+        server.deref_mut().mock_lessons_success(5, 1);
+
+        let r = domain.get_lessons().await;
+        assert!(r.is_ok());
+        assert_eq!(4, r.unwrap().len());
     }
 
     #[tokio::test]

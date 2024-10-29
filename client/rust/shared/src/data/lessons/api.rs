@@ -19,6 +19,7 @@ pub(super) struct LessonResponse {
     pub language1: String,
     pub language2: String,
     pub owner: String,
+    pub is_deleted: bool,
     pub updated_at: i64,
 }
 
