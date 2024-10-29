@@ -8,4 +8,4 @@ To launch a developer instance of the service, please use docker with server as 
 docker compose up
 ```
 
-This will start to service listening on localhost:8080.
+This will start to service listening on localhost:8000.
