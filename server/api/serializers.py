@@ -40,7 +40,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'type', 'language1', 'language2', 'owner']
+        fields = ['id', 'title', 'type', 'language1', 'language2', 'owner', 'is_deleted']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

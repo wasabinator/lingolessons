@@ -55,11 +55,9 @@ class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Upd
     serializer_class = LessonSerializer
     authentication_classes = (JWTAuthentication, )
 
-    def destroy(self, request, *args, **kwargs):
-        lesson = self.get_object()
-        lesson.is_deleted = True
-        lesson.save()
-        return Response(data='delete success')
+    def perform_destroy(self, instance):
+         instance.is_deleted = True
+         instance.save()
 
     def get_queryset(self):
         qs = Q()
