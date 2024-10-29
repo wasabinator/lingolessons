@@ -19,6 +19,7 @@ The system is made up of the following components:
 - Client Applications
 
   - Android
+    See [developing](client/android/DEVELOPING.md)
   - macOS & iOS
   - Linux
   - Windows
