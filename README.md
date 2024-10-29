@@ -13,6 +13,8 @@ The system is made up of the following components:
 - Server
   
   The intention will be for it to be possible to self-host either directly or via a Docker container.
+  
+  See [installation](server/INSTALLATION.md)
 
 - Client Applications
 
