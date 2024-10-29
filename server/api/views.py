@@ -53,10 +53,13 @@ class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Upd
         # ... other actions
     }
     serializer_class = LessonSerializer
-
-    # TODO: Eventually allow querying of *public* lessons if signed out
-    permission_classes = (IsAuthenticated,)
     authentication_classes = (JWTAuthentication, )
+
+    def destroy(self, request, *args, **kwargs):
+        lesson = self.get_object()
+        lesson.is_deleted = True
+        lesson.save()
+        return Response(data='delete success')
 
     def get_queryset(self):
         qs = Q()
@@ -65,15 +68,17 @@ class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Upd
         if since is not None:
             qs.add(Q(updated_at__gte=datetime.datetime.fromtimestamp(int(since), tz=pytz.UTC)), Q.AND)
 
-        # TODO: We need to filter on the user's logged in name OR the lesson is public
-        owner = self.request.query_params.get('owner', None)
-        if owner is not None:
-            qs.add(Q(owner__username=owner), Q.AND)
+        owner = getattr(self.request.user, 'username', None)
 
-        if len(qs) == 0:
-            return Lesson.objects.all().order_by('-updated_at')
-        else:
-            return Lesson.objects.filter(qs).order_by('-updated_at')
+        # Filter on the user's logged in name OR the lesson is public
+        q = Q()
+        if owner is not None:
+            q.add(Q(owner__username=owner), Q.OR)
+        q.add(Q(status=1), Q.OR)
+
+        qs.add(q, Q.AND)
+
+        return Lesson.objects.filter(qs).order_by('-updated_at')
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.serializer_class)
