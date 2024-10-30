@@ -4,6 +4,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ fun LessonsScreen(
     LessonsScreen(
         state = state.value,
         onLessonSelected = {},
+        onSearchTextChanged = viewModel::updateFilterText,
         onRefresh = viewModel::refresh
     )
 }
@@ -49,6 +53,7 @@ fun LessonsScreen(
 fun LessonsScreen(
     state: LessonsViewModel.State,
     onLessonSelected: () -> Unit,
+    onSearchTextChanged: (String) -> Unit,
     onRefresh: () -> Unit,
 ) {
     Scaffold(
@@ -80,10 +85,25 @@ fun LessonsScreen(
                 }
 
                 else -> {
+                    TextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .testTag("search_text"),
+                        value = state.filterText,
+                        onValueChange = onSearchTextChanged,
+                    )
                     if (state.lessons.isNotEmpty()) {
                         LessonList(state.lessons)
                     } else {
-                        Text(stringResource(R.string.feature_lessons_none))
+                        Row(
+                            modifier = Modifier.fillMaxHeight(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                stringResource(R.string.feature_lessons_none)
+                            )
+                        }
                     }
                 }
             }
@@ -101,16 +121,6 @@ private fun LessonList(lessons: List<Lesson>) {
         modifier = Modifier.testTag("lesson_list"),
         state = rememberLazyListState()
     ) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(pluralStringResource(R.plurals.feature_lessons_total, lessons.count()))
-            }
-        }
         items(lessons) {
             Row(
                 Modifier
@@ -136,6 +146,7 @@ fun LessonsScreen_Empty_Preview() {
     LessonsScreen(
         state = LessonsViewModel.State(),
         onLessonSelected = {},
+        onSearchTextChanged = {},
         onRefresh = {},
     )
 }
@@ -148,15 +159,16 @@ fun LessonsScreen_List_Preview() {
             lessons = listOf(
                 Lesson(
                     id = "",
-                    title = "",
+                    title = "Lesson",
                     type = LessonType.GRAMMAR,
-                    language1 = "",
-                    language2 = "",
+                    language1 = "en",
+                    language2 = "jp",
                     owner = "owner",
                     updatedAt = DateTime.now(),
                 )
             )
         ),
+        onSearchTextChanged = {},
         onLessonSelected = {},
         onRefresh = {},
     )
