@@ -37,7 +37,10 @@ class LessonsViewModel(
                 val lessons = domainState.domain.getLessons().filter { lesson ->
                     _state.value.filterText.let {
                         (it.isEmpty() || (it.isNotEmpty() &&
-                                lesson.title.toLowerCase(Locale.current).contains(it)))
+                                lesson.title.toLowerCase(Locale.current).contains(
+                                    it.toLowerCase(Locale.current)
+                                ))
+                        )
                     }
                 }
                 _state.update {

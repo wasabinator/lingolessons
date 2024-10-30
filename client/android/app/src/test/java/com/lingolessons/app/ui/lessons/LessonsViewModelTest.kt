@@ -81,4 +81,33 @@ class LessonsViewModelTest : BaseTest() {
 
         assertEquals(0, viewModel.state.value.lessons.size)
     }
+
+    @Test
+    fun `search text filtering should be case insensitive`() {
+        mockLessons.add(
+            Lesson(
+                id = "",
+                title = "lesson1",
+                type = LessonType.VOCABULARY,
+                language1 = "en",
+                language2 = "jp",
+                owner = "owner",
+                updatedAt = DateTime.now(),
+            )
+        )
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.state.value.lessons.size)
+
+        viewModel.updateFilterText("lesson")
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.state.value.lessons.size)
+
+        viewModel.updateFilterText("LESSON")
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.state.value.lessons.size)
+    }
 }
