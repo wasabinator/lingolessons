@@ -16,9 +16,9 @@ The system is made up of the following components:
   
   See [installation](server/INSTALLATION.md)
 
-- Client Applications
+- Client Applications (Ref: [architecture](client/ARCHITECTURE.md))
 
-  - Android: Refer to [developing](client/android/DEVELOPING.md)
+  - Android (Ref: [developing](client/android/DEVELOPING.md))
   - macOS & iOS
   - Linux
   - Windows
