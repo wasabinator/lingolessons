@@ -70,7 +70,10 @@ def study_page(request):
 
 def lessons_page(request):
     return render(request, "lessons.html", {
-        "lessons": Lesson.objects.filter(owner=request.user.id)
+        "lessons": Lesson.objects.filter(
+            owner=request.user.id,
+            is_deleted=False,
+        )
     })
 
 
@@ -96,6 +99,10 @@ def lesson_page(request, id):
     if request.method == "POST":
         formset = FactFormSet(request.POST, form_kwargs={'lesson': lesson})
         is_form_valid = form.is_valid()
+        if request.POST.get('delete'): #submitted via the delete button?
+            lesson.is_deleted = True
+            lesson.save()
+            return HttpResponseRedirect(f"/lessons")
         is_formset_valid = formset.is_valid()
         if is_form_valid and is_formset_valid:
             form.save()

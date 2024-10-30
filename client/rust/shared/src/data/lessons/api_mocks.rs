@@ -6,13 +6,17 @@ use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
 pub(crate) trait LessonApiMocks {
-    fn mock_lessons_success(&mut self, count: u16) -> Mock;
+    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16) -> Mock;
     fn mock_lessons_failure(&mut self) -> Mock;
 }
 
 #[cfg(test)]
 impl LessonApiMocks for Server {
-    fn mock_lessons_success(&mut self, count: u16) -> Mock {
+    /// Generates a mock lessons api response.
+    /// 
+    /// The number of lessons is specified by count
+    /// The first 'with_deleted' lessons will be marked as deleted
+    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16) -> Mock {
         let epoc_time = Utc::now().timestamp();
 
         let lessons: Vec<LessonResponse> = (0..count).map(|i|
@@ -23,6 +27,7 @@ impl LessonApiMocks for Server {
                 language1: "en".to_string(),
                 language2: "jp".to_string(),
                 owner: "owner".to_string(),
+                is_deleted: i < with_deleted,
                 updated_at: epoc_time + (i as i64),
             }
         ).collect();

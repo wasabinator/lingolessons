@@ -40,10 +40,16 @@ class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'type', 'language1', 'language2', 'owner']
+        fields = ['id', 'title', 'type', 'language1', 'language2', 'owner', 'is_deleted']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        # If the lesson is deleted, we can suppress details from the response as this will not be used.
+        if data['is_deleted'] == 1:
+            data['title'] = ''
+            data['language1'] = ''
+            data['language2'] = ''
+            data['owner'] = ''
         data['updated_at'] = int(time.mktime(instance.updated_at.timetuple()))  # Add updated at in utc format
         return data
 

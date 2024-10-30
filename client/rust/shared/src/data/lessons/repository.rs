@@ -44,15 +44,18 @@ impl LessonRepository {
             // Try to fetch from the server
             let api = self.api.lock().await;
             let response = api.get_lessons().await?;
-            let lessons: Vec<LessonData> = response.results.into_iter().map(LessonData::from).collect();
 
             let db = self.db.lock().await;
 
-            // Save to the db
-            for lesson in &lessons {
-                db.set_lesson(
-                    lesson
-                )?;
+            let mut lessons = Vec::new();
+            for lesson in response.results {
+                if lesson.is_deleted {
+                    db.del_lesson(lesson.id)?;
+                } else {
+                    let data = LessonData::from(lesson);
+                    db.set_lesson(&data)?;
+                    lessons.push(data);
+                }
             }
 
             // Now map to domain type
