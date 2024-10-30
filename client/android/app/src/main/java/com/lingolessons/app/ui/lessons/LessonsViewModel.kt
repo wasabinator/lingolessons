@@ -1,5 +1,7 @@
 package com.lingolessons.app.ui.lessons
 
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.DomainStateViewModel
@@ -17,6 +19,13 @@ class LessonsViewModel(
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
+    fun updateFilterText(text: String) {
+        _state.update {
+            it.copy(filterText = text)
+        }
+        refresh()
+    }
+
     fun refresh() {
         viewModelScope.launch {
             _state.update {
@@ -25,7 +34,12 @@ class LessonsViewModel(
                 )
             }
             try {
-                val lessons = domainState.domain.getLessons()
+                val lessons = domainState.domain.getLessons().filter { lesson ->
+                    _state.value.filterText.let {
+                        (it.isEmpty() || (it.isNotEmpty() &&
+                                lesson.title.toLowerCase(Locale.current).contains(it)))
+                    }
+                }
                 _state.update {
                     it.copy(
                         lessons = lessons,
@@ -43,6 +57,7 @@ class LessonsViewModel(
     }
 
     data class State(
+        val filterText: String = "",
         val lessons: List<Lesson> = emptyList(),
         override val status: ScreenState.Status = ScreenState.Status.None,
     ) : ScreenState
