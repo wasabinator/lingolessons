@@ -36,7 +36,7 @@ impl DataServiceManager {
         lesson_repository: ArcMutex<LessonRepository>,
     ) -> Self {
         let mut manager = DataServiceManager {
-            runtime: runtime,
+            runtime,
             lesson_repository: lesson_repository.clone(),
         };
         manager.borrow_mut().start(
@@ -52,14 +52,14 @@ impl DataServiceManager {
         let mut session_rx = session_rx.to_owned();
         let lesson_repository = self.lesson_repository.clone();
 
-        let _ = self.runtime.spawn(
+        self.runtime.spawn(
             SERVICE_MANAGER_TASK.into(), 
             async move {
-                let l = lesson_repository.clone();
+                let repo = lesson_repository.clone();
                 while session_rx.changed().await.is_ok() {
                     let state = session_rx.borrow().clone();
                     if let Session::Authenticated(_) = state {
-                        l.lock().await.start();
+                        repo.lock().await.start();
                     } else {
                         lesson_repository.lock().await.stop();
                     }

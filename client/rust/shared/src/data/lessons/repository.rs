@@ -27,7 +27,7 @@ impl LessonRepository {
         db: ArcMutex<Db>,
     ) -> Self {
         LessonRepository {
-            runtime: runtime,
+            runtime,
             api: api.clone(),
             db: db.clone(),
         }
@@ -86,27 +86,3 @@ impl LessonRepository {
         }
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use std::ops::DerefMut;
-
-//     use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::fake_domain};
-
-//     use super::*;
-
-//     #[tokio::test]
-//     async fn test_start() {
-//         let mut server = mockito::Server::new_async().await;
-//         let domain = fake_domain(server.url() + "/").await.unwrap();
-
-//         server.deref_mut().mock_lessons_success(5, 0);
-
-//         let r = LessonRepository::new(
-//             Runetime::new(),
-
-//         )
-//         let r = domain.login("user".to_string(), "password".to_string()).await;
-//         assert!(r.is_ok());
-//     }
-// }

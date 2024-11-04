@@ -23,7 +23,8 @@ impl Runtime {
         let x: JoinHandle<()> = tokio::task::spawn(future);
         self.tasks.insert(key, x);
     }
-
+    
+    #[allow(dead_code)]
     pub(crate) fn abort(&mut self) {
         for entry in self.tasks.iter() {
             entry.1.abort();
