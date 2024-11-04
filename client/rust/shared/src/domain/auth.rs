@@ -14,6 +14,7 @@ pub enum Session {
 
 /// Manager the domain requires for managing the session
 pub(crate) struct SessionManager {
+    pub(crate) state: tokio::sync::watch::Sender<Session>,
     pub(crate) api: ArcMutex<Api>,
     pub(crate) db: ArcMutex<Db>,
 }
@@ -29,8 +30,8 @@ impl Auth for Domain {
     async fn get_session(&self) -> DomainResult<Session> {
         trace!("get_session");
         let manager = self.provider.session_manager.lock().await;
-        let session = manager.get_session().await?;
-        Ok(session)
+        let session = manager.state.borrow();
+        Ok(session.to_owned())
     }
 
     async fn login(&self, username: String, password: String) -> DomainResult<Session> {
@@ -59,7 +60,7 @@ mod tests {
     #[tokio::test]
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         server.deref_mut().mock_login_success();
 
@@ -70,7 +71,7 @@ mod tests {
     #[tokio::test]
     async fn test_login_failure() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         server.deref_mut().mock_login_failure();
 

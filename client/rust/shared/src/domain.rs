@@ -1,12 +1,11 @@
 use std::sync::Arc;
-use anyhow::Result;
-
-use uniffi::deps::log::info;
 
 use crate::data::DataServiceProvider;
 
 pub mod auth;
 pub mod lessons;
+pub mod runtime;
+
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {
@@ -25,7 +24,7 @@ impl std::fmt::Display for DomainError {
     }
 }
 
-pub type DomainResult<T = ()> = Result<T, DomainError>;
+pub type DomainResult<T = ()> = anyhow::Result<T, DomainError>;
 
 #[derive(uniffi::Object)]
 #[derive(Clone)]
@@ -63,7 +62,7 @@ impl DomainBuilder {
         builder
     }
 
-    pub fn build(&self) -> Result<Domain, DomainError> {
+    pub async fn build(&self) -> Result<Domain, DomainError> {
         let base_url = self._base_url.clone().expect("base_url was missing");
         let data_path = self._data_path.clone().expect("data_path was missing");
 
@@ -71,15 +70,15 @@ impl DomainBuilder {
 
         Ok(
             Domain {
-                provider: Arc::new(DataServiceProvider::new(base_url, data_path)?)
+                provider: Arc::new(DataServiceProvider::new(base_url, data_path).await?)
             }
         )
     }
 }
 
 fn init() {
-    env_logger::init();
-    info!("Initialising domain");
+    let _ = env_logger::try_init();
+    log::trace!("Initialising domain");
 
     #[cfg(target_os = "android")]
     {
@@ -96,13 +95,15 @@ impl Domain {
 }
 
 #[cfg(test)]
-pub(crate) fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
+pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
+    init();
+
     Ok(
         Domain {
             provider: Arc::new(DataServiceProvider::new(
                 base_url,
                 "fake_path".to_string() // Unimportant path as not used with the in memory test db
-            )?),
+            ).await?),
         }
     )
 }
@@ -114,7 +115,7 @@ mod tests {
     #[tokio::test]
     async fn test_mock_ctor() {
         let server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url());
+        let domain = fake_domain(server.url()).await;
         assert!(domain.is_ok());
     }
 }

@@ -1,4 +1,6 @@
-use crate::{data::{api::AuthApi, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, DomainError}, ArcMutex};
+use std::borrow::BorrowMut;
+
+use crate::{data::{api::AuthApi, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex};
 
 use super::{api::LessonResponse, db::LessonData};
 
@@ -16,15 +18,35 @@ impl From<LessonResponse> for LessonData {
     }
 }
 
+static REFRESH_TASK: &str = "REFRESH_TASK";
+
 impl LessonRepository {
     pub(in crate::data) fn new(
-        api: ArcMutex<AuthApi>, 
-        db: ArcMutex<Db>, 
+        runtime: Runtime,
+        api: ArcMutex<AuthApi>,
+        db: ArcMutex<Db>,
     ) -> Self {
         LessonRepository {
+            runtime: runtime,
             api: api.clone(),
             db: db.clone(),
         }
+    }
+
+    pub(in crate::data) fn start(&mut self) {
+        log::trace!("**** AJM: START ****");
+        let r = self.runtime.borrow_mut();
+        let api = self.api.clone();
+        let db = self.db.clone();
+        r.spawn(REFRESH_TASK.into(),  async move {
+            let _api = api.lock().await;
+            let _db = db.lock().await;
+            println!("**** AJM: REFRESH ****");
+        });
+    }
+
+    pub(in crate::data) fn stop(&mut self) {
+        log::trace!("**** AJM: STOP ****");
     }
 
     pub(crate) async fn get_lessons(&self) -> uniffi::Result<Vec<Lesson>, DomainError> {
@@ -64,3 +86,27 @@ impl LessonRepository {
         }
     }
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use std::ops::DerefMut;
+
+//     use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::fake_domain};
+
+//     use super::*;
+
+//     #[tokio::test]
+//     async fn test_start() {
+//         let mut server = mockito::Server::new_async().await;
+//         let domain = fake_domain(server.url() + "/").await.unwrap();
+
+//         server.deref_mut().mock_lessons_success(5, 0);
+
+//         let r = LessonRepository::new(
+//             Runetime::new(),
+
+//         )
+//         let r = domain.login("user".to_string(), "password".to_string()).await;
+//         assert!(r.is_ok());
+//     }
+// }

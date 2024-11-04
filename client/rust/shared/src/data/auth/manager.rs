@@ -6,20 +6,19 @@ use crate::domain::auth::Session;
 use super::db::TokenDao;
 
 impl SessionManager {
-    pub(in crate::data) fn new(api: ArcMutex<Api>, db: ArcMutex<Db>) -> Self {
+    pub(in crate::data) async fn new(api: ArcMutex<Api>, db: ArcMutex<Db>) -> Self {
+        let api = api.clone();
+        let db = db.clone();
+        let state = match db.lock().await.get_token() { 
+            Ok(token) => token.map_or(Session::None, |token| Session::Authenticated(token.username)),
+            Err(_) => Session::None,
+        };
+
         SessionManager {
+            state: tokio::sync::watch::Sender::new(state),
             api: api.clone(),
             db: db.clone()
         }
-    }
-
-    pub(crate) async fn get_session(&self) -> uniffi::Result<Session, DomainError> {
-        use super::db::TokenDao;
-
-        let db = self.db.lock().await;
-        let state = db.get_token()?;
-        let session = state.map_or(Session::None, |token| Session::Authenticated(token.username));
-        Ok(session)
     }
 
     pub(crate) async fn login(&self, username: String, password: String) -> uniffi::Result<Session, DomainError> {
@@ -43,7 +42,10 @@ impl SessionManager {
         let db = self.db.lock().await;
         match db.get_token() {
             Ok(session) => match session {
-                Some(token) => builder.bearer_auth(token.auth_token),
+                Some(token) => {
+                    println!("***** FOUND TOKEN ******{}", token.auth_token);
+                    builder.bearer_auth(token.auth_token)
+                },
                 None => builder
             },
             Err(e) => {

@@ -1,9 +1,10 @@
+
 use chrono::{DateTime, Local};
 use uniffi::deps::log::trace;
 
 use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
-use super::DomainResult;
+use super::{runtime::Runtime, DomainResult};
 
 /// Lesson domain model
 #[derive(uniffi::Record, PartialEq)]
@@ -26,6 +27,7 @@ pub enum LessonType {
 
 /// Repository the domain requires for getting and updating lessons
 pub(crate) struct LessonRepository {
+    pub(crate) runtime: Runtime,
     pub(crate) api: ArcMutex<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
 }
@@ -54,16 +56,33 @@ impl Lessons for Domain {
 mod tests {
     use std::ops::DerefMut;
 
-    use crate::{data::lessons::api_mocks::LessonApiMocks, domain::fake_domain};
+    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::{auth::Auth, fake_domain}};
 
     use super::*;
 
     #[tokio::test]
-    async fn test_get_lessons_success() {
+    async fn test_get_lessons_no_session_success() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 0);
+        server.deref_mut().mock_lessons_success(5, 0, false);
+
+        let r = domain.get_lessons().await;
+        assert!(r.is_ok());
+        assert_eq!(5, r.unwrap().len());
+    }
+
+    #[tokio::test]
+    async fn test_get_lessons_with_session_success() {
+        trace!("**** AJM ****");
+
+        let mut server = mockito::Server::new_async().await;
+        let domain = fake_domain(server.url() + "/").await.unwrap();
+
+        server.deref_mut().mock_login_success();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        server.deref_mut().mock_lessons_success(5, 0, true);
 
         let r = domain.get_lessons().await;
         assert!(r.is_ok());
@@ -73,9 +92,12 @@ mod tests {
     #[tokio::test]
     async fn test_get_lessons_doesnt_persist_deleted_items() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 1);
+        server.deref_mut().mock_login_success();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        server.deref_mut().mock_lessons_success(5, 1, true);
 
         let r = domain.get_lessons().await;
         assert!(r.is_ok());
@@ -85,7 +107,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_lessons_failure() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         server.deref_mut().mock_lessons_failure();
 

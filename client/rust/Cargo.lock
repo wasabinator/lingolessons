@@ -1520,6 +1520,7 @@ dependencies = [
  "env_logger",
  "include_dir",
  "lazy_static",
+ "log",
  "mockito",
  "openssl",
  "reqwest",

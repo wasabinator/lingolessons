@@ -48,7 +48,7 @@ impl AuthApi {
     }
 
     pub(super) async fn get(&self, url: String) -> RequestBuilder {
-        println!("get");
+        log::info!("get");
         let api = self.api.lock().await;
         let session_manager = self.session_manager.lock().await;
 
