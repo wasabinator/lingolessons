@@ -53,15 +53,16 @@ impl DataServiceManager {
         loop {
             log::trace!("loop");
             let manager = self.session_manager.clone();
-            let mut manager = manager.lock().await;
+            let manager = manager.lock().await;
+            let mut state = manager.state.clone();
+            drop(manager); // Drop the manager lock as we have cloned the state reference
+
             let repository = self.lesson_repository.clone();
             let mut repository = repository.lock().await;
 
-            let changed = manager.state.changed().await.is_ok();
-            
-            if changed {
+            while state.changed().await.is_ok() {
                 //let session_manager = safe_get!(self.session_manager);
-                let session = manager.state.borrow();
+                let session = state.borrow();
                 let session = session.clone();
 
                 log::trace!("Got session: {:?}", session);
@@ -75,7 +76,6 @@ impl DataServiceManager {
                 log::trace!("done");
             }
 
-            drop(manager);
             drop(repository);
             yield_now();
         }

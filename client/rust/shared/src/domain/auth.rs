@@ -41,7 +41,6 @@ impl Auth for Domain {
         let manager = provider.session_manager.clone();
 
         trace!("got manager");
-
         let manager = manager.lock().await;
         let session = manager.login(username, password).await?;
         Ok(session)

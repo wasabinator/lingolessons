@@ -45,7 +45,6 @@ impl SessionManager {
     fn start(&mut self) {
         log::trace!("Starting session manager");
         let db = self.db.clone();
-        //let state = self.state;
         let state_mut = self.state_mut.to_owned();
 
         self.runtime.borrow_mut().spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
