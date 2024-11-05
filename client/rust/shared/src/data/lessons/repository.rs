@@ -1,4 +1,4 @@
-use std::borrow::BorrowMut;
+use std::{borrow::BorrowMut, sync::Arc};
 
 use crate::{data::{api::AuthApi, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex};
 
@@ -23,7 +23,7 @@ static REFRESH_TASK: &str = "REFRESH_TASK";
 impl LessonRepository {
     pub(in crate::data) fn new(
         runtime: Runtime,
-        api: ArcMutex<AuthApi>,
+        api: Arc<AuthApi>,
         db: ArcMutex<Db>,
     ) -> Self {
         LessonRepository {
@@ -35,37 +35,44 @@ impl LessonRepository {
 
     pub(in crate::data) fn start(&mut self) {
         log::trace!("**** AJM: START ****");
-        let r = self.runtime.borrow_mut();
+        let _r = self.runtime.borrow_mut();
+
         let api = self.api.clone();
         let db = self.db.clone();
-        r.spawn(REFRESH_TASK.into(),  async move {
-            let _api = api.lock().await;
-            let _db = db.lock().await;
-            println!("**** AJM: REFRESH ****");
+        log::trace!("**** AJM: SPAWN ****");
+        tokio::task::spawn(async move {
+            log::trace!("**** AJM: REFRESH ****");
+            let _api = api.clone();
+            let _db = db.clone();
+            log::trace!("**** AJM: REFRESH END ****");
         });
+        println!("**** FINISHED START ******");
     }
 
     pub(in crate::data) fn stop(&mut self) {
         log::trace!("**** AJM: STOP ****");
+        let r = self.runtime.borrow_mut();
+        r.abort();
     }
 
     pub(crate) async fn get_lessons(&self) -> uniffi::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
+        log::trace!("Attempting to load lessons from db");
         let db = self.db.lock().await;
         let lessons = db.get_lessons()?;
         drop(db);
 
         if !lessons.is_empty() {
             // Lessons have already been cached to the db
-            let lessons = lessons.iter().map(
-                Lesson::from
-            ).collect();
+            log::trace!("Got lessons from db");
+            let lessons = lessons.iter().map(Lesson::from).collect();
             Ok(lessons)
         } else {
             // Try to fetch from the server
-            let api = self.api.lock().await;
-            let response = api.get_lessons().await?;
+            log::trace!("Attempting to fetch lessons from api");
+            let response = self.api.get_lessons().await?;
+            log::trace!("Got response from api {:?}", response);
 
             let db = self.db.lock().await;
 

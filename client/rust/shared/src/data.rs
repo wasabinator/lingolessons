@@ -4,12 +4,13 @@ pub(crate) mod settings;
 pub(crate) mod db;
 pub(crate) mod api;
 
-use std::borrow::BorrowMut;
 use std::result::Result;
+use std::sync::Arc;
+use std::thread::yield_now;
 
 use api::{Api, AuthApi};
-
-use crate::domain::auth::{Session, SessionManager};
+use auth::manager::SessionManager;
+use crate::domain::auth::Session;
 use crate::domain::lessons::LessonRepository;
 use crate::domain::runtime::Runtime;
 use crate::domain::DomainError;
@@ -19,81 +20,97 @@ use crate::{arc_mutex, ArcMutex};
 pub(crate) struct DataServiceProvider {
     pub(super) session_manager: ArcMutex<SessionManager>,
     pub(super) lesson_repository: ArcMutex<LessonRepository>,
-    _service_manager: DataServiceManager,
+    #[allow(dead_code)]
+    service_manager: Arc<DataServiceManager>,
 }
 
+#[derive(Clone)]
 struct DataServiceManager {
-    runtime: Runtime,
+    session_manager: ArcMutex<SessionManager>,
     lesson_repository: ArcMutex<LessonRepository>,
 }
 
-const SERVICE_MANAGER_TASK: &str = "SERVICE_MANAGER_TASK";
-
 impl DataServiceManager {
-    async fn new(
-        runtime: Runtime,
+    fn new(
         session_manager: ArcMutex<SessionManager>,
         lesson_repository: ArcMutex<LessonRepository>,
     ) -> Self {
-        let mut manager = DataServiceManager {
-            runtime,
+        let manager = DataServiceManager {
+            session_manager: session_manager.clone(),
             lesson_repository: lesson_repository.clone(),
         };
-        manager.borrow_mut().start(
-            &session_manager.lock().await.state.subscribe()
-        ).await;
+        manager.clone().start();
         manager
     }
 
-    async fn start(
-        &mut self, 
-        session_rx: &tokio::sync::watch::Receiver<Session>,
-    ) {
-        let mut session_rx = session_rx.to_owned();
-        let lesson_repository = self.lesson_repository.clone();
-
-        self.runtime.spawn(
-            SERVICE_MANAGER_TASK.into(), 
-            async move {
-                let repo = lesson_repository.clone();
-                while session_rx.changed().await.is_ok() {
-                    let state = session_rx.borrow().clone();
-                    if let Session::Authenticated(_) = state {
-                        repo.lock().await.start();
-                    } else {
-                        lesson_repository.lock().await.stop();
-                    }
-                }
-            }
+    fn start(self) {
+        tokio::task::spawn(
+            async move { self.run().await }
         );
+    }
+
+    async fn run(&self) {
+        loop {
+            log::trace!("loop");
+            let manager = self.session_manager.clone();
+            let mut manager = manager.lock().await;
+            let repository = self.lesson_repository.clone();
+            let mut repository = repository.lock().await;
+
+            let changed = manager.state.changed().await.is_ok();
+            
+            if changed {
+                //let session_manager = safe_get!(self.session_manager);
+                let session = manager.state.borrow();
+                let session = session.clone();
+
+                log::trace!("Got session: {:?}", session);
+                if let Session::Authenticated(_) = session {
+                    log::trace!("Starting lesson repo...");
+                    repository.start();
+                } else {
+                    log::trace!("Stopping lesson repo...");
+                    repository.stop();
+                }
+                log::trace!("done");
+            }
+
+            drop(manager);
+            drop(repository);
+            yield_now();
+        }
     }
 } 
 
 impl DataServiceProvider {
-    pub(crate) async fn new(
+    pub(crate) fn new(
         base_url: String,
         data_path: String
     ) -> Result<DataServiceProvider, DomainError> {
-        let api = arc_mutex(Api::new(base_url)?);
+        let api = Arc::new(Api::new(base_url)?);
         let db = arc_mutex(Db::open(data_path)?);
-        let session_manager = arc_mutex(SessionManager::new(api.clone(), db.clone()).await);
-        let auth_api = arc_mutex(AuthApi::new(api.clone(), session_manager.clone()));
-        let lesson_repository = arc_mutex(LessonRepository::new(
-            Runtime::new(),
-            auth_api.clone(), 
+        
+        let session_manager = arc_mutex(SessionManager::new(
+            api.clone(), 
             db.clone()
         ));
 
-        let service_manager = DataServiceManager::new(
+        let auth_api = Arc::new(AuthApi::new(api.clone(), session_manager.clone()));
+        let lesson_repository = arc_mutex(LessonRepository::new(
             Runtime::new(),
+            auth_api, 
+            db.clone()
+        ));
+
+        let service_manager = Arc::new(DataServiceManager::new(
             session_manager.clone(),
             lesson_repository.clone(),
-        ).await;
+        ));
 
         Ok(Self {
             session_manager: session_manager.clone(),
             lesson_repository: lesson_repository.clone(),
-            _service_manager: service_manager,
+            service_manager: service_manager.clone(),
         })
     }
 }

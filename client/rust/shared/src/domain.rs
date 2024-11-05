@@ -62,7 +62,7 @@ impl DomainBuilder {
         builder
     }
 
-    pub async fn build(&self) -> Result<Domain, DomainError> {
+    pub fn build(&self) -> Result<Domain, DomainError> {
         let base_url = self._base_url.clone().expect("base_url was missing");
         let data_path = self._data_path.clone().expect("data_path was missing");
 
@@ -70,7 +70,7 @@ impl DomainBuilder {
 
         Ok(
             Domain {
-                provider: Arc::new(DataServiceProvider::new(base_url, data_path).await?)
+                provider: Arc::new(DataServiceProvider::new(base_url, data_path)?)
             }
         )
     }
@@ -103,7 +103,7 @@ pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError>
             provider: Arc::new(DataServiceProvider::new(
                 base_url,
                 "fake_path".to_string() // Unimportant path as not used with the in memory test db
-            ).await?),
+            )?),
         }
     )
 }

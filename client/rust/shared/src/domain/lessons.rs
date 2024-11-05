@@ -1,8 +1,10 @@
 
+use std::sync::Arc;
+
 use chrono::{DateTime, Local};
 use uniffi::deps::log::trace;
 
-use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
+use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex, SpawnLocal, RUNTIME};
 
 use super::{runtime::Runtime, DomainResult};
 
@@ -28,7 +30,7 @@ pub enum LessonType {
 /// Repository the domain requires for getting and updating lessons
 pub(crate) struct LessonRepository {
     pub(crate) runtime: Runtime,
-    pub(crate) api: ArcMutex<AuthApi>,
+    pub(crate) api: Arc<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
 }
 
@@ -40,9 +42,12 @@ pub trait Lessons {
 #[uniffi::export(async_runtime = "tokio")]
 impl Lessons for Domain {
     async fn get_lessons(&self) -> DomainResult<Vec<Lesson>> {
+        let provider = self.provider.clone();
         trace!("get_lessons");
-        let repository = self.provider.lesson_repository.lock().await;
+        let repository = provider.lesson_repository.lock().await;
+        trace!("About to call repository::get_lessons()");
         let lessons = repository.get_lessons().await?;
+        trace!("Received lessons");
         Ok(lessons)
     }
 
@@ -99,7 +104,9 @@ mod tests {
 
         server.deref_mut().mock_lessons_success(5, 1, true);
 
+        log::trace!("1");
         let r = domain.get_lessons().await;
+        log::trace!("2");
         assert!(r.is_ok());
         assert_eq!(4, r.unwrap().len());
     }
