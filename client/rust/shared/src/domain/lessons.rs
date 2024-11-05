@@ -4,7 +4,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Local};
 use uniffi::deps::log::trace;
 
-use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex, SpawnLocal, RUNTIME};
+use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
 use super::{runtime::Runtime, DomainResult};
 

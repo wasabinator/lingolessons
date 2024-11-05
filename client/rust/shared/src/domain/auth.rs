@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use uniffi::deps::log::trace;
 
-use crate::domain::Domain;
+use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
 
-use super::DomainResult;
+use super::{runtime::Runtime, DomainResult};
 
 /// Session domain model
 #[derive(uniffi::Enum, PartialEq)]
@@ -10,6 +12,15 @@ use super::DomainResult;
 pub enum Session {
     None,
     Authenticated(String),
+}
+
+/// Manager the domain requires for managing the session
+pub(crate) struct SessionManager {
+    pub(crate) runtime: Runtime,
+    pub(crate) state_mut: tokio::sync::watch::Sender<Session>,
+    pub(crate) state: tokio::sync::watch::Receiver<Session>,
+    pub(crate) api: Arc<Api>,
+    pub(crate) db: ArcMutex<Db>,
 }
 
 pub trait Auth {

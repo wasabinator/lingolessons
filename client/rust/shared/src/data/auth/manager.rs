@@ -2,22 +2,13 @@ use std::{borrow::BorrowMut, sync::Arc};
 
 use reqwest::RequestBuilder;
 
-use crate::{data::{api::Api, db::Db, Runtime}, domain::DomainError, ArcMutex};
+use crate::{data::{api::Api, db::Db, Runtime, SessionManager}, domain::DomainError, ArcMutex};
 use crate::domain::auth::Session;
 use super::api::TokenApi;
 
 use super::db::TokenDao;
 
 const SESSION_MANAGER_INIT_TASK: &str = "SESSION_MANAGER_INIT_TASK";
-
-/// Manager the domain requires for managing the session
-pub(crate) struct SessionManager {
-    runtime: Runtime,
-               state_mut: tokio::sync::watch::Sender<Session>,
-    pub(crate) state: tokio::sync::watch::Receiver<Session>,
-    pub(crate) api: Arc<Api>,
-    pub(crate) db: ArcMutex<Db>,
-}
 
 // All branches into session manager arrive via the domain thread
 //unsafe impl Send for SessionManager {}

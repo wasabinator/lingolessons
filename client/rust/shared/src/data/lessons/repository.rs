@@ -40,7 +40,8 @@ impl LessonRepository {
         let api = self.api.clone();
         let db = self.db.clone();
         log::trace!("**** AJM: SPAWN ****");
-        tokio::task::spawn(async move {
+
+        self.runtime.spawn(REFRESH_TASK.into(), async move {
             log::trace!("**** AJM: REFRESH ****");
             let _api = api.clone();
             let _db = db.clone();

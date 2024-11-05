@@ -9,8 +9,7 @@ use std::sync::Arc;
 use std::thread::yield_now;
 
 use api::{Api, AuthApi};
-use auth::manager::SessionManager;
-use crate::domain::auth::Session;
+use crate::domain::auth::{Session, SessionManager};
 use crate::domain::lessons::LessonRepository;
 use crate::domain::runtime::Runtime;
 use crate::domain::DomainError;
@@ -50,33 +49,31 @@ impl DataServiceManager {
     }
 
     async fn run(&self) {
-        loop {
-            log::trace!("loop");
-            let manager = self.session_manager.clone();
-            let manager = manager.lock().await;
-            let mut state = manager.state.clone();
-            drop(manager); // Drop the manager lock as we have cloned the state reference
+        log::trace!("loop");
+        let manager = self.session_manager.clone();
+        let manager = manager.lock().await;
+        let mut state = manager.state.clone();
+        drop(manager); // Drop the manager lock as we have cloned the state reference
 
+        while state.changed().await.is_ok() {
             let repository = self.lesson_repository.clone();
+            // Obtain a short lived lock within this scope
             let mut repository = repository.lock().await;
 
-            while state.changed().await.is_ok() {
-                //let session_manager = safe_get!(self.session_manager);
-                let session = state.borrow();
-                let session = session.clone();
+            //let session_manager = safe_get!(self.session_manager);
+            let session = state.borrow();
+            let session = session.clone();
 
-                log::trace!("Got session: {:?}", session);
-                if let Session::Authenticated(_) = session {
-                    log::trace!("Starting lesson repo...");
-                    repository.start();
-                } else {
-                    log::trace!("Stopping lesson repo...");
-                    repository.stop();
-                }
-                log::trace!("done");
+            log::trace!("Got session: {:?}", session);
+            if let Session::Authenticated(_) = session {
+                log::trace!(".............................Starting lesson repo...");
+                repository.start();
+            } else {
+                log::trace!("..............Stopping lesson repo...");
+                repository.stop();
             }
 
-            drop(repository);
+            log::trace!("done");
             yield_now();
         }
     }
