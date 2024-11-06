@@ -14,7 +14,7 @@ use crate::domain::lessons::LessonRepository;
 use crate::domain::runtime::Runtime;
 use crate::domain::DomainError;
 use crate::data::db::Db;
-use crate::{arc_mutex, ArcMutex};
+use crate::{arc_mutex, ArcMutex, Run};
 
 pub(crate) struct DataServiceProvider {
     pub(super) session_manager: ArcMutex<SessionManager>,
@@ -50,10 +50,9 @@ impl DataServiceManager {
 
     async fn run(&self) {
         log::trace!("DataServiceManager::run()");
-        let manager = self.session_manager.clone();
-        let manager = manager.lock().await;
-        let mut state = manager.state.clone();
-        drop(manager); // Drop the manager lock as we have cloned the state reference
+        let mut state = self.session_manager.run(
+            |manager| manager.state.clone()
+        ).await;
 
         log::trace!("Beginning start change await loop");
         while state.changed().await.is_ok() {

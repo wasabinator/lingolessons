@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use domain::DomainError;
-use tokio::{sync::Mutex, task::JoinError};
+use tokio::{sync::{Mutex, MutexGuard}, task::JoinError};
 
 pub mod domain;
 mod data;
@@ -9,6 +9,22 @@ mod data;
 uniffi::setup_scaffolding!();
 
 pub type ArcMutex<T> = Arc<Mutex<T>>;
+
+/// Trait that will allow an operation to be perform during a lock. It Makes it very clear what the duration of the lock is.
+/// The lock will be dropped on the function return since it goes out of scope.
+pub trait Run<T, U> 
+where T: Send {
+    fn run(self, op: fn(MutexGuard<'_, T>) -> U) -> impl std::future::Future<Output = U> + Send;
+}
+
+impl<T, U> Run<T, U> for &Arc<Mutex<T>>
+where T: Send {
+    async fn run(self, op: fn(MutexGuard<'_, T>) -> U) -> U {
+        let arc= self.clone();
+        let locked = arc.lock().await;
+        op(locked)
+    }
+}
 
 #[inline(always)]
 pub fn arc_mutex<T>(value: T) -> ArcMutex<T> {
