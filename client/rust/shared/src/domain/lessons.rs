@@ -79,8 +79,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_lessons_with_session_success() {
-        trace!("**** AJM ****");
-
         let mut server = mockito::Server::new_async().await;
         let domain = fake_domain(server.url() + "/").await.unwrap();
 

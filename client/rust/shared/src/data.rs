@@ -49,32 +49,35 @@ impl DataServiceManager {
     }
 
     async fn run(&self) {
-        log::trace!("loop");
+        log::trace!("DataServiceManager::run()");
         let manager = self.session_manager.clone();
         let manager = manager.lock().await;
         let mut state = manager.state.clone();
         drop(manager); // Drop the manager lock as we have cloned the state reference
 
+        log::trace!("Beginning start change await loop");
         while state.changed().await.is_ok() {
+            log::trace!("Received state change from session repo");
+
             let repository = self.lesson_repository.clone();
-            // Obtain a short lived lock within this scope
+
+            // Obtain a short lived lock within this scope (will fall out of scope at the next iteration)
             let mut repository = repository.lock().await;
 
-            //let session_manager = safe_get!(self.session_manager);
             let session = state.borrow();
             let session = session.clone();
 
             log::trace!("Got session: {:?}", session);
             if let Session::Authenticated(_) = session {
-                log::trace!(".............................Starting lesson repo...");
+                log::trace!("Session Started - Stopping lesson repo...");
                 repository.start();
             } else {
-                log::trace!("..............Stopping lesson repo...");
+                log::trace!("Session Ended - Stopping lesson repo...");
                 repository.stop();
             }
 
-            log::trace!("done");
-            yield_now();
+            log::trace!("Finished state loop, yielding then repeating");
+            yield_now(); // Not strictly necessaty as the while loop await will yield anyway
         }
     }
 } 
