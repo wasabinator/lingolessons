@@ -14,15 +14,21 @@ pub type ArcMutex<T> = Arc<Mutex<T>>;
 /// The lock will be dropped on the function return since it goes out of scope.
 pub trait Run<T, U> 
 where T: Send {
-    fn run(self, op: fn(MutexGuard<'_, T>) -> U) -> impl std::future::Future<Output = U> + Send;
+    fn run<F>(self, op: F) -> impl std::future::Future<Output = U> + Send
+    where 
+        F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send;
+
+    //fn run(self, op: fn(&mut MutexGuard<'_, T>) -> U) -> impl std::future::Future<Output = U> + Send;
 }
 
 impl<T, U> Run<T, U> for &Arc<Mutex<T>>
 where T: Send {
-    async fn run(self, op: fn(MutexGuard<'_, T>) -> U) -> U {
+    async fn run<F>(self, op: F) -> U
+    where 
+        F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send {
         let arc= self.clone();
-        let locked = arc.lock().await;
-        op(locked)
+        let mut locked = arc.lock().await;
+        op(&mut locked)
     }
 }
 

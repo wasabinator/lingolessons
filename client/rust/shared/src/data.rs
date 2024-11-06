@@ -58,22 +58,16 @@ impl DataServiceManager {
         while state.changed().await.is_ok() {
             log::trace!("Received state change from session repo");
 
-            let repository = self.lesson_repository.clone();
-
-            // Obtain a short lived lock within this scope (will fall out of scope at the next iteration)
-            let mut repository = repository.lock().await;
-
-            let session = state.borrow();
-            let session = session.clone();
-
-            log::trace!("Got session: {:?}", session);
-            if let Session::Authenticated(_) = session {
-                log::trace!("Session Started - Stopping lesson repo...");
-                repository.start();
-            } else {
-                log::trace!("Session Ended - Stopping lesson repo...");
-                repository.stop();
-            }
+            let session = state.borrow().clone();
+            self.lesson_repository.run(move |repo| 
+                if let Session::Authenticated(_) = session {
+                    log::trace!("Session Started - Stopping lesson repo...");
+                    repo.start();
+                } else {
+                    log::trace!("Session Ended - Stopping lesson repo...");
+                    repo.stop();
+                }
+            ).await;
 
             log::trace!("Finished state loop, yielding then repeating");
             yield_now(); // Not strictly necessaty as the while loop await will yield anyway
