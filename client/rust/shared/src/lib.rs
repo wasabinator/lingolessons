@@ -18,9 +18,8 @@ where T: Send + Sync {
     where 
         F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send;
 
-    fn launch<'a, F, Fut>(self, op: F) -> impl std::future::Future<Output = U> + Send + Sync
+    fn launch<F, Fut>(self, op: F) -> impl std::future::Future<Output = U> + Send + Sync
     where 
-        T: 'a,
         F: FnOnce(OwnedMutexGuard<T>) -> Fut + Send + Sync,
         Fut: std::future::Future<Output = U> + Send + Sync;
 }
@@ -35,9 +34,8 @@ where T: Send + Sync {
         op(&mut guard)
     }
 
-    async fn launch<'a, F, Fut>(self, op: F) -> U
+    async fn launch<F, Fut>(self, op: F) -> U
     where 
-        T: 'a,
         F: FnOnce(OwnedMutexGuard<T>) -> Fut + Send + Sync,
         Fut: std::future::Future<Output = U> + Send + Sync {
         let arc= self.clone();

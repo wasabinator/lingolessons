@@ -1,5 +1,7 @@
 #!/bin/sh
-#RUST_LOG=shared=trace cargo test
-#RUST_LOG=shared=trace cargo test --package shared --lib -- domain::auth::tests::test_login_success --exact --show-output
-RUST_LOG=shared=trace cargo test --package shared --lib -- domain::lessons::tests::test_get_lessons_doesnt_persist_deleted_items --exact --show-output
-
+if [ "$#" -eq 0 ]; then
+  RUST_LOG=shared=trace cargo test --package shared --lib -- --show-output
+else
+  #eg domain::lessons::tests::test_get_lessons_doesnt_persist_deleted_items
+  RUST_LOG=shared=trace cargo test --package shared --lib -- "$1" --exact --show-output
+fi
