@@ -4,7 +4,7 @@ use std::sync::Arc;
 use reqwest::RequestBuilder;
 use concat_string::concat_string;
 
-use crate::{domain::{DomainError, DomainResult}, ArcMutex};
+use crate::{domain::{DomainError, DomainResult}, ArcMutex, Run};
 
 use super::SessionManager;
 
@@ -53,12 +53,13 @@ impl AuthApi {
     }
 
     pub(super) async fn get(&self, url: String) -> RequestBuilder {
-        log::trace!("get");
-        let api = self.api.clone();
-        log::trace!("About to obtain session manager lock");
-        let session_manager = self.session_manager.lock().await;
-        log::trace!("got sesson manager lock. decorating the request");
-        session_manager.decorate(api.get(url)).await
+        log::trace!("about to obtain session manager lock to decorate the request");
+        self.session_manager.launch(
+            |manager| async move { 
+                log::trace!("got sesson manager lock. decorating the request");
+                manager.decorate(manager.api.get(url)).await
+            }
+        ).await
     }
 
     #[allow(dead_code)]
