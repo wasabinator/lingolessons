@@ -1,6 +1,9 @@
 use std::{borrow::BorrowMut, sync::Arc};
 
-use crate::{data::{api::AuthApi, db::Db, lessons::api::LessonsApi}, domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex};
+use crate::{data::db::Db,
+            data::api::AuthApi,
+            data::lessons::api::LessonsApi,
+            domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex};
 
 use super::{api::LessonResponse, db::LessonData};
 
@@ -35,7 +38,6 @@ impl LessonRepository {
 
     pub(in crate::data) fn start(&mut self) {
         log::trace!("lesson_repo::start");
-        let _r = self.runtime.borrow_mut();
 
         let api = self.api.clone();
         let db = self.db.clone();
