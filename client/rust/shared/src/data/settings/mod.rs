@@ -1,2 +1,2 @@
 pub (super) mod db;
-mod repository;
+pub (super) mod repository;

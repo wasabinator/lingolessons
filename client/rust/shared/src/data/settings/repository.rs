@@ -1,11 +1,8 @@
 use log::warn;
+use crate::domain::settings::SettingRepository;
 use crate::{ArcMutex, Run};
 use crate::data::db::Db;
 use crate::data::settings::db::{Setting, SettingDao};
-
-pub(in crate::data) struct SettingRepository {
-    pub(crate) db: ArcMutex<Db>,
-}
 
 impl SettingRepository {
     #[allow(dead_code)]
@@ -16,7 +13,7 @@ impl SettingRepository {
     }
 
     #[allow(dead_code)]
-    async fn get_string(&self, key: &str) -> Option<String> {
+    pub(crate) async fn get_string(&self, key: &str) -> Option<String> {
         match self.db.clone().run(|db| db.get(key)).await {
             Ok(Setting::Text(text)) => {
                 Some(text)
@@ -32,14 +29,14 @@ impl SettingRepository {
     }
 
     #[allow(dead_code)]
-    async fn put_string(&self, key: &str, value: String) {
+    pub(crate) async fn put_string(&self, key: &str, value: String) {
         let _ = self.db.run(
             |db| db.put(key, Setting::Text(value))
         ).await;
     }
 
     #[allow(dead_code)]
-    async fn get_timestamp(&self, key: &String) -> Option<u64> {
+    pub(crate) async fn get_timestamp(&self, key: &str) -> Option<u64> {
         match self.db.clone().run(|db| db.get(key)).await {
             Ok(Setting::Number(number)) => {
                 Some(number)
@@ -55,7 +52,7 @@ impl SettingRepository {
     }
 
     #[allow(dead_code)]
-    async fn put_timestamp(&self, key: &str, value: u64) {
+    pub(crate) async fn put_timestamp(&self, key: &str, value: u64) {
         let _ = self.db.run(
             |db| db.put(key, Setting::Number(value))
         ).await;

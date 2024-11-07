@@ -5,6 +5,7 @@ use crate::data::DataServiceProvider;
 pub mod auth;
 pub mod lessons;
 pub mod runtime;
+pub mod settings;
 
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]

@@ -12,6 +12,7 @@ use api::{Api, AuthApi};
 use crate::domain::auth::{Session, SessionManager};
 use crate::domain::lessons::LessonRepository;
 use crate::domain::runtime::Runtime;
+use crate::domain::settings::SettingRepository;
 use crate::domain::DomainError;
 use crate::data::db::Db;
 use crate::{arc_mutex, ArcMutex, Run};
@@ -19,7 +20,9 @@ use crate::{arc_mutex, ArcMutex, Run};
 pub(crate) struct DataServiceProvider {
     pub(super) session_manager: ArcMutex<SessionManager>,
     pub(super) lesson_repository: ArcMutex<LessonRepository>,
-    #[allow(dead_code)]
+    #[allow(unused)]
+    pub(super) setting_repository: ArcMutex<SettingRepository>,
+    #[allow(unused)]
     service_manager: Arc<DataServiceManager>,
 }
 
@@ -54,7 +57,7 @@ impl DataServiceManager {
             |manager| manager.state.clone()
         ).await;
 
-        log::trace!("Beginning start change await loop");
+        log::trace!("Beginning state change await loop");
         while state.changed().await.is_ok() {
             log::trace!("Received state change from session repo");
 
@@ -85,14 +88,19 @@ impl DataServiceProvider {
         
         let session_manager = arc_mutex(SessionManager::new(
             api.clone(), 
-            db.clone()
+            db.clone(),
+        ));
+
+        let settings = arc_mutex(SettingRepository::new(
+            db.clone(),
         ));
 
         let auth_api = Arc::new(AuthApi::new(api.clone(), session_manager.clone()));
         let lesson_repository = arc_mutex(LessonRepository::new(
             Runtime::new(),
             auth_api, 
-            db.clone()
+            db.clone(),
+            settings.clone(),
         ));
 
         let service_manager = Arc::new(DataServiceManager::new(
@@ -103,6 +111,7 @@ impl DataServiceProvider {
         Ok(Self {
             session_manager: session_manager.clone(),
             lesson_repository: lesson_repository.clone(),
+            setting_repository: settings.clone(),
             service_manager: service_manager.clone(),
         })
     }

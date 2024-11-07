@@ -6,7 +6,7 @@ use uniffi::deps::log::trace;
 
 use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
-use super::{runtime::Runtime, DomainResult};
+use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
 
 /// Lesson domain model
 #[derive(uniffi::Record, PartialEq)]
@@ -32,6 +32,7 @@ pub(crate) struct LessonRepository {
     pub(crate) runtime: Runtime,
     pub(crate) api: Arc<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
+    pub(crate) settings: ArcMutex<SettingRepository>
 }
 
 pub trait Lessons {
