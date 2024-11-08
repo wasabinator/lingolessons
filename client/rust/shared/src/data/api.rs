@@ -1,9 +1,14 @@
 
+use std::sync::Arc;
+
 use reqwest::RequestBuilder;
 use concat_string::concat_string;
 
-use crate::{domain::{auth::SessionManager, DomainError, DomainResult}, ArcMutex};
+use crate::{domain::{DomainError, DomainResult}, ArcMutex, Run};
 
+use super::SessionManager;
+
+#[derive(Clone)]
 pub(crate) struct Api {
     base_url: String,
     client: reqwest::Client,
@@ -35,12 +40,12 @@ impl Api {
 }
 
 pub(crate) struct AuthApi {
-    api: ArcMutex<Api>,
+    api: Arc<Api>,
     session_manager: ArcMutex<SessionManager>,
 }
 
 impl AuthApi {
-    pub(super) fn new(api: ArcMutex<Api>, session_manager: ArcMutex<SessionManager>) -> Self {
+    pub(super) fn new(api: Arc<Api>, session_manager: ArcMutex<SessionManager>) -> Self {
         AuthApi {
             api,
             session_manager,
@@ -48,16 +53,18 @@ impl AuthApi {
     }
 
     pub(super) async fn get(&self, url: String) -> RequestBuilder {
-        println!("get");
-        let api = self.api.lock().await;
-        let session_manager = self.session_manager.lock().await;
-
-        session_manager.decorate(api.get(url)).await
+        log::trace!("about to obtain session manager lock to decorate the request");
+        self.session_manager.launch(
+            |manager| async move { 
+                log::trace!("got session manager lock. decorating the request");
+                manager.decorate(manager.api.get(url)).await
+            }
+        ).await
     }
 
     #[allow(dead_code)]
     pub(super) async fn post(&self, url: String) -> RequestBuilder {
-        let api = self.api.lock().await;
+        let api = self.api.clone();
         let session_manager = self.session_manager.lock().await;
 
         session_manager.decorate(api.post(url)).await

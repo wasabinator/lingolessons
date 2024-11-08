@@ -1,12 +1,12 @@
 use std::sync::Arc;
-use anyhow::Result;
-
-use uniffi::deps::log::info;
 
 use crate::data::DataServiceProvider;
 
 pub mod auth;
 pub mod lessons;
+pub mod runtime;
+pub mod settings;
+
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {
@@ -25,7 +25,7 @@ impl std::fmt::Display for DomainError {
     }
 }
 
-pub type DomainResult<T = ()> = Result<T, DomainError>;
+pub type DomainResult<T = ()> = anyhow::Result<T, DomainError>;
 
 #[derive(uniffi::Object)]
 #[derive(Clone)]
@@ -78,8 +78,8 @@ impl DomainBuilder {
 }
 
 fn init() {
-    env_logger::init();
-    info!("Initialising domain");
+    let _ = env_logger::try_init();
+    log::trace!("Initialising domain");
 
     #[cfg(target_os = "android")]
     {
@@ -96,7 +96,9 @@ impl Domain {
 }
 
 #[cfg(test)]
-pub(crate) fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
+pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
+    init();
+
     Ok(
         Domain {
             provider: Arc::new(DataServiceProvider::new(
@@ -114,7 +116,7 @@ mod tests {
     #[tokio::test]
     async fn test_mock_ctor() {
         let server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url());
+        let domain = fake_domain(server.url()).await;
         assert!(domain.is_ok());
     }
 }

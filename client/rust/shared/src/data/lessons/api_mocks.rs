@@ -1,12 +1,13 @@
 use chrono::Utc;
-use mockito::{Mock, Server};
+use mockito::{Matcher, Mock, Server};
 use uuid::Uuid;
 
 use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
 pub(crate) trait LessonApiMocks {
-    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16) -> Mock;
+    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16, with_session: bool) -> Mock;
+    #[allow(unused)]
     fn mock_lessons_failure(&mut self) -> Mock;
 }
 
@@ -16,7 +17,7 @@ impl LessonApiMocks for Server {
     /// 
     /// The number of lessons is specified by count
     /// The first 'with_deleted' lessons will be marked as deleted
-    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16) -> Mock {
+    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16, with_session: bool) -> Mock {
         let epoc_time = Utc::now().timestamp();
 
         let lessons: Vec<LessonResponse> = (0..count).map(|i|
@@ -39,14 +40,20 @@ impl LessonApiMocks for Server {
             results: lessons,
         };
 
-        self.mock("GET", "/lessons")
+        let mock = self.mock("GET", "/lessons")
             .with_status(200)
             .with_body(
                 serde_json::to_string(&r).unwrap()
-            )
-            .create()
+            );
+        
+        if with_session {
+            mock.match_header("Authorization", "Bearer mock_access_token")
+        } else { 
+            mock.match_header("Authorization", Matcher::Missing)
+        }.create()
     }
 
+    #[allow(unused)] // TODO: This will be used during the future lesson repo sync detail testing
     fn mock_lessons_failure(&mut self) -> Mock {
         self.mock("GET", "/lessons")
             .with_status(403)

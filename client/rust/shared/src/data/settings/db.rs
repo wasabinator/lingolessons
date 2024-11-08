@@ -4,30 +4,63 @@ use rusqlite::OptionalExtension;
 /**
  * Setting
  */
-#[allow(dead_code)]
-pub(super) struct Setting {
-    key: String,
-    value: String,
+#[derive(Debug, PartialEq)]
+pub(super) enum Setting {
+    Text(String),
+    Number(u64),
+    None,
+}
+
+impl TryFrom<&rusqlite::Row<'_>> for Setting {
+    type Error = rusqlite::Error;
+    fn try_from(row: &rusqlite::Row) -> rusqlite::Result<Setting> {
+        let text: Option<String> = row.get(0)?;
+        let number: Option<u64> = row.get(1)?;
+
+        Ok(
+            if let Some(number) = number {
+                Setting::Number(number)
+            } else if let Some(str) = text {
+                Setting::Text(str)
+            } else {
+                log::error!("Illegal setting type, passing empty");
+                Setting::None
+            }
+        )
+    }
 }
 
 #[allow(dead_code)]
 pub(super) trait SettingDao {
-    fn get_setting(&self, key: String) -> rusqlite::Result<Option<Setting>>;
-    fn set_setting(&self, key: String, value: String) -> rusqlite::Result<()>;
+    fn get(&self, key: &str) -> rusqlite::Result<Setting>;
+    fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()>;
 }
+
 impl SettingDao for Db {
-    fn get_setting(&self, key: String) -> rusqlite::Result<Option<Setting>> {
+    fn get(&self, key: &str) -> rusqlite::Result<Setting> {
         self.connection.query_row(
-            "SELECT value FROM setting WHERE key = ?;",
-            [key.clone()],
-            |row| Ok(Setting { key, value: row.get(0)? })
-        ).optional()
+            "SELECT text, number FROM setting WHERE key = ?;",
+            [key],
+            |row| Setting::try_from(row)
+        ).optional().map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
     }
 
-    fn set_setting(&self, key: String, value: String) -> rusqlite::Result<()> {
+    fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()> {
+        let params = match value {
+            Setting::Text(text) => {
+                rusqlite::params![key, text.to_owned(), Option::<u64>::None]
+            },
+            Setting::Number(number) => {
+                rusqlite::params![key, Option::<String>::None, number.to_owned()]
+            },
+            _ => {
+                rusqlite::params![key, Option::<String>::None, Option::<u64>::None]
+            }
+        };
+
         self.connection.execute(
-            "INSERT OR REPLACE INTO setting(key, value, modified) VALUES (?, ?, CAST(strftime('%s', 'now') AS INTEGER));",
-            rusqlite::params![key, value]
+            "INSERT OR REPLACE INTO setting(key, text, number, modified) VALUES (?, ?, ?, CAST(strftime('%s', 'now') AS INTEGER));",
+            params,
         )?;
         Ok(())
     }
@@ -39,16 +72,17 @@ mod tests {
 
     #[test]
     fn test_settings() {
-        let db = Db::open("blah.txt".to_string()).unwrap();
-        let r = db.get_setting("123".to_string());
-        assert!(r.unwrap().is_none());
-        let r = db.set_setting("123".to_string(), "abc".to_string());
+        let db = Db::open("blah.txt".into()).unwrap();
+        let r = db.get("123".into());
+        assert_eq!(Ok(Setting::None), r);
+        let r = db.put("123", Setting::Text("abc".into()));
+        println!("r: {:?}", r);
         assert!(r.is_ok());
-        let r = db.get_setting("123".to_string());
-        assert!(r.unwrap().is_some_and(|x| x.value == "abc"));
-        let r = db.set_setting("123".to_string(), "def".to_string());
+        let r = db.get("123");
+        assert_eq!(Ok(Setting::Text("abc".into())), r);
+        let r = db.put("123", Setting::Text("def".into()));
         assert!(r.is_ok());
-        let r = db.get_setting("123".to_string());
-        assert!(r.unwrap().is_some_and(|x| x.value == "def"));
+        let r = db.get("123");
+        assert_eq!(Ok(Setting::Text("def".into())), r);
     }
 }

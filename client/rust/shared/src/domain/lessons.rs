@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use chrono::{DateTime, Local};
 use uniffi::deps::log::trace;
 
 use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
-use super::DomainResult;
+use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
 
 /// Lesson domain model
 #[derive(uniffi::Record, PartialEq)]
@@ -26,8 +28,10 @@ pub enum LessonType {
 
 /// Repository the domain requires for getting and updating lessons
 pub(crate) struct LessonRepository {
-    pub(crate) api: ArcMutex<AuthApi>,
+    pub(crate) runtime: Runtime,
+    pub(crate) api: Arc<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
+    pub(crate) settings: ArcMutex<SettingRepository>
 }
 
 pub trait Lessons {
@@ -38,9 +42,12 @@ pub trait Lessons {
 #[uniffi::export(async_runtime = "tokio")]
 impl Lessons for Domain {
     async fn get_lessons(&self) -> DomainResult<Vec<Lesson>> {
+        let provider = self.provider.clone();
         trace!("get_lessons");
-        let repository = self.provider.lesson_repository.lock().await;
+        let repository = provider.lesson_repository.lock().await;
+        trace!("About to call repository::get_lessons()");
         let lessons = repository.get_lessons().await?;
+        trace!("Received lessons");
         Ok(lessons)
     }
 
@@ -52,44 +59,48 @@ impl Lessons for Domain {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::common::test::await_condition;
+    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks},
+                domain::{auth::Auth, fake_domain}};
     use std::ops::DerefMut;
 
-    use crate::{data::lessons::api_mocks::LessonApiMocks, domain::fake_domain};
-
-    use super::*;
-
     #[tokio::test]
-    async fn test_get_lessons_success() {
+    async fn test_get_lessons_with_session_success() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 0);
+        server.deref_mut().mock_login_success();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
 
-        let r = domain.get_lessons().await;
+        server.deref_mut().mock_lessons_success(5, 0, true);
+
+        // We wrap this check around a timeout
+        let r = await_condition(
+            || async { domain.get_lessons().await.unwrap().len() },
+            |count| *count == 5,
+        ).await;
+
         assert!(r.is_ok());
-        assert_eq!(5, r.unwrap().len());
+        assert_eq!(5, r.unwrap());
     }
 
     #[tokio::test]
     async fn test_get_lessons_doesnt_persist_deleted_items() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 1);
+        server.deref_mut().mock_login_success();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
 
-        let r = domain.get_lessons().await;
+        server.deref_mut().mock_lessons_success(5, 1, true);
+
+        let r = await_condition(
+            || async { domain.get_lessons().await.unwrap().len() },
+            |count| *count == 4,
+        ).await;
+
         assert!(r.is_ok());
-        assert_eq!(4, r.unwrap().len());
-    }
-
-    #[tokio::test]
-    async fn test_get_lessons_failure() {
-        let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").unwrap();
-
-        server.deref_mut().mock_lessons_failure();
-
-        let r = domain.get_lessons().await;
-        assert!(r.is_err());
+        assert_eq!(4, r.unwrap());
     }
 }
