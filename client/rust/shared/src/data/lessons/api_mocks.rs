@@ -7,6 +7,7 @@ use super::api::{LessonResponse, LessonsResponse};
 #[cfg(test)]
 pub(crate) trait LessonApiMocks {
     fn mock_lessons_success(&mut self, count: u16, with_deleted: u16, with_session: bool) -> Mock;
+    #[allow(unused)]
     fn mock_lessons_failure(&mut self) -> Mock;
 }
 
@@ -52,6 +53,7 @@ impl LessonApiMocks for Server {
         }.create()
     }
 
+    #[allow(unused)] // TODO: This will be used during the future lesson repo sync detail testing
     fn mock_lessons_failure(&mut self) -> Mock {
         self.mock("GET", "/lessons")
             .with_status(403)
