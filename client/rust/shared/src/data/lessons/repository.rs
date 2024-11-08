@@ -20,7 +20,7 @@ impl From<LessonResponse> for LessonData {
     }
 }
 
-static REFRESH_TASK: &str = "REFRESH_TASK";
+static LESSONS_REFRESH_TASK: &str = "LESSONS_REFRESH_TASK";
 static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
 #[allow(unused)] // Implementing shortly
 const PAGE_SIZE: u8 = 2;
@@ -48,7 +48,7 @@ impl LessonRepository {
         let settings = self.settings.clone();
         log::trace!("lesson_repo - spawning refresh task");
 
-        self.runtime.spawn(REFRESH_TASK.into(), async move {
+        self.runtime.spawn(LESSONS_REFRESH_TASK.into(), async move {
             log::trace!("lesson_repo - refresh task started");
             log::trace!("lesson_repo - refresh task completed");
 

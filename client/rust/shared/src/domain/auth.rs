@@ -29,7 +29,6 @@ pub trait Auth {
     fn logout(&self) -> impl std::future::Future<Output = DomainResult<()>> + Send;
 }
 
-
 #[uniffi::export(async_runtime = "tokio")]
 impl Auth for Domain {
     async fn get_session(&self) -> DomainResult<Session> {
@@ -84,10 +83,9 @@ mod tests {
 
         let r = domain.login("user".to_string(), "password".to_string()).await;
         assert!(r.is_ok());
-        //let _ = tokio::time::sleep(Duration::from_secs(60));
         let s = domain.get_session().await;
         assert!(s.is_ok());
-        assert!(Session::Authenticated("user".into()) == s.unwrap());
+        assert_eq!(Session::Authenticated("user".into()), s.unwrap());
     }
 
     #[tokio::test]
