@@ -26,34 +26,46 @@ pub(crate) struct DataServiceProvider {
     service_manager: Arc<DataServiceManager>,
 }
 
-#[derive(Clone)]
 struct DataServiceManager {
+    runtime: Runtime,
     session_manager: ArcMutex<SessionManager>,
     lesson_repository: ArcMutex<LessonRepository>,
 }
+
+static MANAGER_START_TASK: &str = "MANAGER_START_TASK";
 
 impl DataServiceManager {
     fn new(
         session_manager: ArcMutex<SessionManager>,
         lesson_repository: ArcMutex<LessonRepository>,
     ) -> Self {
-        let manager = DataServiceManager {
+        let mut manager = DataServiceManager {
+            runtime: Runtime::new(),
             session_manager: session_manager.clone(),
             lesson_repository: lesson_repository.clone(),
         };
-        manager.clone().start();
+        manager.start();
         manager
     }
 
-    fn start(self) {
-        tokio::task::spawn(
-            async move { self.run().await }
+    fn start(&mut self) {
+        let session_manager = self.session_manager.clone();
+        let lesson_repository = self.lesson_repository.clone();
+        self.runtime.spawn(
+            MANAGER_START_TASK.into(),
+            Self::run(
+                session_manager,
+                lesson_repository,
+            )
         );
     }
 
-    async fn run(&self) {
+    async fn run(
+        session_manager: ArcMutex<SessionManager>,
+        lesson_repository: ArcMutex<LessonRepository>
+    ) {
         log::trace!("DataServiceManager::run()");
-        let mut state = self.session_manager.run(
+        let mut state = session_manager.run(
             |manager| manager.state.clone()
         ).await;
 
@@ -62,7 +74,7 @@ impl DataServiceManager {
             log::trace!("Received state change from session repo");
 
             let session = state.borrow().clone();
-            self.lesson_repository.run(move |repo| 
+            lesson_repository.run(move |repo|
                 if let Session::Authenticated(_) = session {
                     log::trace!("Session Started - Stopping lesson repo...");
                     repo.start();
@@ -73,7 +85,7 @@ impl DataServiceManager {
             ).await;
 
             log::trace!("Finished state loop, yielding then repeating");
-            yield_now(); // Not strictly necessaty as the while loop await will yield anyway
+            yield_now(); // Not strictly necessity as the while loop await will yield anyway
         }
     }
 } 

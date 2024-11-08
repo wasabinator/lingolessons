@@ -5,6 +5,13 @@ pub(crate) struct Runtime {
     tasks: HashMap<String, JoinHandle<()>>,
 }
 
+lazy_static::lazy_static! {
+    static ref RUNTIME: tokio::runtime::Runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .thread_name("LingoLessons Thread")
+        .build().unwrap();
+}
+
 impl Runtime {
     pub(crate) fn new() -> Self {
         Self {
@@ -20,7 +27,7 @@ impl Runtime {
         if let Some(task) = self.tasks.get(&key) {
             task.abort();
         }
-        let x: JoinHandle<()> = tokio::task::spawn(future);
+        let x: JoinHandle<()> = RUNTIME.spawn(future);
         self.tasks.insert(key, x);
     }
     
