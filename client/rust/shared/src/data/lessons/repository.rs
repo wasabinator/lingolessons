@@ -1,6 +1,8 @@
 use std::{borrow::BorrowMut, sync::Arc};
 
-use crate::{common::time::UnixTimestamp, data::{api::AuthApi, db::Db, lessons::{api::LessonsApi, db::LessonDao}, SettingRepository}, domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex, Run};
+use crate::{common::time::UnixTimestamp,
+            data::{api::AuthApi, db::Db, lessons::{api::LessonsApi, db::LessonDao}, SettingRepository},
+            domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex, Run};
 
 use super::{api::LessonResponse, db::LessonData};
 
@@ -110,41 +112,18 @@ impl LessonRepository {
         r.abort();
     }
 
-    pub(crate) async fn get_lessons(&self) -> uniffi::Result<Vec<Lesson>, DomainError> {
+    pub(crate) async fn get_lessons(&self) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
         log::trace!("Attempting to load lessons from db");
-        let db = self.db.lock().await;
-        let lessons = db.get_lessons()?;
-        drop(db);
-
-        if !lessons.is_empty() {
-            // Lessons have already been cached to the db
-            log::trace!("Got lessons from db");
-            let lessons = lessons.iter().map(Lesson::from).collect();
-            Ok(lessons)
-        } else {
-            // Try to fetch from the server
-            log::trace!("Attempting to fetch lessons from api");
-            let response = self.api.get_lessons().await?;
-            log::trace!("Got response from api {:?}", response);
-
-            let db = self.db.lock().await;
-
-            let mut lessons = Vec::new();
-            for lesson in response.results {
-                if lesson.is_deleted {
-                    db.del_lesson(lesson.id)?;
-                } else {
-                    let data = LessonData::from(lesson);
-                    db.set_lesson(&data)?;
-                    lessons.push(data);
-                }
+        let lessons = self.db.run(
+            |db| {
+                db.get_lessons()
             }
+        ).await?;
 
-            // Now map to domain type
-            let domain = lessons.iter().map(Lesson::from).collect();
-            Ok(domain)
-        }
+        Ok(
+            lessons.iter().map(Lesson::from).collect()
+        )
     }
 }

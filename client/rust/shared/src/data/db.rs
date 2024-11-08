@@ -25,7 +25,7 @@ impl From<rusqlite::Error> for DomainError {
     }
 }
 
-/// Mapper from a ruslite migration error to a domain error
+/// Mapper from a rusqlite migration error to a domain error
 impl From<rusqlite_migration::Error> for DomainError {
     #[inline]
     fn from(value: rusqlite_migration::Error) -> Self {
@@ -36,19 +36,19 @@ impl From<rusqlite_migration::Error> for DomainError {
 /// Basic implementation of the database, with support for opening a connection and initalising or migrating the schema version
 impl Db {
     #[cfg(not(test))]
-    pub(crate) fn open(path: String) -> std::result::Result<Self, DomainError> {
+    pub(crate) fn open(path: String) -> Result<Self, DomainError> {
         let conn = Connection::open(path)?;
         Self::init(conn)
     }
 
     #[cfg(test)]
-    pub(crate) fn open(_path: String) -> std::result::Result<Self, DomainError> {
+    pub(crate) fn open(_path: String) -> Result<Self, DomainError> {
         // When running tests we are using an in memory db instance
         let conn = Connection::open_in_memory()?;
         Self::init(conn)
     }
 
-    fn init(mut conn: Connection) -> std::result::Result<Self, DomainError> {
+    fn init(mut conn: Connection) -> Result<Self, DomainError> {
         match MIGRATIONS.to_latest(&mut conn) {
            Ok(_) => {
                 Ok(Self {

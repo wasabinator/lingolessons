@@ -1,4 +1,3 @@
-
 use std::sync::Arc;
 
 use chrono::{DateTime, Local};
@@ -60,23 +59,11 @@ impl Lessons for Domain {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::DerefMut;
-
-    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::{auth::Auth, fake_domain}};
-
     use super::*;
-
-    #[tokio::test]
-    async fn test_get_lessons_no_session_success() {
-        let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
-
-        server.deref_mut().mock_lessons_success(5, 0, false);
-
-        let r = domain.get_lessons().await;
-        assert!(r.is_ok());
-        assert_eq!(5, r.unwrap().len());
-    }
+    use crate::common::test::await_condition;
+    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks},
+                domain::{auth::Auth, fake_domain}};
+    use std::ops::DerefMut;
 
     #[tokio::test]
     async fn test_get_lessons_with_session_success() {
@@ -88,9 +75,14 @@ mod tests {
 
         server.deref_mut().mock_lessons_success(5, 0, true);
 
-        let r = domain.get_lessons().await;
+        // We wrap this check around a timeout
+        let r = await_condition(
+            || async { domain.get_lessons().await.unwrap().len() },
+            |count| *count == 5,
+        ).await;
+
         assert!(r.is_ok());
-        assert_eq!(5, r.unwrap().len());
+        assert_eq!(5, r.unwrap());
     }
 
     #[tokio::test]
@@ -103,21 +95,12 @@ mod tests {
 
         server.deref_mut().mock_lessons_success(5, 1, true);
 
-        log::trace!("1");
-        let r = domain.get_lessons().await;
-        log::trace!("2");
+        let r = await_condition(
+            || async { domain.get_lessons().await.unwrap().len() },
+            |count| *count == 4,
+        ).await;
+
         assert!(r.is_ok());
-        assert_eq!(4, r.unwrap().len());
-    }
-
-    #[tokio::test]
-    async fn test_get_lessons_failure() {
-        let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
-
-        server.deref_mut().mock_lessons_failure();
-
-        let r = domain.get_lessons().await;
-        assert!(r.is_err());
+        assert_eq!(4, r.unwrap());
     }
 }

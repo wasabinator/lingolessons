@@ -56,7 +56,7 @@ impl AuthApi {
         log::trace!("about to obtain session manager lock to decorate the request");
         self.session_manager.launch(
             |manager| async move { 
-                log::trace!("got sesson manager lock. decorating the request");
+                log::trace!("got session manager lock. decorating the request");
                 manager.decorate(manager.api.get(url)).await
             }
         ).await
