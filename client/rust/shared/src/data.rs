@@ -4,10 +4,11 @@ pub(crate) mod settings;
 pub(crate) mod db;
 pub(crate) mod api;
 
+use std::num::NonZeroUsize;
 use std::result::Result;
 use std::sync::Arc;
 use std::thread::yield_now;
-
+use lru::LruCache;
 use api::{Api, AuthApi};
 use crate::domain::auth::{Session, SessionManager};
 use crate::domain::lessons::LessonRepository;
@@ -113,6 +114,7 @@ impl DataServiceProvider {
             auth_api, 
             db.clone(),
             settings.clone(),
+            LruCache::new(NonZeroUsize::new(8).unwrap()),
         ));
 
         let service_manager = Arc::new(DataServiceManager::new(
