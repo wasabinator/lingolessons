@@ -1,5 +1,5 @@
 use std::{borrow::BorrowMut, sync::Arc};
-
+use lru::LruCache;
 use crate::{common::time::UnixTimestamp,
             data::{api::AuthApi, db::Db, lessons::{api::LessonsApi, db::LessonDao}, SettingRepository},
             domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex, Run};
@@ -30,13 +30,15 @@ impl LessonRepository {
         runtime: Runtime,
         api: Arc<AuthApi>,
         db: ArcMutex<Db>,
-        settings: ArcMutex<SettingRepository>
+        settings: ArcMutex<SettingRepository>,
+        cache: LruCache<u8, Vec<Lesson>>,
     ) -> Self {
         LessonRepository {
             runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
+            cache,
         }
     }
 
@@ -50,7 +52,6 @@ impl LessonRepository {
 
         self.runtime.spawn(LESSONS_REFRESH_TASK.into(), async move {
             log::trace!("lesson_repo - refresh task started");
-            log::trace!("lesson_repo - refresh task completed");
 
             let mut finished = false;
             #[allow(unused)] // TODO: Implementing shortly
@@ -100,6 +101,7 @@ impl LessonRepository {
                         break 'sync;
                     }
                 };
+                log::trace!("lesson_repo - refresh task completed");
             }
         });
 
@@ -112,18 +114,28 @@ impl LessonRepository {
         r.abort();
     }
 
-    pub(crate) async fn get_lessons(&self) -> anyhow::Result<Vec<Lesson>, DomainError> {
+    pub(crate) async fn get_lessons(&mut self, page_no: u8) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
-        log::trace!("Attempting to load lessons from db");
-        let lessons = self.db.run(
-            |db| {
-                db.get_lessons()
+        log::trace!("Attempting to fetch lessons from cache");
+        let lessons = match self.cache.get(&page_no) {
+            Some(lessons) => {
+                log::trace!("Got lessons {} from cache", lessons.len());
+                lessons.clone()
+            },
+            None => {
+                log::trace!("Attempting to load lessons from db");
+                let lessons = self.db.run(
+                    |db| db.get_lessons()
+                ).await?;
+                // Map to domain type and cache
+                let lessons: Vec<Lesson> = lessons.iter().map(Lesson::from).collect();
+                if !lessons.is_empty() {
+                    self.cache.put(page_no, lessons.clone());
+                }
+                lessons
             }
-        ).await?;
-
-        Ok(
-            lessons.iter().map(Lesson::from).collect()
-        )
+        };
+        Ok(lessons)
     }
 }
