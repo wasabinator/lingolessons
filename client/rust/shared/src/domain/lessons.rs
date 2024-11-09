@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, Local};
-use lru::LruCache;
 use uniffi::deps::log::trace;
 
 use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
@@ -9,7 +8,7 @@ use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
 
 /// Lesson domain model
-#[derive(uniffi::Record, Clone, PartialEq)]
+#[derive(uniffi::Record, PartialEq)]
 pub struct Lesson {
     pub id: String,
     pub title: String,
@@ -21,7 +20,7 @@ pub struct Lesson {
 }
 
 /// Lesson type domain model
-#[derive(uniffi::Enum, Clone, PartialEq)]
+#[derive(uniffi::Enum, PartialEq)]
 pub enum LessonType {
     Vocabulary,
     Grammar,
@@ -32,26 +31,22 @@ pub(crate) struct LessonRepository {
     pub(crate) runtime: Runtime,
     pub(crate) api: Arc<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
-    pub(crate) settings: ArcMutex<SettingRepository>,
-    pub(crate) cache: LruCache<u8, Vec<Lesson>>,
+    pub(crate) settings: ArcMutex<SettingRepository>
 }
 
 pub trait Lessons {
-    fn get_lessons(&self, page_no: u8) -> impl std::future::Future<Output = DomainResult<Vec<Lesson>>> + Send;
+    fn get_lessons(&self) -> impl std::future::Future<Output = DomainResult<Vec<Lesson>>> + Send;
     fn get_lesson(&self, id: String) -> impl std::future::Future<Output = DomainResult<Option<Lesson>>> + Send;
 }
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Lessons for Domain {
-    async fn get_lessons(&self, page_no: u8) -> DomainResult<Vec<Lesson>> {
+    async fn get_lessons(&self) -> DomainResult<Vec<Lesson>> {
+        let provider = self.provider.clone();
         trace!("get_lessons");
-
-        let lesson_repository = self.provider.lesson_repository.clone();
-        let mut repo = lesson_repository.lock().await;
-
+        let repository = provider.lesson_repository.lock().await;
         trace!("About to call repository::get_lessons()");
-        let lessons = repo.get_lessons(page_no).await?;
-
+        let lessons = repository.get_lessons().await?;
         trace!("Received lessons");
         Ok(lessons)
     }
@@ -75,14 +70,14 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 0, true);
         server.deref_mut().mock_login_success();
-
         let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        server.deref_mut().mock_lessons_success(5, 0, true);
 
         // We wrap this check around a timeout
         let r = await_condition(
-            || async { domain.get_lessons(0).await.unwrap().len() },
+            || async { domain.get_lessons().await.unwrap().len() },
             |count| *count == 5,
         ).await;
 
@@ -96,12 +91,12 @@ mod tests {
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(5, 1, true);
-
         let _ = domain.login("user".to_string(), "password".to_string()).await;
 
+        server.deref_mut().mock_lessons_success(5, 1, true);
+
         let r = await_condition(
-            || async { domain.get_lessons(0).await.unwrap().len() },
+            || async { domain.get_lessons().await.unwrap().len() },
             |count| *count == 4,
         ).await;
 
