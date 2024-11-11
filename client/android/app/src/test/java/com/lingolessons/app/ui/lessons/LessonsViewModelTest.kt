@@ -23,7 +23,7 @@ class LessonsViewModelTest : BaseTest() {
         mockLessons = mutableListOf()
         domain = mockk<DomainInterface>().apply {
             coEvery { getSession() } returns Session.Authenticated("user")
-            coEvery { getLessons() } returns mockLessons
+            coEvery { getLessons(any()) } returns mockLessons
         }
         domainState = DomainState(
             domain = domain
@@ -37,7 +37,7 @@ class LessonsViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            domain.getLessons()
+            domain.getLessons(any())
         }
     }
 
@@ -58,7 +58,7 @@ class LessonsViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            domain.getLessons()
+            domain.getLessons(any())
         }
 
         assertEquals(1, viewModel.state.value.lessons.size)
@@ -67,7 +67,7 @@ class LessonsViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 2) {
-            domain.getLessons()
+            domain.getLessons(any())
         }
 
         assertEquals(1, viewModel.state.value.lessons.size)
@@ -76,7 +76,7 @@ class LessonsViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         coVerify(exactly = 3) {
-            domain.getLessons()
+            domain.getLessons(any())
         }
 
         assertEquals(0, viewModel.state.value.lessons.size)

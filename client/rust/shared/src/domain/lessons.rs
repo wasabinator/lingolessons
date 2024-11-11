@@ -73,11 +73,11 @@ mod tests {
     #[tokio::test]
     async fn test_get_lessons_with_session_success() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        server.deref_mut().mock_lessons_success(5, 0, true);
+        server.deref_mut().mock_lessons_success(5, 0, true, 1);
         server.deref_mut().mock_login_success();
 
+        let domain = fake_domain(server.url() + "/").await.unwrap();
         let _ = domain.login("user".to_string(), "password".to_string()).await;
 
         // We wrap this check around a timeout
@@ -93,15 +93,17 @@ mod tests {
     #[tokio::test]
     async fn test_get_lessons_doesnt_persist_deleted_items() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(5, 1, true);
+        server.deref_mut().mock_lessons_success(5, 1, true, 1);
 
+        let domain = fake_domain(server.url() + "/").await.unwrap();
         let _ = domain.login("user".to_string(), "password".to_string()).await;
 
         let r = await_condition(
-            || async { domain.get_lessons(0).await.unwrap().len() },
+            || async {
+                domain.get_lessons(0).await.unwrap().len()
+            },
             |count| *count == 4,
         ).await;
 
