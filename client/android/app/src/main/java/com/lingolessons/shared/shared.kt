@@ -768,7 +768,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_shared_fn_method_domain_get_lesson(`ptr`: Pointer,`id`: RustBuffer.ByValue,
     ): Long
-    fun uniffi_shared_fn_method_domain_get_lessons(`ptr`: Pointer,
+    fun uniffi_shared_fn_method_domain_get_lessons(`ptr`: Pointer,`pageNo`: Byte,
     ): Long
     fun uniffi_shared_fn_method_domain_get_session(`ptr`: Pointer,
     ): Long
@@ -938,7 +938,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_shared_checksum_method_domain_get_lesson() != 61168.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 60447.toShort()) {
+    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 63357.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_shared_checksum_method_domain_get_session() != 47455.toShort()) {
@@ -1048,6 +1048,29 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
  * @suppress
  * */
 object NoPointer
+
+/**
+ * @suppress
+ */
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
+
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
+
+    override fun allocationSize(value: UByte) = 1UL
+
+    override fun write(value: UByte, buf: ByteBuffer) {
+        buf.put(value.toByte())
+    }
+}
 
 /**
  * @suppress
@@ -1315,7 +1338,7 @@ public interface DomainInterface {
     
     suspend fun `getLesson`(`id`: kotlin.String): Lesson?
     
-    suspend fun `getLessons`(): List<Lesson>
+    suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson>
     
     suspend fun `getSession`(): Session
     
@@ -1431,12 +1454,12 @@ open class Domain: Disposable, AutoCloseable, DomainInterface {
     
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getLessons`() : List<Lesson> {
+    override suspend fun `getLessons`(`pageNo`: kotlin.UByte) : List<Lesson> {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lessons(
                 thisPtr,
-                
+                FfiConverterUByte.lower(`pageNo`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(future, callback, continuation) },

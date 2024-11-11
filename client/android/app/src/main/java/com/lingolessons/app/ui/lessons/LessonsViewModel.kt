@@ -34,7 +34,7 @@ class LessonsViewModel(
                 )
             }
             try {
-                val lessons = domainState.domain.getLessons().filter { lesson ->
+                val lessons = domainState.domain.getLessons(0u).filter { lesson ->
                     _state.value.filterText.let {
                         (it.isEmpty() || (it.isNotEmpty() &&
                                 lesson.title.toLowerCase(Locale.current).contains(

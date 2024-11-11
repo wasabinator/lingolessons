@@ -1,5 +1,5 @@
 use std::{borrow::BorrowMut, sync::Arc};
-
+use lru::LruCache;
 use crate::{common::time::UnixTimestamp,
             data::{api::AuthApi, db::Db, lessons::{api::LessonsApi, db::LessonDao}, SettingRepository},
             domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex, Run};
@@ -23,20 +23,22 @@ impl From<LessonResponse> for LessonData {
 static LESSONS_REFRESH_TASK: &str = "LESSONS_REFRESH_TASK";
 static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
 #[allow(unused)] // Implementing shortly
-const PAGE_SIZE: u8 = 2;
+const PAGE_SIZE: u8 = 20;
 
 impl LessonRepository {
     pub(in crate::data) fn new(
         runtime: Runtime,
         api: Arc<AuthApi>,
         db: ArcMutex<Db>,
-        settings: ArcMutex<SettingRepository>
+        settings: ArcMutex<SettingRepository>,
+        cache: LruCache<u8, Vec<Lesson>>,
     ) -> Self {
         LessonRepository {
             runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
+            cache,
         }
     }
 
@@ -50,10 +52,8 @@ impl LessonRepository {
 
         self.runtime.spawn(LESSONS_REFRESH_TASK.into(), async move {
             log::trace!("lesson_repo - refresh task started");
-            log::trace!("lesson_repo - refresh task completed");
 
             let mut finished = false;
-            #[allow(unused)] // TODO: Implementing shortly
             let mut page_no: u8 = 0;
             #[allow(unused)] // TODO: Implementing shortly
             let timestamp = settings.launch(
@@ -64,8 +64,8 @@ impl LessonRepository {
 
             'sync: while !finished {
                 // Try to fetch from the server
-                log::trace!("Attempting to fetch lessons from api");
-                let response = api.get_lessons().await;
+                log::trace!("Attempting to fetch lessons from api for page {}", page_no);
+                let response = api.get_lessons(page_no).await;
                 log::trace!("Got response from api {:?}", response);
 
                 match response {
@@ -96,10 +96,11 @@ impl LessonRepository {
                         }
                     },
                     Err(e) => {
-                        log::error!("Failed to fetch lessons: {:?}", e);
+                        log::error!("Failed to fetch lessons for page {}. Exiting sync: {:?}", page_no, e);
                         break 'sync;
                     }
                 };
+                log::trace!("lesson_repo - refresh task completed");
             }
         });
 
@@ -112,18 +113,30 @@ impl LessonRepository {
         r.abort();
     }
 
-    pub(crate) async fn get_lessons(&self) -> anyhow::Result<Vec<Lesson>, DomainError> {
+    pub(crate) async fn get_lessons(&mut self, page_no: u8) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
-        log::trace!("Attempting to load lessons from db");
-        let lessons = self.db.run(
-            |db| {
-                db.get_lessons()
+        log::trace!("Attempting to fetch lessons from cache");
+        let lessons = match self.cache.get(&page_no) {
+            Some(lessons) => {
+                log::trace!("Got lessons {} from cache", lessons.len());
+                lessons.clone()
+            },
+            None => {
+                log::trace!("Cache miss for page {}. Attempting to load lessons from db", page_no);
+                let lessons = self.db.run(
+                    |db| db.get_lessons()
+                ).await?;
+                log::trace!("Got lessons {} from db", lessons.len());
+                // Map to domain type and cache
+                let lessons: Vec<Lesson> = lessons.iter().map(Lesson::from).collect();
+                if !lessons.is_empty() {
+                    log::trace!("Caching {} lessons for page {}", lessons.len(), page_no);
+                    self.cache.put(page_no, lessons.clone());
+                }
+                lessons
             }
-        ).await?;
-
-        Ok(
-            lessons.iter().map(Lesson::from).collect()
-        )
+        };
+        Ok(lessons)
     }
 }

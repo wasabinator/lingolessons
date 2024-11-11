@@ -1,4 +1,3 @@
-
 use std::sync::Arc;
 
 use reqwest::RequestBuilder;
@@ -30,8 +29,17 @@ impl Api {
         })
     }
 
-    pub(super) fn get(&self, url: String) -> RequestBuilder {
-        self.client.get(concat_string!(self.base_url, url))
+    pub(super) fn get(&self, url: String, params: Option<std::slice::Iter<(String, String)>>) -> RequestBuilder {
+        let url = concat_string!(self.base_url, url);
+        let url = match params {
+            Some(params) => {
+                reqwest::Url::parse_with_params(url.as_str(), params)
+            },
+            None => {
+                reqwest::Url::parse(url.as_str())
+            }
+        }.unwrap(); // TODO: This method should probably return Result<RequestBuilder> instead
+        self.client.get(url)
     }
 
     pub(super) fn post(&self, url: String) -> RequestBuilder {
@@ -52,12 +60,12 @@ impl AuthApi {
         }
     }
 
-    pub(super) async fn get(&self, url: String) -> RequestBuilder {
+    pub(super) async fn get<'a>(&self, url: String, params: Option<std::slice::Iter<'a, (String, String)>>) -> RequestBuilder {
         log::trace!("about to obtain session manager lock to decorate the request");
         self.session_manager.launch(
-            |manager| async move { 
+            |manager| async move {
                 log::trace!("got session manager lock. decorating the request");
-                manager.decorate(manager.api.get(url)).await
+                manager.decorate(manager.api.get(url, params.clone())).await
             }
         ).await
     }

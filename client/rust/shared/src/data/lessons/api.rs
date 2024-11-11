@@ -11,7 +11,7 @@ pub(super) struct LessonsResponse {
     pub results: Vec<LessonResponse>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub(super) struct LessonResponse {
     pub id: Uuid,
     pub title: String,
@@ -24,14 +24,18 @@ pub(super) struct LessonResponse {
 }
 
 pub(super) trait LessonsApi {
-    async fn get_lessons(&self) -> reqwest::Result<LessonsResponse>;
+    async fn get_lessons(&self, page_no: u8) -> reqwest::Result<LessonsResponse>;
 }
 
 const LESSONS_URL: &str = "lessons";
 
 impl LessonsApi for AuthApi {
-    async fn get_lessons(&self) -> reqwest::Result<LessonsResponse> {
-        let r = self.get(LESSONS_URL.to_string()).await
+    async fn get_lessons(&self, page_no: u8) -> reqwest::Result<LessonsResponse> {
+        let params = [
+            ("page_no".to_string(), (page_no + 1).to_string()), // Api is 1 based
+        ];
+        let iter = params.iter();
+        let r = self.get(LESSONS_URL.to_string(), Some(iter)).await
             .send().await?
             .json::<LessonsResponse>()
             .await?;
