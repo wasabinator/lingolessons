@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS lesson(
-  id TEXT,
+  id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   type INTEGER NOT NULL,
   language1 TEXT,
