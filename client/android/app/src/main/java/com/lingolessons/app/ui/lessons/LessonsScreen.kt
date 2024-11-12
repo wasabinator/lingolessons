@@ -1,18 +1,15 @@
 package com.lingolessons.app.ui.lessons
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -20,20 +17,22 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.lingolessons.app.R
 import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun LessonsScreen(
@@ -44,7 +43,6 @@ fun LessonsScreen(
         state = state.value,
         onLessonSelected = {},
         onSearchTextChanged = viewModel::updateFilterText,
-        onRefresh = viewModel::refresh
     )
 }
 
@@ -54,7 +52,6 @@ fun LessonsScreen(
     state: LessonsViewModel.State,
     onLessonSelected: () -> Unit,
     onSearchTextChanged: (String) -> Unit,
-    onRefresh: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -93,8 +90,9 @@ fun LessonsScreen(
                         value = state.filterText,
                         onValueChange = onSearchTextChanged,
                     )
-                    if (state.lessons.isNotEmpty()) {
-                        LessonList(state.lessons)
+                    val items = state.lessons.collectAsLazyPagingItems()
+                    if (items.itemCount > 0) {
+                        LessonList(items)
                     } else {
                         Row(
                             modifier = Modifier.fillMaxHeight(),
@@ -108,33 +106,23 @@ fun LessonsScreen(
                 }
             }
         }
-
-        LaunchedEffect(Unit) {
-            onRefresh()
-        }
     }
 }
 
 @Composable
-private fun LessonList(lessons: List<Lesson>) {
+private fun LessonList(items: LazyPagingItems<Lesson>) {
     LazyColumn(
         modifier = Modifier.testTag("lesson_list"),
         state = rememberLazyListState()
     ) {
-        items(lessons) {
-            Row(
-                Modifier
-                    .height(IntrinsicSize.Max)
-                    .fillMaxWidth()
-                    .border(1.dp, Gray)
-                    .padding(vertical = 12.dp)
-            ) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(horizontal = 12.dp),
-                    text = it.title,
+        items(items.itemCount) { index ->
+            items[index]?.let {
+                ListItem(
+                    headlineContent = {
+                        Text(text = it.title)
+                    }
                 )
+                HorizontalDivider()
             }
         }
     }
@@ -144,10 +132,12 @@ private fun LessonList(lessons: List<Lesson>) {
 @Preview
 fun LessonsScreen_Empty_Preview() {
     LessonsScreen(
-        state = LessonsViewModel.State(),
+        state = LessonsViewModel.State(
+            lessons = emptyFlow()
+        ),
         onLessonSelected = {},
         onSearchTextChanged = {},
-        onRefresh = {},
+//        onRefresh = {},
     )
 }
 
@@ -156,20 +146,32 @@ fun LessonsScreen_Empty_Preview() {
 fun LessonsScreen_List_Preview() {
     LessonsScreen(
         state = LessonsViewModel.State(
-            lessons = listOf(
-                Lesson(
-                    id = "",
-                    title = "Lesson",
-                    type = LessonType.GRAMMAR,
-                    language1 = "en",
-                    language2 = "jp",
-                    owner = "owner",
-                    updatedAt = DateTime.now(),
+            lessons = flowOf(
+                PagingData.from(
+                    listOf(
+                        Lesson(
+                            id = "",
+                            title = "Lesson 1",
+                            type = LessonType.GRAMMAR,
+                            language1 = "en",
+                            language2 = "jp",
+                            owner = "owner",
+                            updatedAt = DateTime.now(),
+                        ),
+                        Lesson(
+                            id = "",
+                            title = "Lesson 2",
+                            type = LessonType.GRAMMAR,
+                            language1 = "en",
+                            language2 = "jp",
+                            owner = "owner",
+                            updatedAt = DateTime.now(),
+                        )
+                    )
                 )
             )
         ),
         onSearchTextChanged = {},
         onLessonSelected = {},
-        onRefresh = {},
     )
 }
