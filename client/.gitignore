@@ -30,3 +30,5 @@ debug/
 target/
 **/*.rs.bk
 *.pdb
+
+.attach_pid*
