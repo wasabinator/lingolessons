@@ -155,4 +155,22 @@ mod tests {
         let lessons = db.get_lessons().unwrap();
         assert_eq!(4, lessons.len());
     }
+
+    #[test]
+    fn test_lessons_primary_key() {
+        let db = Db::open("blah.txt".to_string()).unwrap();
+        let r = db.get_lessons();
+        assert!(r.unwrap().is_empty());
+
+        let lessons = DbFixtures::create_lessons(1);
+        let lesson = lessons.get(0).unwrap();
+        db.set_lesson(&lesson).unwrap();
+        let r = db.get_lessons();
+        assert_eq!(1, r.unwrap().len());
+
+        // Should update rather than insert a duplicate
+        db.set_lesson(&lesson).unwrap();
+        let r = db.get_lessons();
+        assert_eq!(1, r.unwrap().len());
+    }
 }
