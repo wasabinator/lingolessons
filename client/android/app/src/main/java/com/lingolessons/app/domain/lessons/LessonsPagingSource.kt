@@ -15,10 +15,11 @@ class LessonsPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> = try {
         val currentPage = params.key ?: 0
         val lessons: List<Lesson> = domain.getLessons(currentPage.toUByte()).let {
-            if (searchText.isNullOrBlank()) {
+            val currentSearchText = searchText
+            if (currentSearchText.isNullOrBlank()) {
                 it
             } else {
-                val text = searchText.toLowerCase(Locale.current)
+                val text = currentSearchText.toLowerCase(Locale.current)
                 it.filter { lesson ->
                     lesson.title.toLowerCase(Locale.current).contains(text)
                 }

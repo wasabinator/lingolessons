@@ -84,7 +84,7 @@ dependencies {
     testImplementation(libs.mockk.agent)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric.robolectric)
-    testImplementation(libs.androidx.paging.common)
+    testImplementation(libs.androidx.paging.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.mockk.android)

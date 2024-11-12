@@ -41,7 +41,7 @@ class LoginScreenTest : BaseUiTest() {
     }
 
     @Test
-    fun expectScreenToBeEmptyWhenStateIsEmpty() = runComposeUiTest {
+    fun `expect screen to be empty when state is empty`() = runComposeUiTest {
         setContent(State())
 
         onNodeWithTag("username").assertExists() // TODO

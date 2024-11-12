@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.PagingSourceFactory
 import androidx.paging.cachedIn
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.domain.lessons.LessonsPagingSource
@@ -16,7 +17,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class LessonsViewModel(
-    private val domainState: DomainState,
+    domainState: DomainState,
+    private val pagingSourceFactory: (String) -> PagingSourceFactory<Int, Lesson> = { text ->
+        PagingSourceFactory {
+            LessonsPagingSource(
+                domain = domainState.domain,
+                searchText = text
+            )
+        }
+    },
 ) : DomainStateViewModel(domainState = domainState) {
     private val _state = MutableStateFlow(
         State(
@@ -29,12 +38,12 @@ class LessonsViewModel(
         _state.update {
             it.copy(
                 filterText = text,
-                lessons = initPager(text),
+                lessons = initPager(text)
             )
         }
     }
 
-    private fun initPager(searchText: String? = null): Flow<PagingData<Lesson>> =
+    private fun initPager(text: String = ""): Flow<PagingData<Lesson>> =
         Pager(
             config = PagingConfig(
                 pageSize = -1, // Not used
@@ -44,13 +53,16 @@ class LessonsViewModel(
                 enablePlaceholders = true
             ),
             initialKey = 0,
-            pagingSourceFactory = {
-                LessonsPagingSource(
-                    domain = domainState.domain,
-                    searchText = searchText,
-                )
-            }
+            pagingSourceFactory = pagingSourceFactory(text),
         ).flow.cachedIn(viewModelScope) // This will de-cache when detached from observation
+
+    fun refresh() {
+        _state.update {
+            it.copy(
+                lessons = initPager(it.filterText)
+            )
+        }
+    }
 
     data class State(
         val filterText: String = "",

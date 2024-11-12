@@ -31,4 +31,4 @@ target/
 **/*.rs.bk
 *.pdb
 
-attach_pid*
+.attach_pid*
