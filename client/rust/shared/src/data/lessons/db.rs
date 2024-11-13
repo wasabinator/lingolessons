@@ -3,7 +3,7 @@ use chrono::{TimeZone, Utc};
 use rusqlite::OptionalExtension;
 use uuid::Uuid;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub(super) struct LessonData {
     pub(super) id: Uuid,
     pub(super) title: String,
@@ -57,9 +57,9 @@ impl From<&LessonData> for Lesson {
 }
 
 pub(super) trait LessonDao {
+    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>>;
     #[allow(dead_code)] // Will be used in the future
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>>;
-    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>>;
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()>;
     #[allow(dead_code)] // Will be used in the future
     fn del_lesson(&self, id: Uuid) -> rusqlite::Result<()>;
@@ -124,21 +124,17 @@ impl LessonDao for Db {
 #[cfg(test)]
 mod tests {
     use crate::data::lessons::db_fixtures::DbFixtures;
-
     use super::*;
 
     #[test]
     fn test_lessons() {
         let db = Db::open("blah.txt".to_string()).unwrap();
+
         let r = db.get_lessons();
         assert!(r.unwrap().is_empty());
 
-        let lessons = DbFixtures::create_lessons(5);
-
         // Insert 5 lessons into the db
-        for lesson in &lessons {
-            db.set_lesson(&lesson).unwrap();
-        }
+        let lessons = DbFixtures::create_lessons(&db, 5);
 
         // Now fetch and compare the lessons
         for lesson in &lessons {
@@ -162,7 +158,7 @@ mod tests {
         let r = db.get_lessons();
         assert!(r.unwrap().is_empty());
 
-        let lessons = DbFixtures::create_lessons(1);
+        let lessons = DbFixtures::create_lessons(&db, 1);
         let lesson = lessons.get(0).unwrap();
         db.set_lesson(&lesson).unwrap();
         let r = db.get_lessons();

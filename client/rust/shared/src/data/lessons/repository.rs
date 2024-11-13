@@ -22,6 +22,7 @@ impl From<LessonResponse> for LessonData {
 
 static LESSONS_REFRESH_TASK: &str = "LESSONS_REFRESH_TASK";
 static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
+
 #[allow(unused)] // Implementing shortly
 const PAGE_SIZE: u8 = 20;
 
@@ -51,21 +52,25 @@ impl LessonRepository {
         log::trace!("lesson_repo - spawning refresh task");
 
         self.runtime.spawn(LESSONS_REFRESH_TASK.into(), async move {
-            log::trace!("lesson_repo - refresh task started");
+            log::debug!("lesson_repo - refresh task started");
+
+            let sync_time = UnixTimestamp::now();
 
             let mut finished = false;
             let mut page_no: u8 = 0;
-            #[allow(unused)] // TODO: Implementing shortly
-            let timestamp = settings.launch(
+            let last_sync_time = settings.launch(
                 |settings| async move {
-                    settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await;
+                    settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await
                 }
             ).await;
 
             'sync: while !finished {
                 // Try to fetch from the server
                 log::trace!("Attempting to fetch lessons from api for page {}", page_no);
-                let response = api.get_lessons(page_no).await;
+                let response = api.get_lessons(
+                    page_no,
+                    last_sync_time,
+                ).await;
                 log::trace!("Got response from api {:?}", response);
 
                 match response {
@@ -87,7 +92,7 @@ impl LessonRepository {
                             // Set the timestamp so we'll know where to pick up from next sync
                             settings.launch(
                                 |settings| async move {
-                                    settings.put_timestamp(LESSONS_LAST_SYNC_TIME, UnixTimestamp::now()).await;
+                                    settings.put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time).await;
                                 }
                             ).await;
                             finished = true;
@@ -100,7 +105,7 @@ impl LessonRepository {
                         break 'sync;
                     }
                 };
-                log::trace!("lesson_repo - refresh task completed");
+                log::debug!("lesson_repo - refresh task completed");
             }
         });
 

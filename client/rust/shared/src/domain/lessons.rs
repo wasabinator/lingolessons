@@ -66,15 +66,15 @@ impl Lessons for Domain {
 mod tests {
     use super::*;
     use crate::common::test::await_condition;
-    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks},
-                domain::{auth::Auth, fake_domain}};
+    use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::{auth::Auth, fake_domain}, Run};
     use std::ops::DerefMut;
+    use serial_test::serial;
 
+    #[serial]
     #[tokio::test]
     async fn test_get_lessons_with_session_success() {
         let mut server = mockito::Server::new_async().await;
-
-        server.deref_mut().mock_lessons_success(5, 0, true, 1);
+        server.deref_mut().mock_lessons_success(5, 0, true, 1, None);
         server.deref_mut().mock_login_success();
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
@@ -90,12 +90,12 @@ mod tests {
         assert_eq!(5, r.unwrap());
     }
 
+    #[serial]
     #[tokio::test]
     async fn test_get_lessons_doesnt_persist_deleted_items() {
         let mut server = mockito::Server::new_async().await;
-
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(5, 1, true, 1);
+        server.deref_mut().mock_lessons_success(5, 1, true, 1, None);
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
         let _ = domain.login("user".to_string(), "password".to_string()).await;
@@ -109,5 +109,64 @@ mod tests {
 
         assert!(r.is_ok());
         assert_eq!(4, r.unwrap());
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_lesson_sync_saves_timestamp_on_success() {
+        let mut server = mockito::Server::new_async().await;
+        server.deref_mut().mock_login_success();
+        server.deref_mut().mock_lessons_success(1, 1, true, 1, None);
+
+        let domain = fake_domain(server.url() + "/").await.unwrap();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        let _ = domain.get_lessons(0).await;
+
+        let settings = domain.provider.setting_repository.clone();
+        let r = await_condition(
+            || async {
+                settings.launch(
+                    |repo| async move {
+                        repo.get_timestamp("LESSONS_LAST_SYNC_TIME").await
+                    }
+                ).await
+            },
+            |timestamp| timestamp.is_some(),
+        ).await;
+
+        assert!(r.is_ok());
+        assert!(r.unwrap().is_some()) // A timestamp should now exist
+    }
+
+    #[serial]
+    #[tokio::test]
+    async fn test_lesson_sync_uses_saved_timestamp() {
+        let mut server = mockito::Server::new_async().await;
+        server.deref_mut().mock_login_success();
+        server.deref_mut().mock_lessons_success(2, 0, true, 1, Some(1337));
+
+        let domain = fake_domain(server.url() + "/").await.unwrap();
+        let settings = domain.provider.setting_repository.clone();
+
+        // Insert a mock timestamp
+        settings.launch(
+            |repo| async move {
+                repo.put_timestamp("LESSONS_LAST_SYNC_TIME", 1337).await
+            }
+        ).await;
+
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        let r = await_condition(
+            || async {
+                let r = domain.get_lessons(0).await;
+                r.unwrap().len()
+            },
+            |count| *count == 2,
+        ).await;
+
+        assert!(r.is_ok());
+        assert_eq!(2, r.unwrap()); // Expect only the "updated" lessons
     }
 }

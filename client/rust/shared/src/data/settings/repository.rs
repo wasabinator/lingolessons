@@ -61,10 +61,12 @@ impl SettingRepository {
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
     use crate::{arc_mutex, common::time::UnixTimestamp};
 
     use super::*;
 
+    #[serial]
     #[tokio::test]
     async fn test_repository() {
         let repo = &SettingRepository::new(
