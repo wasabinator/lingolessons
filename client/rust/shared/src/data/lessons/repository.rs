@@ -58,7 +58,6 @@ impl LessonRepository {
 
             let mut finished = false;
             let mut page_no: u8 = 0;
-            #[allow(unused)] // TODO: Implementing shortly
             let last_sync_time = settings.launch(
                 |settings| async move {
                     settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await
