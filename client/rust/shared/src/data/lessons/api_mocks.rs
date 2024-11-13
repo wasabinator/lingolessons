@@ -6,7 +6,14 @@ use super::api::{LessonResponse, LessonsResponse};
 
 #[cfg(test)]
 pub(crate) trait LessonApiMocks {
-    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16, with_session: bool, in_pages: usize) -> Vec<Mock>;
+    fn mock_lessons_success(
+        &mut self,
+        count: u16,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
+        at_timestamp: Option<u64>
+    ) -> Vec<Mock>;
     #[allow(unused)]
     fn mock_lessons_failure(&mut self) -> Mock;
 }
@@ -17,7 +24,14 @@ impl LessonApiMocks for Server {
     /// 
     /// The number of lessons is specified by count
     /// The first 'with_deleted' lessons will be marked as deleted
-    fn mock_lessons_success(&mut self, count: u16, with_deleted: u16, with_session: bool, in_pages: usize) -> Vec<Mock> {
+    fn mock_lessons_success(
+        &mut self,
+        count: u16,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
+        at_timestamp: Option<u64>,
+    ) -> Vec<Mock> {
         let epoc_time = Utc::now().timestamp();
 
         let lessons: Vec<LessonResponse> = (0..count).map(|i|
@@ -38,6 +52,7 @@ impl LessonApiMocks for Server {
             .collect();
 
         let mut i = 1;
+        let max = responses.len();
         responses.iter().map(
             |response| {
                 let previous = match i {
@@ -45,7 +60,6 @@ impl LessonApiMocks for Server {
                     _ => Some(format!("page={}", i))
                 };
 
-                let max = lessons.len();
                 let next =
                     if i < max {
                         Some(format!("page={}", i + 1))
@@ -60,22 +74,28 @@ impl LessonApiMocks for Server {
                     results: response.clone(),
                 };
 
-                let mock = self.mock("GET", "/lessons")
+                let mut mock = self.mock("GET", "/lessons")
                     .with_status(200)
                     .match_query(Matcher::UrlEncoded("page_no".into(), format!("{}", i)))
                     .with_body(
                         serde_json::to_string(&r).unwrap()
                     );
 
-                let mock = if with_session {
+                mock = if with_session {
                     mock.match_header("Authorization", "Bearer mock_access_token")
                 } else {
                     mock.match_header("Authorization", Matcher::Missing)
-                }.create();
+                };
+
+                mock = if let Some(timestamp) = at_timestamp {
+                    mock.match_query(Matcher::UrlEncoded("since".into(), timestamp.to_string()))
+                } else {
+                    mock
+                };
 
                 i += 1;
 
-                mock
+                mock.create()
             }
         ).collect()
     }

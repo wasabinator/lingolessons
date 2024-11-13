@@ -76,7 +76,6 @@ mod tests {
         let r = db.get("123".into());
         assert_eq!(Ok(Setting::None), r);
         let r = db.put("123", Setting::Text("abc".into()));
-        println!("r: {:?}", r);
         assert!(r.is_ok());
         let r = db.get("123");
         assert_eq!(Ok(Setting::Text("abc".into())), r);

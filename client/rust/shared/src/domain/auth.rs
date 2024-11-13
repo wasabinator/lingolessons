@@ -69,17 +69,19 @@ impl Auth for Domain {
 #[cfg(test)]
 mod tests {
     use std::ops::DerefMut;
-
+    use serial_test::serial;
     use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
-
+    use crate::data::lessons::api_mocks::LessonApiMocks;
     use super::*;
 
+    #[serial]
     #[tokio::test]
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
-
         server.deref_mut().mock_login_success();
+        server.deref_mut().mock_lessons_success(1, 0, true, 1, None);
+
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         let r = domain.login("user".to_string(), "password".to_string()).await;
         assert!(r.is_ok());
@@ -88,12 +90,13 @@ mod tests {
         assert_eq!(Session::Authenticated("user".into()), s.unwrap());
     }
 
+    #[serial]
     #[tokio::test]
     async fn test_login_failure() {
         let mut server = mockito::Server::new_async().await;
-        let domain = fake_domain(server.url() + "/").await.unwrap();
-
         server.deref_mut().mock_login_failure();
+
+        let domain = fake_domain(server.url() + "/").await.unwrap();
 
         let r = domain.login("user".to_string(), "password".to_string()).await;
         assert!(r.is_err());

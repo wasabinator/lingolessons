@@ -111,8 +111,10 @@ pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError>
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
     use crate::domain::fake_domain;
 
+    #[serial]
     #[tokio::test]
     async fn test_mock_ctor() {
         let server = mockito::Server::new_async().await;
