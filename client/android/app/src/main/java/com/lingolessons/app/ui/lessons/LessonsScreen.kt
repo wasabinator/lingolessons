@@ -1,5 +1,6 @@
 package com.lingolessons.app.ui.lessons
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,11 +38,12 @@ import kotlinx.coroutines.flow.flowOf
 @Composable
 fun LessonsScreen(
     viewModel: LessonsViewModel,
+    onLessonSelected: (Lesson) -> Unit,
 ) {
     val state = viewModel.state.collectAsState()
     LessonsScreen(
         state = state.value,
-        onLessonSelected = {},
+        onLessonSelected = onLessonSelected,
         onSearchTextChanged = viewModel::updateFilterText,
     )
 }
@@ -50,7 +52,7 @@ fun LessonsScreen(
 @Composable
 fun LessonsScreen(
     state: LessonsViewModel.State,
-    onLessonSelected: () -> Unit,
+    onLessonSelected: (Lesson) -> Unit,
     onSearchTextChanged: (String) -> Unit,
 ) {
     Scaffold(
@@ -92,7 +94,10 @@ fun LessonsScreen(
                     )
                     val items = state.lessons.collectAsLazyPagingItems()
                     if (items.itemCount > 0) {
-                        LessonList(items)
+                        LessonList(
+                            items = items,
+                            onLessonSelected = onLessonSelected,
+                        )
                     } else {
                         Row(
                             modifier = Modifier.fillMaxHeight(),
@@ -110,7 +115,10 @@ fun LessonsScreen(
 }
 
 @Composable
-private fun LessonList(items: LazyPagingItems<Lesson>) {
+private fun LessonList(
+    items: LazyPagingItems<Lesson>,
+    onLessonSelected: (Lesson) -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.testTag("lesson_list"),
         state = rememberLazyListState()
@@ -118,6 +126,9 @@ private fun LessonList(items: LazyPagingItems<Lesson>) {
         items(items.itemCount) { index ->
             items[index]?.let {
                 ListItem(
+                    modifier = Modifier.clickable {
+                        onLessonSelected(it)
+                    },
                     headlineContent = {
                         Text(text = it.title)
                     }
@@ -137,7 +148,6 @@ fun LessonsScreen_Empty_Preview() {
         ),
         onLessonSelected = {},
         onSearchTextChanged = {},
-//        onRefresh = {},
     )
 }
 

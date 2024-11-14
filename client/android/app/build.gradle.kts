@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlinx.kover)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 val abiTargets = setOf("arm64-v8a", "x86_64")
@@ -78,6 +79,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose.viewmodel.navigation)
     implementation(libs.androidx.paging.compose)
+    implementation(libs.kotlinx.serialization.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)

@@ -36,14 +36,14 @@ import com.lingolessons.app.R
 fun MainScreen() {
     val navController: NavHostController = rememberNavController()
     val backStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route?.let { AppScreen.valueOf(it) }
+    val currentRoute = AppScreen.getRoute(backStackEntry)
 
     MainScreen(
         largeScreen = false, // TODO
         mainNav = { MainNav(navController = navController) },
         currentRoute = currentRoute,
         onNavItemClick = { screen: AppScreen ->
-            navController.navigate(screen.name) {
+            navController.navigate(screen) {
                 launchSingleTop = true
             }
         }
