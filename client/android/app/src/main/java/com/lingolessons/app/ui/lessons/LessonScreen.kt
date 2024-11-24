@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 
 @Composable
 fun LessonScreen(
@@ -21,8 +22,6 @@ fun LessonScreen(
     val state = viewModel.state.collectAsState()
     LessonScreen(
         state = state.value,
-        onLessonSelected = {},
-//        onSearchTextChanged = viewModel::updateFilterText,
     )
 }
 
@@ -30,8 +29,6 @@ fun LessonScreen(
 @Composable
 fun LessonScreen(
     state: LessonViewModel.State,
-    onLessonSelected: () -> Unit,
-//    onSearchTextChanged: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -41,7 +38,10 @@ fun LessonScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    //Text(text = state.lesson.title)
+                    Text(
+                        modifier = Modifier.testTag("screen_title"),
+                        text = state.lessonId
+                    )
                 }
             )
         }
