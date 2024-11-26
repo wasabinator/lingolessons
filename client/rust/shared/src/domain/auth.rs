@@ -71,7 +71,7 @@ mod tests {
     use std::ops::DerefMut;
     use serial_test::serial;
     use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
-    use crate::data::lessons::api_mocks::LessonApiMocks;
+    use crate::data::lessons::api_mocks::{mock_lessons, LessonApiMocks};
     use super::*;
 
     #[serial]
@@ -79,7 +79,13 @@ mod tests {
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(1, 0, true, 1, None);
+        server.deref_mut().mock_lessons_success(
+            mock_lessons(1),
+            0,
+            true,
+            1,
+            None
+        );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 

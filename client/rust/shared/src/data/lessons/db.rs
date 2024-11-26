@@ -45,7 +45,7 @@ impl From<&LessonData> for Lesson {
         let utc = Utc.timestamp_opt(lesson.updated_at, 0).unwrap();
 
         Lesson {
-            id: lesson.id.into(),
+            id: lesson.id,
             title: lesson.title.clone(),
             r#type: LessonType::from(lesson.r#type),
             language1: lesson.language1.clone(),
