@@ -6,7 +6,7 @@ pub mod auth;
 pub mod lessons;
 pub mod runtime;
 pub mod settings;
-
+mod common;
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {

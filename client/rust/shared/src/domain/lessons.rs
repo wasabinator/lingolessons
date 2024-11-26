@@ -3,7 +3,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Local};
 use lru::LruCache;
 use uniffi::deps::log::trace;
-
+use uuid::Uuid;
 use crate::{data::{api::AuthApi, db::Db}, domain::Domain, ArcMutex};
 
 use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
@@ -11,7 +11,7 @@ use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
 /// Lesson domain model
 #[derive(uniffi::Record, Clone, PartialEq)]
 pub struct Lesson {
-    pub id: String,
+    pub id: Uuid,
     pub title: String,
     pub r#type: LessonType,
     pub language1: String,
@@ -33,12 +33,13 @@ pub(crate) struct LessonRepository {
     pub(crate) api: Arc<AuthApi>,
     pub(crate) db: ArcMutex<Db>,
     pub(crate) settings: ArcMutex<SettingRepository>,
-    pub(crate) cache: LruCache<u8, Vec<Lesson>>,
+    pub(crate) page_cache: LruCache<u8, Vec<Lesson>>,
+    pub(crate) lesson_cache: LruCache<Uuid, Lesson>,
 }
 
 pub trait Lessons {
     fn get_lessons(&self, page_no: u8) -> impl std::future::Future<Output = DomainResult<Vec<Lesson>>> + Send;
-    fn get_lesson(&self, id: String) -> impl std::future::Future<Output = DomainResult<Option<Lesson>>> + Send;
+    fn get_lesson(&self, id: Uuid) -> impl std::future::Future<Output = DomainResult<Option<Lesson>>> + Send;
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -56,25 +57,40 @@ impl Lessons for Domain {
         Ok(lessons)
     }
 
-    async fn get_lesson(&self, _id: String) -> DomainResult<Option<Lesson>> {
+    async fn get_lesson(&self, id: Uuid) -> DomainResult<Option<Lesson>> {
         trace!("get_lesson");
-        Ok(None) // TODO: Implement when client has a need to fetch lesson details
+
+        let lesson_repository = self.provider.lesson_repository.clone();
+        let mut repo = lesson_repository.lock().await;
+
+        trace!("About to call repository::get_lessons()");
+        let lesson = repo.get_lesson(id).await?;
+
+        trace!("Received optional lesson from repo");
+        Ok(lesson)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::test::await_condition;
+    use crate::common::test::{await_condition, await_condition_arg};
     use crate::{data::{auth::api_mocks::TokenApiMocks, lessons::api_mocks::LessonApiMocks}, domain::{auth::Auth, fake_domain}, Run};
     use std::ops::DerefMut;
     use serial_test::serial;
+    use crate::data::lessons::api_mocks::mock_lessons;
 
     #[serial]
     #[tokio::test]
     async fn test_get_lessons_with_session_success() {
         let mut server = mockito::Server::new_async().await;
-        server.deref_mut().mock_lessons_success(5, 0, true, 1, None);
+        server.deref_mut().mock_lessons_success(
+            mock_lessons(5),
+            0,
+            true,
+            1,
+            None,
+        );
         server.deref_mut().mock_login_success();
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
@@ -92,10 +108,48 @@ mod tests {
 
     #[serial]
     #[tokio::test]
+    async fn test_get_lesson_with_session_success() {
+        let mut server = mockito::Server::new_async().await;
+        // Mock a response and grab the first id
+        let lessons = mock_lessons(1);
+        let expected_id = lessons.get(0).unwrap().id;
+
+        server.deref_mut().mock_lessons_success(
+            lessons,
+            0,
+            true,
+            1,
+            None
+        );
+        server.deref_mut().mock_login_success();
+
+        let domain = fake_domain(server.url() + "/").await.unwrap();
+        let _ = domain.login("user".to_string(), "password".to_string()).await;
+
+        // We wrap this check around a timeout
+        let r = await_condition_arg(
+            || async { domain.get_lesson(expected_id).await.unwrap().map_or_else(|| Uuid::new_v4(), |lesson| lesson.id) },
+            &expected_id,
+            |id, id2|
+                *id == *id2
+            ).await;
+
+        assert!(r.is_ok());
+        assert_eq!(expected_id, r.unwrap());
+    }
+
+    #[serial]
+    #[tokio::test]
     async fn test_get_lessons_doesnt_persist_deleted_items() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(5, 1, true, 1, None);
+        server.deref_mut().mock_lessons_success(
+            mock_lessons(5),
+            1,
+            true,
+            1,
+            None
+        );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
         let _ = domain.login("user".to_string(), "password".to_string()).await;
@@ -116,7 +170,13 @@ mod tests {
     async fn test_lesson_sync_saves_timestamp_on_success() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(1, 1, true, 1, None);
+        server.deref_mut().mock_lessons_success(
+            mock_lessons(10),
+            0,
+            true,
+            1,
+            None
+        );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
         let _ = domain.login("user".to_string(), "password".to_string()).await;
@@ -144,7 +204,13 @@ mod tests {
     async fn test_lesson_sync_uses_saved_timestamp() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(2, 0, true, 1, Some(1337));
+        server.deref_mut().mock_lessons_success(
+            mock_lessons(2),
+            0,
+            true,
+            1,
+            Some(1337),
+        );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
         let settings = domain.provider.setting_repository.clone();

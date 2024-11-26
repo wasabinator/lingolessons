@@ -115,6 +115,7 @@ impl DataServiceProvider {
             db.clone(),
             settings.clone(),
             LruCache::new(NonZeroUsize::new(8).unwrap()),
+            LruCache::new(NonZeroUsize::new(20).unwrap()),
         ));
 
         let service_manager = Arc::new(DataServiceManager::new(
