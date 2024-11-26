@@ -3,7 +3,7 @@ package com.lingolessons.app.ui.login
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.runComposeUiTest
-import com.lingolessons.ui.login.LoginViewModel.*
+import com.lingolessons.app.ui.login.LoginViewModel.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.test.*
 import com.lingolessons.app.common.BaseUiTest

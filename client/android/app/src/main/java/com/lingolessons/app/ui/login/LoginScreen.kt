@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.lingolessons.app.R
-import com.lingolessons.ui.login.LoginViewModel
 
 @Composable
 fun LoginScreen(

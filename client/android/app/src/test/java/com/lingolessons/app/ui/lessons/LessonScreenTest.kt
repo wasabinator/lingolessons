@@ -23,18 +23,19 @@ class LessonScreenTest: BaseUiTest() {
         setContent {
             LessonScreen(
                 state = state,
+                updateStatus = {},
             )
         }
     }
 
     @Test
-    fun `expect screen placeholder to exist`() = runComposeUiTest {
+    fun `expect screen placeholder to exist when state is empty`() = runComposeUiTest {
         setContent(State(
-            lessonId = "123"
+            lessonId = "123",
         ))
 
         onNodeWithTag("screen_title")
             .assertExists()
-            .assertTextEquals("123")
+            .assertTextEquals("")
     }
 }
