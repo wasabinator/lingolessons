@@ -140,6 +140,7 @@ kover {
                 classes(
                     "*ComposableSingletons$*",
                     "*.MainActivity*",
+                    "*.Logging*",
                 )
 
                 annotatedBy(
