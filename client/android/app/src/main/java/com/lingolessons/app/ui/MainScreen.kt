@@ -44,7 +44,7 @@ fun MainScreen() {
         currentRoute = currentRoute,
         onNavItemClick = { screen: AppScreen ->
             navController.navigate(screen) {
-                launchSingleTop = true
+                popUpTo(0)
             }
         }
     )
@@ -80,10 +80,10 @@ fun MainScreen(
                     onClick = onNavItemClick
                 )
             }
-        ) { paddingValues ->
+        ) { _ -> // Inner Scaffolds will provide this padding
             Box(modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)) {
+            ) {
                 mainNav()
             }
         }

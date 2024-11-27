@@ -92,7 +92,9 @@ fun MainNav(
                 }
                 LessonScreen(
                     viewModel = viewModel,
-                )
+                ) {
+                    navController.navigateUp()
+                }
             }
         }
     }
