@@ -27,6 +27,7 @@ class LessonScreenTest: BaseUiTest() {
             LessonScreen(
                 state = state,
                 updateStatus = {},
+                navigateBack = {},
             )
         }
     }
