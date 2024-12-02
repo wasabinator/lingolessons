@@ -82,6 +82,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     testImplementation(libs.junit)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
     testImplementation(libs.mockk.android)
     testImplementation(libs.mockk.agent)
     testImplementation(libs.kotlinx.coroutines.test)

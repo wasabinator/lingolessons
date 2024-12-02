@@ -41,6 +41,8 @@ koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation" }
+koin-test = { module = "io.insert-koin:koin-test" }
+koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-test = { module = "androidx.paging:paging-testing", version.ref = "paging" }
 
