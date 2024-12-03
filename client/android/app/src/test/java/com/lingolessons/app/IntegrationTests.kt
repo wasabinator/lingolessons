@@ -1,26 +1,21 @@
 package com.lingolessons.app
 
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.test.core.app.ActivityScenario
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.runAndroidComposeUiTest
 import com.lingolessons.app.common.BaseUiTest
+import com.lingolessons.app.ui.login.LoginScreenRobot
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.junit.Rule
 import org.junit.Test
 import org.koin.core.context.GlobalContext.loadKoinModules
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 
+@OptIn(ExperimentalTestApi::class)
 class IntegrationTests: BaseUiTest(), KoinTest {
-    private lateinit var scenario: ActivityScenario<MainActivity>
-
     private lateinit var mockSession: Session
-
-    @get:Rule
-    val composeTestRule = createEmptyComposeRule()
 
     override fun setup() {
         mockSession = Session.None
@@ -34,17 +29,14 @@ class IntegrationTests: BaseUiTest(), KoinTest {
                 }
             }
         )
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-    }
-
-    override fun teardown() {
-        scenario.close()
     }
 
     @Test
-    fun `expect to see the the login screen on launch when there is no session`() {
-        scenario.onActivity {
-            composeTestRule.onNodeWithTag("username").assertExists()
+    fun `expect to see the the login screen on launch when there is no session`() = runAndroidComposeUiTest(
+        activityClass = MainActivity::class.java,
+    ) {
+        with(LoginScreenRobot(this)) {
+            assertIsShown()
         }
     }
 }
