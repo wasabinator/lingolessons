@@ -3,6 +3,7 @@ package com.lingolessons.app.ui.profile
 import androidx.lifecycle.viewModelScope
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.DomainStateViewModel
+import com.lingolessons.app.ui.common.ScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,6 +19,10 @@ class ProfileViewModel(
             domainState.domain.logout()
             domainState.refresh()
         }
+    }
+
+    override fun updateStatus(status: ScreenState.Status) {
+
     }
 }
 
