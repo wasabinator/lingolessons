@@ -6,7 +6,6 @@ import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
-import com.lingolessons.ui.login.LoginViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals

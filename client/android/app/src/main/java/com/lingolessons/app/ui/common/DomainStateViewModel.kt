@@ -9,4 +9,6 @@ abstract class DomainStateViewModel(
     val domainStateFlow by lazy {
         domainState.state
     }
+
+    abstract fun updateStatus(status: ScreenState.Status)
 }

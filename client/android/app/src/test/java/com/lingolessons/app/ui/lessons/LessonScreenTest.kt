@@ -9,7 +9,10 @@ import com.lingolessons.app.common.BaseUiTest
 import com.lingolessons.app.common.MockMethod
 import com.lingolessons.app.common.mockMethod
 import com.lingolessons.app.ui.lessons.LessonViewModel.State
+import com.lingolessons.shared.Lesson
+import com.lingolessons.shared.LessonType
 import org.junit.Test
+import java.time.Instant
 
 @OptIn(ExperimentalTestApi::class)
 class LessonScreenTest: BaseUiTest() {
@@ -23,18 +26,40 @@ class LessonScreenTest: BaseUiTest() {
         setContent {
             LessonScreen(
                 state = state,
+                updateStatus = {},
+                navigateBack = {},
             )
         }
     }
 
     @Test
-    fun `expect screen placeholder to exist`() = runComposeUiTest {
+    fun `expect screen placeholder to exist when state is empty`() = runComposeUiTest {
         setContent(State(
-            lessonId = "123"
+            lessonId = "123",
         ))
 
         onNodeWithTag("screen_title")
             .assertExists()
-            .assertTextEquals("123")
+            .assertTextEquals("")
+    }
+
+    @Test
+    fun `expect lesson details displayed when loaded`() = runComposeUiTest {
+        setContent(State(
+            lessonId = "123",
+            lesson = Lesson(
+                id = "123",
+                title = "Lesson Title",
+                type = LessonType.VOCABULARY,
+                language1 = "en",
+                language2 = "jp",
+                owner = "owner",
+                updatedAt = Instant.now(),
+            )
+        ))
+
+        onNodeWithTag("screen_title")
+            .assertExists()
+            .assertTextEquals("Lesson Title")
     }
 }
