@@ -2,14 +2,15 @@
 
 {
   default = {
-    packages = [];
+    packages = with pkgs; [
+    ];
 
     languages = {
       javascript = {
         enable = true;
         npm = {
-        enable = true;
-        install.enable = true;
+          enable = true;
+          install.enable = true;
         };
       };
 
