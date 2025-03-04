@@ -9,8 +9,8 @@ if [[ $1 == "if_not_exists" ]]; then
 fi
 
 export PATH="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
-export ANDROID_NDK=ANDROID_NDK_HOME
-export ANDROID_NDK_ROOT=ANDROID_NDK_HOME
+export ANDROID_NDK=ANDROID_NDK_ROOT
+export ANDROID_NDK_HOME=ANDROID_NDK_ROOT
 
 rm -rf target/uniffi
 mkdir -p target/uniffi

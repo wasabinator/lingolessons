@@ -6,6 +6,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
     devenv.url = "github:cachix/devenv";
+    fenix.url = "github:nix-community/fenix";
+    fenix.inputs = { nixpkgs.follows = "nixpkgs"; };
   };
 
   outputs = inputs@{ flake-parts, nixpkgs, systems, devenv, ... }:
