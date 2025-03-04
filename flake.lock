@@ -50,7 +50,6 @@
         "type": "github"
       }
     },
-<<<<<<< HEAD
     "fenix": {
       "inputs": {
         "nixpkgs": [
@@ -72,8 +71,6 @@
         "type": "github"
       }
     },
-=======
->>>>>>> master
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -305,16 +302,12 @@
     "root": {
       "inputs": {
         "devenv": "devenv",
-<<<<<<< HEAD
         "fenix": "fenix",
-=======
->>>>>>> master
         "flake-parts": "flake-parts_2",
         "nixpkgs": "nixpkgs_4",
         "systems": "systems"
       }
     },
-<<<<<<< HEAD
     "rust-analyzer-src": {
       "flake": false,
       "locked": {
@@ -332,8 +325,6 @@
         "type": "github"
       }
     },
-=======
->>>>>>> master
     "systems": {
       "locked": {
         "lastModified": 1681028828,
