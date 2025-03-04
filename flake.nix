@@ -1,5 +1,5 @@
 {
-  description = "Flake for ESP32 dev";
+  description = "Flake for client dev";
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -19,8 +19,15 @@
           inherit system;
           config.allowUnfree = true;
         };
-        devenv.shells = import ./nix/python.nix {
+        devenv.shells = { 
+          default = {
+          };
+          android = import ./client/android/default.nix {
             inherit config pkgs devenv;
+          };
+          server = import ./server/default.nix {
+            inherit config pkgs devenv;
+          };
         };
       };
     };

@@ -1,7 +1,7 @@
 { pkgs, devenv, ... }:
 
 {
-  default = {
+#  default = {
     packages = with pkgs; [
     ];
 
@@ -18,7 +18,7 @@
         enable = true;
         venv = {
           enable = true;
-          requirements = ../requirements.txt;
+          requirements = ./requirements.txt;
         };
       };
     };
@@ -27,5 +27,5 @@
       tailwind.exec = "python manage.py tailwind start";
       run.exec = "python manage.py runserver";
     };
-  };
+#  };
 }
