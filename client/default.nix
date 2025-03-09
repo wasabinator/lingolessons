@@ -1,7 +1,7 @@
 { pkgs, devenv, ... }:
 
 {
-  packages = with pkgs; [ rustup cargo-ndk ];
+  packages = with pkgs; [ rustup ];
   
   android = {
     enable = true;
@@ -17,7 +17,7 @@
     };
     sources.enable = true;
     systemImages.enable = true;
-    android-studio.enable = true;
+    #android-studio.enable = true;
   };
 
   languages.java.jdk.package = pkgs.jdk17;
@@ -28,8 +28,8 @@
     components = [ "rustc" "cargo" "clippy" "rustfmt" "rust-analyzer" ];
     targets = [
       # iOS
-      #"aarch64-apple-ios"
-      #"aarch64-apple-ios-sim"
+      "aarch64-apple-ios"
+      "aarch64-apple-ios-sim"
 
       # Android
       #"armv7-linux-androideabi"
@@ -38,11 +38,11 @@
       "x86_64-linux-android"
 
       # Linux
-      #"x86_64-unknown-linux-gnu"
+      "x86_64-unknown-linux-gnu"
 
       # macOS
-      #"x86_64-apple-darwin"
-      #"aarch64-apple-darwin"
+      "x86_64-apple-darwin"
+      "aarch64-apple-darwin"
 
       # Windows
       #"x86_64-pc-windows-gnu"
