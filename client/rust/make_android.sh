@@ -10,8 +10,7 @@ fi
 
 echo "NDK_HOME: $ANDROID_NDK_HOME"
 
-HOST_TAG="";
-case "$OSTYPE" in
+case $(uname | tr '[:upper:]' '[:lower:]') in
   linux*)   HOST_TAG="linux-$(uname -m)"
             ;;
   darwin*)  HOST_TAG="darwin-$(uname -m)"
