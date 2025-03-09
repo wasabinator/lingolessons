@@ -22,7 +22,7 @@ impl DbFixtures {
         ).collect();
 
         for lesson in lessons.clone() {
-            let _ = db.set_lesson(&lesson).unwrap();
+            db.set_lesson(&lesson).unwrap();
         }
 
         lessons
