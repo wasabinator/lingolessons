@@ -22,9 +22,9 @@ case "$OSTYPE" in
 esac
 
 echo "host: $HOST_TAG"
-export ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
-export TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
-export PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
+ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
+TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
+PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
 
 rm -rf target/uniffi
 mkdir -p target/uniffi
