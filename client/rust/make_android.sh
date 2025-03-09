@@ -8,7 +8,7 @@ if [[ $1 == "if_not_exists" ]]; then
   fi
 fi
 
-echo "*** NDK_HOME: $ANDROID_NDK_HOME ***"
+echo "NDK_HOME: $ANDROID_NDK_HOME"
 
 HOST_TAG="";
 case "$OSTYPE" in
@@ -21,8 +21,8 @@ case "$OSTYPE" in
             ;;
 esac
 
-echo "host: $HOST_TAG"
 ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
+echo "NDK toolchain: $ANDROID_TOOLCHAIN"
 TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
 PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
 
