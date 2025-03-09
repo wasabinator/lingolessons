@@ -10,7 +10,19 @@ fi
 
 echo "*** NDK_HOME: $ANDROID_NDK_HOME ***"
 
-export ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
+HOST_TAG="";
+case "$OSTYPE" in
+  linux*)   HOST_TAG="linux-$(uname -m)"
+            ;;
+  darwin*)  HOST_TAG="darwin-$(uname -m)"
+            ;;
+  *)        echo "Unsupported build environment: $OSTYPE"
+            exit 1
+            ;;
+esac
+
+echo "host: $HOST_TAG"
+export ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
 export TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
 export PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
 
