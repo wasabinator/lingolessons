@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn test_settings() {
         let db = Db::open("blah.txt".into()).unwrap();
-        let r = db.get("123".into());
+        let r = db.get("123");
         assert_eq!(Ok(Setting::None), r);
         let r = db.put("123", Setting::Text("abc".into()));
         assert!(r.is_ok());

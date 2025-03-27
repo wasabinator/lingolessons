@@ -935,7 +935,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_shared_checksum_method_domain_get_lesson() != 61168.toShort()) {
+    if (lib.uniffi_shared_checksum_method_domain_get_lesson() != 44594.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 63357.toShort()) {
@@ -1336,7 +1336,7 @@ private class AndroidSystemCleanable(
 }
 public interface DomainInterface {
     
-    suspend fun `getLesson`(`id`: kotlin.String): Lesson?
+    suspend fun `getLesson`(`id`: Uuid): Lesson?
     
     suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson>
     
@@ -1433,12 +1433,12 @@ open class Domain: Disposable, AutoCloseable, DomainInterface {
     
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getLesson`(`id`: kotlin.String) : Lesson? {
+    override suspend fun `getLesson`(`id`: Uuid) : Lesson? {
         return uniffiRustCallAsync(
         callWithPointer { thisPtr ->
             UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lesson(
                 thisPtr,
-                FfiConverterString.lower(`id`),
+                FfiConverterTypeUuid.lower(`id`),
             )
         },
         { future, callback, continuation -> UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(future, callback, continuation) },
@@ -1849,7 +1849,7 @@ public object FfiConverterTypeDomainBuilder: FfiConverter<DomainBuilder, Pointer
  * Lesson domain model
  */
 data class Lesson (
-    var `id`: kotlin.String, 
+    var `id`: Uuid, 
     var `title`: kotlin.String, 
     var `type`: LessonType, 
     var `language1`: kotlin.String, 
@@ -1867,7 +1867,7 @@ data class Lesson (
 public object FfiConverterTypeLesson: FfiConverterRustBuffer<Lesson> {
     override fun read(buf: ByteBuffer): Lesson {
         return Lesson(
-            FfiConverterString.read(buf),
+            FfiConverterTypeUuid.read(buf),
             FfiConverterString.read(buf),
             FfiConverterTypeLessonType.read(buf),
             FfiConverterString.read(buf),
@@ -1878,7 +1878,7 @@ public object FfiConverterTypeLesson: FfiConverterRustBuffer<Lesson> {
     }
 
     override fun allocationSize(value: Lesson) = (
-            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterTypeUuid.allocationSize(value.`id`) +
             FfiConverterString.allocationSize(value.`title`) +
             FfiConverterTypeLessonType.allocationSize(value.`type`) +
             FfiConverterString.allocationSize(value.`language1`) +
@@ -1888,7 +1888,7 @@ public object FfiConverterTypeLesson: FfiConverterRustBuffer<Lesson> {
     )
 
     override fun write(value: Lesson, buf: ByteBuffer) {
-            FfiConverterString.write(value.`id`, buf)
+            FfiConverterTypeUuid.write(value.`id`, buf)
             FfiConverterString.write(value.`title`, buf)
             FfiConverterTypeLessonType.write(value.`type`, buf)
             FfiConverterString.write(value.`language1`, buf)
@@ -2168,6 +2168,16 @@ public object FfiConverterSequenceTypeLesson: FfiConverterRustBuffer<List<Lesson
  */
 public typealias DateTime = java.time.Instant
 public typealias FfiConverterTypeDateTime = FfiConverterTimestamp
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Uuid = kotlin.String
+public typealias FfiConverterTypeUuid = FfiConverterString
 
 
 

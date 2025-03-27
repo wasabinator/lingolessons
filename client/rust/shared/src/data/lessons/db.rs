@@ -142,7 +142,7 @@ mod tests {
             assert!(*lesson == r);
         }
 
-        let id = lessons.get(0).unwrap().id;
+        let id = lessons.first().unwrap().id;
         db.del_lesson(id).unwrap();
         let r = db.get_lesson(id).unwrap();
         assert!(r.is_none());
@@ -159,13 +159,13 @@ mod tests {
         assert!(r.unwrap().is_empty());
 
         let lessons = DbFixtures::create_lessons(&db, 1);
-        let lesson = lessons.get(0).unwrap();
-        db.set_lesson(&lesson).unwrap();
+        let lesson = lessons.first().unwrap();
+        db.set_lesson(lesson).unwrap();
         let r = db.get_lessons();
         assert_eq!(1, r.unwrap().len());
 
         // Should update rather than insert a duplicate
-        db.set_lesson(&lesson).unwrap();
+        db.set_lesson(lesson).unwrap();
         let r = db.get_lessons();
         assert_eq!(1, r.unwrap().len());
     }
