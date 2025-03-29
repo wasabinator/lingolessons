@@ -1,6 +1,5 @@
 package com.lingolessons.app.ui.lessons
 
-import androidx.paging.PagingSourceFactory
 import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
@@ -14,7 +13,7 @@ import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
-class LessonViewModelTest  : BaseTest() {
+class LessonViewModelTest : BaseTest() {
     private lateinit var domain: DomainInterface
     private lateinit var domainState: DomainState
     private lateinit var viewModel: LessonViewModel
@@ -32,6 +31,7 @@ class LessonViewModelTest  : BaseTest() {
         )
         domain = mockk<DomainInterface>().apply {
             coEvery { getSession() } returns Session.Authenticated("user")
+            coEvery { getLesson("123") } returns mockLesson
         }
         domainState = DomainState(
             domain = domain

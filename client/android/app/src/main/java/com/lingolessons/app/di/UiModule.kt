@@ -3,7 +3,7 @@ package com.lingolessons.app.di
 import com.lingolessons.app.ui.lessons.LessonViewModel
 import com.lingolessons.app.ui.lessons.LessonsViewModel
 import com.lingolessons.app.ui.profile.ProfileViewModel
-import com.lingolessons.ui.login.LoginViewModel
+import com.lingolessons.app.ui.login.LoginViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 

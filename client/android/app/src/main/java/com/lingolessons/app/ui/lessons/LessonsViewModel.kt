@@ -69,4 +69,12 @@ class LessonsViewModel(
         val lessons: Flow<PagingData<Lesson>>,
         override val status: ScreenState.Status = ScreenState.Status.None,
     ) : ScreenState
+
+    override fun updateStatus(status: ScreenState.Status) {
+        _state.update {
+            it.copy(
+                status = status
+            )
+        }
+    }
 }
