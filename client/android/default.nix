@@ -17,7 +17,8 @@
     };
     sources.enable = true;
     systemImages.enable = true;
-    android-studio.enable = true;
+    #Unavailable on darwin
+    #android-studio.enable = true;
   };
 
   languages.java.jdk.package = pkgs.jdk17;
@@ -27,26 +28,8 @@
     channel = "stable";
     components = [ "rustc" "cargo" "clippy" "rustfmt" "rust-analyzer" ];
     targets = [
-      # iOS
-      #"aarch64-apple-ios"
-      #"aarch64-apple-ios-sim"
-
-      # Android
-      #"armv7-linux-androideabi"
-      #"i686-linux-android"
       "aarch64-linux-android"
       "x86_64-linux-android"
-
-      # Linux
-      #"x86_64-unknown-linux-gnu"
-
-      # macOS
-      #"x86_64-apple-darwin"
-      #"aarch64-apple-darwin"
-
-      # Windows
-      #"x86_64-pc-windows-gnu"
-      #"x86_64-pc-windows-msvc"
     ];
   };
 
