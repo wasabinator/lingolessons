@@ -112,7 +112,7 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         // Mock a response and grab the first id
         let lessons = mock_lessons(1);
-        let expected_id = lessons.get(0).unwrap().id;
+        let expected_id = lessons.first().unwrap().id;
 
         server.deref_mut().mock_lessons_success(
             lessons,
@@ -128,7 +128,7 @@ mod tests {
 
         // We wrap this check around a timeout
         let r = await_condition_arg(
-            || async { domain.get_lesson(expected_id).await.unwrap().map_or_else(|| Uuid::new_v4(), |lesson| lesson.id) },
+            || async { domain.get_lesson(expected_id).await.unwrap().map_or_else(Uuid::new_v4, |lesson| lesson.id) },
             &expected_id,
             |id, id2|
                 *id == *id2

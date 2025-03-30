@@ -24,7 +24,7 @@
         devenv.shells = { 
           default = {
           };
-          android = import ./client/android/default.nix {
+          client = import ./client/default.nix {
             inherit config pkgs devenv;
           };
           server = import ./server/default.nix {

@@ -8,11 +8,22 @@ if [[ $1 == "if_not_exists" ]]; then
   fi
 fi
 
-echo "*** NDK_HOME: $ANDROID_NDK_HOME ***"
+echo "NDK_HOME: $ANDROID_NDK_HOME"
 
-export ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
-export TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
-export PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
+case $(uname | tr '[:upper:]' '[:lower:]') in
+  linux*)   HOST_TAG="linux-$(uname -m)"
+            ;;
+  darwin*)  HOST_TAG="darwin-$(uname -m)"
+            ;;
+  *)        echo "Unsupported build environment: $OSTYPE"
+            exit 1
+            ;;
+esac
+
+ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
+echo "NDK toolchain: $ANDROID_TOOLCHAIN"
+TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
+PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
 
 rm -rf target/uniffi
 mkdir -p target/uniffi
