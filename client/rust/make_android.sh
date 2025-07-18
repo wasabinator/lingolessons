@@ -13,17 +13,24 @@ echo "NDK_HOME: $ANDROID_NDK_HOME"
 case $(uname | tr '[:upper:]' '[:lower:]') in
   linux*)   HOST_TAG="linux-$(uname -m)"
             ;;
-  darwin*)  HOST_TAG="darwin-$(uname -m)"
+  darwin*)  HOST_TAG="darwin-x86_64"
             ;;
   *)        echo "Unsupported build environment: $OSTYPE"
             exit 1
             ;;
 esac
 
+#toolchains/llvm/prebuilt/darwin-x86_64/bin
 ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$HOST_TAG"
 echo "NDK toolchain: $ANDROID_TOOLCHAIN"
-TARGET_AR="$ANDROID_TOOLCHAIN/bin/llvm-ar"
 PATH="$ANDROID_TOOLCHAIN/bin:$PATH"
+
+AR=$ANDROID_TOOLCHAIN/bin/llvm-ar
+AS=$ANDROID_TOOLCHAIN/bin/llvm-as
+LD=$ANDROID_TOOLCHAIN/bin/ld
+OBJDUMP=$ANDROID_TOOLCHAIN/bin/llvm-objdump
+RANLIB=$ANDROID_TOOLCHAIN/bin/llvm-ranlib
+STRIP=$ANDROID_TOOLCHAIN/bin/llvm-strip
 
 rm -rf target/uniffi
 mkdir -p target/uniffi
@@ -40,7 +47,7 @@ cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/d
 
 export TARGET_CC="$ANDROID_TOOLCHAIN/bin/x86_64-linux-android30-clang"
 cargo build --target x86_64-linux-android \
-  --config "target.x86_64-linux-android.rustflags=\"-L$ANDROID_TOOLCHAIN/lib/clang/18/lib/linux/ -lstatic=clang_rt.builtins-x86_64-android -llog\"" \
+  --config "target.x86_64-linux-android.rustflags=\"-L$ANDROID_TOOLCHAIN/lib/clang/19/lib/linux/ -lstatic=clang_rt.builtins-x86_64-android -llog\"" \
   --config "target.x86_64-linux-android.linker=\"$ANDROID_TOOLCHAIN/bin/x86_64-linux-android30-clang\""
 
 rm -rf ../android/app/src/main/java/com/lingolessons/shared/

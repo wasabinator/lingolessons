@@ -7,9 +7,10 @@
     enable = true;
     ndk = {
       enable = true;
-      version = [ "27.1.12297006" ];
+      version = [ "28.0.13004108" ]; # available versions defined in https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/androidndk-pkgs/default.nix
     };
-    platforms.version = [ "34" ];
+    platforms.version = [ "34" "35" ];
+    buildTools.version = [ "34.0.0" "35.0.0" ];
     systemImageTypes = [ "google_apis_playstore" ];
     emulator = {
       enable = true;
@@ -53,8 +54,8 @@
   enterShell = ''
       echo 'READY';
       export ANDROID_HOME=$(which android | sed -E 's/(.*libexec\/android-sdk).*/\1/')
-      export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006
-      export ANDROID_SDK_ROOT=$ANDROID_NDK_HOME
+      export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.13004108
+      export ANDROID_NDKSDK_ROOT=$ANDROID_NDK_HOME
       export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
   '';
   
