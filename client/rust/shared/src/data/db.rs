@@ -21,7 +21,7 @@ pub(crate) struct Db {
 impl From<rusqlite::Error> for DomainError {
     #[inline]
     fn from(value: rusqlite::Error) -> Self {
-        DomainError::Database(format!("{:?}", value))
+        DomainError::Database(format!("{value:?}"))
     }
 }
 
