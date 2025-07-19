@@ -11,7 +11,7 @@ val abiTargets = setOf("arm64-v8a", "x86_64")
 android {
     namespace = "com.lingolessons.app"
     compileSdk = 34
-    ndkVersion = "27.1.12297006"
+    ndkVersion = "28.0.13004108"
 
     defaultConfig {
         applicationId = "com.lingolessons.app"

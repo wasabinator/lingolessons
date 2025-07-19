@@ -68,6 +68,6 @@ impl UniffiCustomTypeConverter for chrono::DateTime<chrono::Local> {
 impl From<JoinError> for DomainError {
     #[inline]
     fn from(value: JoinError) -> Self {
-        DomainError::Unexpected(format!("Thread join error: {:?}", value))
+        DomainError::Unexpected(format!("Thread join error: {value:?}"))
     }
 }

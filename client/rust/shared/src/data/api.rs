@@ -16,7 +16,7 @@ pub(crate) struct Api {
 impl From<reqwest::Error> for DomainError {
     #[inline]
     fn from(value: reqwest::Error) -> Self {
-        DomainError::Api(format!("{:?}", value))
+        DomainError::Api(format!("{value:?}"))
     }
 }
 
