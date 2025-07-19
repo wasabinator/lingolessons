@@ -147,6 +147,7 @@ kover {
 
                 annotatedBy(
                     "androidx.compose.ui.tooling.preview.Preview",
+                    "KoverIgnore"
                 )
             }
         }

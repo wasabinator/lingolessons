@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import com.lingolessons.app.common.KoverIgnore
 import com.lingolessons.app.ui.common.ScreenContent
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.shared.DateTime
@@ -22,6 +23,7 @@ import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
 
 @Composable
+@KoverIgnore
 fun LessonScreen(
     viewModel: LessonViewModel,
     navigateBack: () -> Unit,

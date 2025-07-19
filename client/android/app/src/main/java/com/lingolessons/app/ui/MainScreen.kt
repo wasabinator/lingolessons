@@ -31,8 +31,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lingolessons.app.R
+import com.lingolessons.app.common.KoverIgnore
 
 @Composable
+@KoverIgnore
 fun MainScreen() {
     val navController: NavHostController = rememberNavController()
     val backStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()

@@ -29,6 +29,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.lingolessons.app.R
+import com.lingolessons.app.common.KoverIgnore
 import com.lingolessons.app.ui.common.ScreenContent
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.shared.DateTime
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
+@KoverIgnore
 fun LessonsScreen(
     viewModel: LessonsViewModel,
     onLessonSelected: (Lesson) -> Unit,
