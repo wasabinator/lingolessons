@@ -7,6 +7,6 @@ pub(crate) struct DbFixtures {}
 #[allow(dead_code)]
 impl DbFixtures {
     fn create_number(db: &Db, key: String, number: u64) {
-        let _ = db.put(key.as_str(), Setting::Number(number)).unwrap();
+        db.put(key.as_str(), Setting::Number(number)).unwrap();
     }
 }

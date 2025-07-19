@@ -16,7 +16,7 @@ pub(crate) struct Api {
 impl From<reqwest::Error> for DomainError {
     #[inline]
     fn from(value: reqwest::Error) -> Self {
-        DomainError::Api(format!("{:?}", value))
+        DomainError::Api(format!("{value:?}"))
     }
 }
 
@@ -60,7 +60,7 @@ impl AuthApi {
         }
     }
 
-    pub(super) async fn get<'a>(&self, url: String, params: Option<std::slice::Iter<'a, (String, String)>>) -> RequestBuilder {
+    pub(super) async fn get(&self, url: String, params: Option<std::slice::Iter<'_, (String, String)>>) -> RequestBuilder {
         log::trace!("about to obtain session manager lock to decorate the request");
         self.session_manager.launch(
             |manager| async move {
