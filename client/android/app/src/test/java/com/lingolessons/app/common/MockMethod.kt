@@ -10,9 +10,9 @@ interface MockMethod {
 }
 
 fun mockMethod() = object : MockMethod {
-    private val calls = ArrayDeque<List<Any>>()
+    private val calls = mutableListOf<List<Any>>()
     override fun call(vararg args: Any) {
-        calls.addLast(args.toList())
+        calls.add(args.toList())
     }
 
     override fun expect(vararg args: Any) {
@@ -20,6 +20,6 @@ fun mockMethod() = object : MockMethod {
     }
 
     override fun verify(times: Int?) =
-        if (times == null) assertTrue(calls.size > 0)
+        if (times == null) assertTrue(calls.isNotEmpty())
         else assertEquals(times, calls.size)
 }
