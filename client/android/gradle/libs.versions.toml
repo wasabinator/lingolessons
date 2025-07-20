@@ -4,7 +4,7 @@ kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 kotlinxSerializationCore = "1.6.3"
-robolectric = "4.13"
+robolectric = "4.15.1"
 uiTestJunit4Android = "1.7.4"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
@@ -41,6 +41,8 @@ koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation" }
+koin-test = { module = "io.insert-koin:koin-test" }
+koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-test = { module = "androidx.paging:paging-testing", version.ref = "paging" }
 

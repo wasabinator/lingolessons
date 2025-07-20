@@ -31,8 +31,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lingolessons.app.R
+import com.lingolessons.app.common.KoverIgnore
 
 @Composable
+@KoverIgnore
 fun MainScreen() {
     val navController: NavHostController = rememberNavController()
     val backStackEntry: NavBackStackEntry? by navController.currentBackStackEntryAsState()
@@ -44,7 +46,7 @@ fun MainScreen() {
         currentRoute = currentRoute,
         onNavItemClick = { screen: AppScreen ->
             navController.navigate(screen) {
-                launchSingleTop = true
+                popUpTo(0)
             }
         }
     )
@@ -80,10 +82,10 @@ fun MainScreen(
                     onClick = onNavItemClick
                 )
             }
-        ) { paddingValues ->
+        ) { _ -> // Inner Scaffolds will provide this padding
             Box(modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)) {
+            ) {
                 mainNav()
             }
         }

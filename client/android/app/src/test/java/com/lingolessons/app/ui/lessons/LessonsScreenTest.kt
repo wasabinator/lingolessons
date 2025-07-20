@@ -30,6 +30,7 @@ class LessonsScreenTest : BaseUiTest() {
             LessonsScreen(
                 state = state,
                 onLessonSelected = {},
+                updateStatus = {},
                 onSearchTextChanged = { mockSearchTextUpdated.call(it) },
             )
         }

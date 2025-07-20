@@ -26,7 +26,7 @@ import org.koin.core.parameter.parametersOf
 @Serializable
 sealed class AppScreen {
     @Serializable
-    object Profile: AppScreen()
+    data object Profile: AppScreen()
     @Serializable
     data object Study: AppScreen()
     @Serializable
@@ -92,7 +92,9 @@ fun MainNav(
                 }
                 LessonScreen(
                     viewModel = viewModel,
-                )
+                ) {
+                    navController.navigateUp()
+                }
             }
         }
     }
