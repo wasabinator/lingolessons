@@ -11,6 +11,7 @@ import com.lingolessons.shared.Session
 import io.mockk.coEvery
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
 class LessonViewModelTest : BaseTest() {
@@ -31,20 +32,34 @@ class LessonViewModelTest : BaseTest() {
         )
         domain = mockk<DomainInterface>().apply {
             coEvery { getSession() } returns Session.Authenticated("user")
-            coEvery { getLesson("123") } returns mockLesson
         }
         domainState = DomainState(
             domain = domain
-        )
-        viewModel = LessonViewModel(
-            domainState = domainState,
-            lessonId = mockLesson.id,
         )
     }
 
     @Test
     fun `expect initial state to match the specified lesson`() {
+        coEvery { domain.getLesson("123") } returns mockLesson
+        viewModel = LessonViewModel(
+            domainState = domainState,
+            lessonId = mockLesson.id,
+        )
+        advanceUntilIdle()
+
         assertEquals(mockLesson.id, viewModel.state.value.lessonId)
         assertEquals(ScreenState.Status.None, viewModel.state.value.status)
    }
+
+    @Test
+    fun `expect error state if no lesson available`() {
+        coEvery { domain.getLesson("123") } returns null
+        viewModel = LessonViewModel(
+            domainState = domainState,
+            lessonId = mockLesson.id,
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.status is ScreenState.Status.Error)
+    }
 }

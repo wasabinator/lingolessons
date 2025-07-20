@@ -1,6 +1,5 @@
 package com.lingolessons.app.ui.lessons
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.lingolessons.app.common.logError
 import com.lingolessons.app.common.logWarning
