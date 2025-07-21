@@ -16,7 +16,7 @@ This application is still in development and not ready for deployment.
 - On first import of project to Android Studio, cancel the setup wizard, then import the project. When prompted for the Android SDK location, use the ANDROID_HOME env variable as defined by the direnv shell (which will be a `/nix/store/...` path).
 - All SDK components are thus managed via changes to `android/default.nix`.
 
-Otherwise, simply configure your setup outside the way you please. The Nix approach is precise however and should avoid weird setup errors.
+Otherwise, simply configure your machine's dev setup the way you please. The Nix approach is precise however and should avoid weird setup errors.
 
 ### Running the App
 
