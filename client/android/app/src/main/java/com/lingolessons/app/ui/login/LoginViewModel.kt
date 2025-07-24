@@ -1,4 +1,4 @@
-package com.lingolessons.ui.login
+package com.lingolessons.app.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

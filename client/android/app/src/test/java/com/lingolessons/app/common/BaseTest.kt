@@ -29,11 +29,16 @@ abstract class BaseTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun after() {
+        teardown()
         Dispatchers.resetMain()
         stopKoin()
     }
 
     abstract fun setup()
+
+    open fun teardown() {
+        // Optional
+    }
 
     fun advanceUntilIdle() = scheduler.advanceUntilIdle()
 

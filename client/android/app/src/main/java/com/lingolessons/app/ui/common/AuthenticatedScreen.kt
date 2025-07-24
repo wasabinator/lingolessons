@@ -5,7 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.lingolessons.app.ui.login.LoginScreen
 import com.lingolessons.shared.Session
-import com.lingolessons.ui.login.LoginViewModel
+import com.lingolessons.app.ui.login.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

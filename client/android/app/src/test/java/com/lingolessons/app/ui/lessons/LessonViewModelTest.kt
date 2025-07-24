@@ -1,6 +1,5 @@
 package com.lingolessons.app.ui.lessons
 
-import androidx.paging.PagingSourceFactory
 import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
@@ -12,9 +11,10 @@ import com.lingolessons.shared.Session
 import io.mockk.coEvery
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
-class LessonViewModelTest  : BaseTest() {
+class LessonViewModelTest : BaseTest() {
     private lateinit var domain: DomainInterface
     private lateinit var domainState: DomainState
     private lateinit var viewModel: LessonViewModel
@@ -36,15 +36,30 @@ class LessonViewModelTest  : BaseTest() {
         domainState = DomainState(
             domain = domain
         )
-        viewModel = LessonViewModel(
-            domainState = domainState,
-            lessonId = mockLesson.id,
-        )
     }
 
     @Test
     fun `expect initial state to match the specified lesson`() {
+        coEvery { domain.getLesson("123") } returns mockLesson
+        viewModel = LessonViewModel(
+            domainState = domainState,
+            lessonId = mockLesson.id,
+        )
+        advanceUntilIdle()
+
         assertEquals(mockLesson.id, viewModel.state.value.lessonId)
         assertEquals(ScreenState.Status.None, viewModel.state.value.status)
    }
+
+    @Test
+    fun `expect error state if no lesson available`() {
+        coEvery { domain.getLesson("123") } returns null
+        viewModel = LessonViewModel(
+            domainState = domainState,
+            lessonId = mockLesson.id,
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.status is ScreenState.Status.Error)
+    }
 }

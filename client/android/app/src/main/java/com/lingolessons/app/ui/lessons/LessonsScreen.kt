@@ -29,6 +29,9 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.lingolessons.app.R
+import com.lingolessons.app.common.KoverIgnore
+import com.lingolessons.app.ui.common.ScreenContent
+import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
@@ -36,6 +39,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
+@KoverIgnore
 fun LessonsScreen(
     viewModel: LessonsViewModel,
     onLessonSelected: (Lesson) -> Unit,
@@ -43,6 +47,7 @@ fun LessonsScreen(
     val state = viewModel.state.collectAsState()
     LessonsScreen(
         state = state.value,
+        updateStatus = viewModel::updateStatus,
         onLessonSelected = onLessonSelected,
         onSearchTextChanged = viewModel::updateFilterText,
     )
@@ -52,6 +57,7 @@ fun LessonsScreen(
 @Composable
 fun LessonsScreen(
     state: LessonsViewModel.State,
+    updateStatus: (ScreenState.Status) -> Unit,
     onLessonSelected: (Lesson) -> Unit,
     onSearchTextChanged: (String) -> Unit,
 ) {
@@ -68,46 +74,33 @@ fun LessonsScreen(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+        ScreenContent(
+            state = state,
+            updateStatus = updateStatus,
+            innerPadding = innerPadding,
         ) {
-            when {
-                state.isBusy -> {
-                    Text(stringResource(R.string.text_loading))
-                }
-
-                state.isError -> {
-                    Text(stringResource(R.string.text_error))
-                }
-
-                else -> {
-                    TextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
-                            .testTag("search_text"),
-                        value = state.filterText,
-                        onValueChange = onSearchTextChanged,
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .testTag("search_text"),
+                value = state.filterText,
+                onValueChange = onSearchTextChanged,
+            )
+            val items = state.lessons.collectAsLazyPagingItems()
+            if (items.itemCount > 0) {
+                LessonList(
+                    items = items,
+                    onLessonSelected = onLessonSelected,
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.feature_lessons_none)
                     )
-                    val items = state.lessons.collectAsLazyPagingItems()
-                    if (items.itemCount > 0) {
-                        LessonList(
-                            items = items,
-                            onLessonSelected = onLessonSelected,
-                        )
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxHeight(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                stringResource(R.string.feature_lessons_none)
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -146,6 +139,7 @@ fun LessonsScreen_Empty_Preview() {
         state = LessonsViewModel.State(
             lessons = emptyFlow()
         ),
+        updateStatus = {},
         onLessonSelected = {},
         onSearchTextChanged = {},
     )
@@ -181,6 +175,7 @@ fun LessonsScreen_List_Preview() {
                 )
             )
         ),
+        updateStatus = {},
         onSearchTextChanged = {},
         onLessonSelected = {},
     )
