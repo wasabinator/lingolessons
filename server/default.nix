@@ -2,6 +2,8 @@
 
 {
   packages = with pkgs; [
+    python311
+    python311Packages.pip
   ];
 
   languages = {
@@ -12,15 +14,14 @@
         install.enable = true;
       };
     };
-
-    python = {
-      enable = true;
-      venv = {
-        enable = true;
-        requirements = ./requirements.txt;
-      };
-    };
   };
+
+  enterShell = 
+    ''
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    '';
 
   scripts = {
     tailwind.exec = "python manage.py tailwind start";
