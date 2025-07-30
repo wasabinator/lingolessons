@@ -2,13 +2,16 @@ use std::sync::Arc;
 
 use uniffi::deps::log::trace;
 
-use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
+use crate::{
+    data::{api::Api, db::Db},
+    domain::Domain,
+    ArcMutex,
+};
 
 use super::{runtime::Runtime, DomainResult};
 
 /// Session domain model
-#[derive(uniffi::Enum, PartialEq)]
-#[derive(Clone, Debug)]
+#[derive(uniffi::Enum, PartialEq, Clone, Debug)]
 pub enum Session {
     None,
     Authenticated(String),
@@ -25,7 +28,11 @@ pub(crate) struct SessionManager {
 
 pub trait Auth {
     fn get_session(&self) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
-    fn login(&self, username: String, password: String) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
+    fn login(
+        &self,
+        username: String,
+        password: String,
+    ) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
     fn logout(&self) -> impl std::future::Future<Output = DomainResult<()>> + Send;
 }
 
@@ -68,28 +75,26 @@ impl Auth for Domain {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::DerefMut;
-    use serial_test::serial;
-    use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
-    use crate::data::lessons::api_mocks::{mock_lessons, LessonApiMocks};
     use super::*;
+    use crate::data::lessons::api_mocks::{mock_lessons, LessonApiMocks};
+    use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
+    use serial_test::serial;
+    use std::ops::DerefMut;
 
     #[serial]
     #[tokio::test]
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(
-            mock_lessons(1),
-            0,
-            true,
-            1,
-            None
-        );
+        server
+            .deref_mut()
+            .mock_lessons_success(mock_lessons(1), 0, true, 1, None);
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        let r = domain.login("user".to_string(), "password".to_string()).await;
+        let r = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
         assert!(r.is_ok());
         let s = domain.get_session().await;
         assert!(s.is_ok());
@@ -104,7 +109,9 @@ mod tests {
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        let r = domain.login("user".to_string(), "password".to_string()).await;
+        let r = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
         assert!(r.is_err());
     }
 }

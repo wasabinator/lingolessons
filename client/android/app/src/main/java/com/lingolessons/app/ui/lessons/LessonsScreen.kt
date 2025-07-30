@@ -8,19 +8,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,6 +38,8 @@ import com.lingolessons.app.R
 import com.lingolessons.app.common.KoverIgnore
 import com.lingolessons.app.ui.common.ScreenContent
 import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.theme.backgroundDark
+import com.lingolessons.app.ui.theme.backgroundLight
 import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
@@ -82,8 +90,19 @@ fun LessonsScreen(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp)
+                    //.padding(2.dp)
                     .testTag("search_text"),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = "Search icon"
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                ),
                 value = state.filterText,
                 onValueChange = onSearchTextChanged,
             )

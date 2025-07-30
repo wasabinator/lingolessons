@@ -81,3 +81,7 @@ fabric.properties
 
 #Shell launches (eg. avd command)
 nohup.out
+
+#Zed editor
+.zed
+

@@ -59,9 +59,10 @@
       export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
   '';
   
-  scripts.create-avd.exec = if builtins.currentSystem == "aarch64-linux" || builtins.currentSystem == "aarch64-darwin"
-  then "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;arm64-v8a' --device 'pixel_6a'"
-  else "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;x86_64' --device 'pixel_6a'";
+  scripts.avd-create.exec = if builtins.currentSystem == "aarch64-linux" || builtins.currentSystem == "aarch64-darwin"
+  then "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;arm64-v8a' --device 'pixel_6a';echo 'hw.keyboard=no' >> .android/avd/Pixel.ini"
+  else "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;x86_64' --device 'pixel_6a';echo 'hw.keyboard=no' >> .android/avd/Pixel.ini";
 
   scripts.avd.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel &";
+  scripts.avd-cold.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel -no-snapshot &";
 }

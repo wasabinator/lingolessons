@@ -61,7 +61,7 @@ fun MainScreen(
     onNavItemClick: (AppScreen) -> Unit,
 ) {
     if (largeScreen) {
-        Scaffold(modifier = Modifier.testTag("largeScreen")) { _ ->
+        Scaffold(modifier = Modifier.testTag("largeScreen")) { paddingValues ->
             PermanentNavigationDrawer(
                 drawerContent = {
                     DrawerNavigation(
