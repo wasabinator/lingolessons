@@ -1,0 +1,4 @@
+fn_params_layout = "Compressed"
+group_imports = "One"
+imports_granularity = "Crate"
+use_small_heuristics = "Max"

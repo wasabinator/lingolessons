@@ -1,5 +1,7 @@
-use crate::data::db::Db;
-use crate::data::settings::db::{Setting, SettingDao};
+use crate::data::{
+    db::Db,
+    settings::db::{Setting, SettingDao},
+};
 
 #[allow(dead_code)]
 pub(crate) struct DbFixtures {}

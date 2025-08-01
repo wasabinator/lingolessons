@@ -1,11 +1,11 @@
-use std::sync::Arc;
-
-use reqwest::RequestBuilder;
-use concat_string::concat_string;
-
-use crate::{domain::{DomainError, DomainResult}, ArcMutex, Run};
-
 use super::SessionManager;
+use crate::{
+    domain::{DomainError, DomainResult},
+    ArcMutex, Run,
+};
+use concat_string::concat_string;
+use reqwest::RequestBuilder;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub(crate) struct Api {
@@ -23,22 +23,18 @@ impl From<reqwest::Error> for DomainError {
 impl Api {
     pub(super) fn new(base_url: String) -> DomainResult<Self> {
         let client = reqwest::Client::builder().build()?;
-        Ok(Api {
-            base_url,
-            client,
-        })
+        Ok(Api { base_url, client })
     }
 
-    pub(super) fn get(&self, url: String, params: Option<std::slice::Iter<(String, String)>>) -> RequestBuilder {
+    pub(super) fn get(
+        &self, url: String, params: Option<std::slice::Iter<(String, String)>>,
+    ) -> RequestBuilder {
         let url = concat_string!(self.base_url, url);
         let url = match params {
-            Some(params) => {
-                reqwest::Url::parse_with_params(url.as_str(), params)
-            },
-            None => {
-                reqwest::Url::parse(url.as_str())
-            }
-        }.unwrap(); // TODO: This method should probably return Result<RequestBuilder> instead
+            Some(params) => reqwest::Url::parse_with_params(url.as_str(), params),
+            None => reqwest::Url::parse(url.as_str()),
+        }
+        .unwrap(); // TODO: This method should probably return Result<RequestBuilder> instead
         self.client.get(url)
     }
 
@@ -54,20 +50,19 @@ pub(crate) struct AuthApi {
 
 impl AuthApi {
     pub(super) fn new(api: Arc<Api>, session_manager: ArcMutex<SessionManager>) -> Self {
-        AuthApi {
-            api,
-            session_manager,
-        }
+        AuthApi { api, session_manager }
     }
 
-    pub(super) async fn get(&self, url: String, params: Option<std::slice::Iter<'_, (String, String)>>) -> RequestBuilder {
+    pub(super) async fn get(
+        &self, url: String, params: Option<std::slice::Iter<'_, (String, String)>>,
+    ) -> RequestBuilder {
         log::trace!("about to obtain session manager lock to decorate the request");
-        self.session_manager.launch(
-            |manager| async move {
+        self.session_manager
+            .launch(|manager| async move {
                 log::trace!("got session manager lock. decorating the request");
                 manager.decorate(manager.api.get(url, params.clone())).await
-            }
-        ).await
+            })
+            .await
     }
 
     #[allow(dead_code)]

@@ -1,12 +1,11 @@
+use crate::data::DataServiceProvider;
 use std::sync::Arc;
 
-use crate::data::DataServiceProvider;
-
 pub mod auth;
+mod common;
 pub mod lessons;
 pub mod runtime;
 pub mod settings;
-mod common;
 
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {
@@ -17,24 +16,26 @@ pub enum DomainError {
 
 impl std::fmt::Display for DomainError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match *self {
-            DomainError::Unexpected(ref s) => s,
-            DomainError::Database(ref s) => s,
-            DomainError::Api(ref s) => s,
-        })
+        write!(
+            f,
+            "{}",
+            match *self {
+                DomainError::Unexpected(ref s) => s,
+                DomainError::Database(ref s) => s,
+                DomainError::Api(ref s) => s,
+            }
+        )
     }
 }
 
 pub type DomainResult<T = ()> = anyhow::Result<T, DomainError>;
 
-#[derive(uniffi::Object)]
-#[derive(Clone)]
+#[derive(uniffi::Object, Clone)]
 pub struct Domain {
     provider: Arc<DataServiceProvider>,
 }
 
-#[derive(uniffi::Object)]
-#[derive(Clone)]
+#[derive(uniffi::Object, Clone)]
 pub struct DomainBuilder {
     _data_path: Option<String>,
     _base_url: Option<String>,
@@ -45,10 +46,7 @@ pub struct DomainBuilder {
 impl DomainBuilder {
     #[uniffi::constructor]
     pub fn new() -> Self {
-        Self {
-            _data_path: None,
-            _base_url: None,
-        }
+        Self { _data_path: None, _base_url: None }
     }
 
     pub fn data_path(&self, path: String) -> Self {
@@ -69,11 +67,7 @@ impl DomainBuilder {
 
         init();
 
-        Ok(
-            Domain {
-                provider: Arc::new(DataServiceProvider::new(base_url, data_path)?)
-            }
-        )
+        Ok(Domain { provider: Arc::new(DataServiceProvider::new(base_url, data_path)?) })
     }
 }
 
@@ -84,8 +78,7 @@ fn init() {
     #[cfg(target_os = "android")]
     {
         android_logger::init_once(
-            android_logger::Config::default()
-                .with_max_level(uniffi::deps::log::LevelFilter::Debug),
+            android_logger::Config::default().with_max_level(uniffi::deps::log::LevelFilter::Debug),
         );
     }
 }
@@ -99,20 +92,18 @@ impl Domain {
 pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError> {
     init();
 
-    Ok(
-        Domain {
-            provider: Arc::new(DataServiceProvider::new(
-                base_url,
-                "fake_path".to_string() // Unimportant path as not used with the in memory test db
-            )?),
-        }
-    )
+    Ok(Domain {
+        provider: Arc::new(DataServiceProvider::new(
+            base_url,
+            "fake_path".to_string(), // Unimportant path as not used with the in memory test db
+        )?),
+    })
 }
 
 #[cfg(test)]
 mod tests {
-    use serial_test::serial;
     use crate::domain::fake_domain;
+    use serial_test::serial;
 
     #[serial]
     #[tokio::test]

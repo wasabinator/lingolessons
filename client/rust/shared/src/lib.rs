@@ -1,11 +1,13 @@
-use std::sync::Arc;
-
 use domain::DomainError;
-use tokio::{sync::{Mutex, MutexGuard, OwnedMutexGuard}, task::JoinError};
+use std::sync::Arc;
+use tokio::{
+    sync::{Mutex, MutexGuard, OwnedMutexGuard},
+    task::JoinError,
+};
 
 pub mod common;
-pub mod domain;
 mod data;
+pub mod domain;
 
 uniffi::setup_scaffolding!();
 
@@ -13,33 +15,39 @@ pub type ArcMutex<T> = Arc<Mutex<T>>;
 
 /// Trait that will allow an operation to be perform during a lock. It Makes it very clear what the duration of the lock is.
 /// The lock will be dropped on the function return since it goes out of scope.
-pub trait Run<T, U> 
-where T: Send {
+pub trait Run<T, U>
+where
+    T: Send,
+{
     fn run<F>(self, op: F) -> impl std::future::Future<Output = U> + Send
-    where 
+    where
         F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send;
 
     fn launch<F, Fut>(self, op: F) -> impl std::future::Future<Output = U> + Send + Sync
-    where 
+    where
         F: FnOnce(OwnedMutexGuard<T>) -> Fut + Send + Sync,
         Fut: std::future::Future<Output = U> + Send + Sync;
 }
 
 impl<T, U> Run<T, U> for &Arc<Mutex<T>>
-where T: Send {
+where
+    T: Send,
+{
     async fn run<F>(self, op: F) -> U
-    where 
-        F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send {
+    where
+        F: FnOnce(&mut MutexGuard<'_, T>) -> U + Send,
+    {
         let arc = self.clone();
         let mut guard = arc.lock().await;
         op(&mut guard)
     }
 
     async fn launch<F, Fut>(self, op: F) -> U
-    where 
+    where
         F: FnOnce(OwnedMutexGuard<T>) -> Fut + Send + Sync,
-        Fut: std::future::Future<Output = U> + Send + Sync {
-        let arc= self.clone();
+        Fut: std::future::Future<Output = U> + Send + Sync,
+    {
+        let arc = self.clone();
         let guard = arc.lock_owned().await;
         op(guard).await
     }

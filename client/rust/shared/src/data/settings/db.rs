@@ -17,16 +17,14 @@ impl TryFrom<&rusqlite::Row<'_>> for Setting {
         let text: Option<String> = row.get(0)?;
         let number: Option<u64> = row.get(1)?;
 
-        Ok(
-            if let Some(number) = number {
-                Setting::Number(number)
-            } else if let Some(str) = text {
-                Setting::Text(str)
-            } else {
-                log::error!("Illegal setting type, passing empty");
-                Setting::None
-            }
-        )
+        Ok(if let Some(number) = number {
+            Setting::Number(number)
+        } else if let Some(str) = text {
+            Setting::Text(str)
+        } else {
+            log::error!("Illegal setting type, passing empty");
+            Setting::None
+        })
     }
 }
 
@@ -38,21 +36,22 @@ pub(super) trait SettingDao {
 
 impl SettingDao for Db {
     fn get(&self, key: &str) -> rusqlite::Result<Setting> {
-        self.connection.query_row(
-            "SELECT text, number FROM setting WHERE key = ?;",
-            [key],
-            |row| Setting::try_from(row)
-        ).optional().map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
+        self.connection
+            .query_row("SELECT text, number FROM setting WHERE key = ?;", [key], |row| {
+                Setting::try_from(row)
+            })
+            .optional()
+            .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
     }
 
     fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()> {
         let params = match value {
             Setting::Text(text) => {
                 rusqlite::params![key, text.to_owned(), Option::<u64>::None]
-            },
+            }
             Setting::Number(number) => {
                 rusqlite::params![key, Option::<String>::None, number.to_owned()]
-            },
+            }
             _ => {
                 rusqlite::params![key, Option::<String>::None, Option::<u64>::None]
             }
