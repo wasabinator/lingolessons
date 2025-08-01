@@ -85,7 +85,7 @@ class MainScreenTest : BaseUiTest() {
         }
     }
 
-    context(ComposeUiTest)
+    context(test: ComposeUiTest)
     @OptIn(ExperimentalTestApi::class)
     private fun verifyCurrentNavItem(
         largeScreen: Boolean,
@@ -95,6 +95,6 @@ class MainScreenTest : BaseUiTest() {
         this.largeScreen.update { largeScreen }
         this.currentRoute.update { screen }
 
-        onNodeWithTag(tag).assertIsSelected()
+        test.onNodeWithTag(tag).assertIsSelected()
     }
 }
