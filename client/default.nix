@@ -21,8 +21,7 @@
     #android-studio.enable = true;
   };
 
-  languages.java.jdk.package = pkgs.jdk17;
-
+  languages.java.jdk.package = pkgs.jdk21;
 
   enterShell = ''
       echo 'READY';
