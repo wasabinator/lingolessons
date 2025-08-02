@@ -2,6 +2,7 @@ package com.lingolessons.app.common
 
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
+import kotlin.test.assertFails
 
 interface MockMethod {
     fun call(vararg args: Any)
@@ -16,6 +17,7 @@ fun mockMethod() = object : MockMethod {
     }
 
     override fun expect(vararg args: Any) {
+        assertTrue(calls.isNotEmpty())
         assertEquals(args.toList(), calls.removeFirst())
     }
 

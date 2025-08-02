@@ -76,9 +76,9 @@ class MainScreenTest : BaseUiTest() {
     private fun ComposeUiTest.verifyNavigation() {
         onNodeWithTag("profile").assertIsSelected()
         onNodeWithTag("study").performClick()
-        //mockClickMethod.expect(AppScreen.Study)
+        mockClickMethod.expect(AppScreen.Study)
         onNodeWithTag("lessons").performClick()
-        //mockClickMethod.expect(AppScreen.Lessons)
+        mockClickMethod.expect(AppScreen.Lessons)
     }
 
     @OptIn(ExperimentalTestApi::class)
