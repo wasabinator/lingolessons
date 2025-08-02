@@ -34,7 +34,7 @@ class MainScreenTest : BaseUiTest() {
                 largeScreen = largeScreen.collectAsState().value,
                 mainNav = {},
                 currentRoute = currentRoute.collectAsState().value,
-                onNavItemClick = { mockClickMethod.call(it) },
+                onNavItemClick = { mockClickMethod.call(it) }
             )
         }
     }
@@ -82,11 +82,7 @@ class MainScreenTest : BaseUiTest() {
     }
 
     @OptIn(ExperimentalTestApi::class)
-    private fun ComposeUiTest.verifyCurrentNavItem(
-        largeScreen: Boolean,
-        screen: AppScreen,
-        tag: String,
-    ) {
+    private fun ComposeUiTest.verifyCurrentNavItem(largeScreen: Boolean, screen: AppScreen, tag: String) {
         this@MainScreenTest.largeScreen.update { largeScreen }
         this@MainScreenTest.currentRoute.update { screen }
 

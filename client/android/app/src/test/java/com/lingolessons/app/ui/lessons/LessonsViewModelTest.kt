@@ -30,7 +30,7 @@ class LessonsViewModelTest : BaseTest() {
                 language1 = "en",
                 language2 = "jp",
                 owner = "owner",
-                updatedAt = DateTime.now(),
+                updatedAt = DateTime.now()
             )
         )
 
@@ -38,12 +38,8 @@ class LessonsViewModelTest : BaseTest() {
         domain = mockk<DomainInterface>().apply {
             coEvery { getSession() } returns Session.Authenticated("user")
         }
-        domainState = DomainState(
-            domain = domain
-        )
-        viewModel = LessonsViewModel(
-            domainState = domainState
-        ) { _ ->
+        domainState = DomainState(domain = domain)
+        viewModel = LessonsViewModel(domainState = domainState) { _ ->
             mockLessons.asPagingSourceFactory().also {
                 pagingSources.add(it)
             }

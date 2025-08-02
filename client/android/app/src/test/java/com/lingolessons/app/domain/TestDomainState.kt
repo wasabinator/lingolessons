@@ -16,9 +16,8 @@ class TestDomainState : BaseTest() {
 
     override fun setup() {
         currentSession = Session.None
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } answers { currentSession }
-        }
+        domain =
+            mockk<DomainInterface>().apply { coEvery { getSession() } answers { currentSession } }
         domainState = DomainState(domain)
     }
 

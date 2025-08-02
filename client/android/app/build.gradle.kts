@@ -98,16 +98,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.junit4.android)
     implementation(libs.jna) {
         artifact {
-            //classifier = "debug"
+            // classifier = "debug"
             type = "aar"
         }
     }
 }
 
 // Allow references to generated code
-kapt {
-    correctErrorTypes = true
-}
+kapt { correctErrorTypes = true }
 
 kotlin {
     target {
@@ -143,22 +141,11 @@ kover {
     reports {
         filters {
             excludes {
-                packages(
-                    "*.di",
-                    "*.shared",
-                    "*.ui.theme",
-                )
+                packages("*.di", "*.shared", "*.ui.theme")
 
-                classes(
-                    "*ComposableSingletons$*",
-                    "*.MainActivity*",
-                    "*.Logging*",
-                )
+                classes("*ComposableSingletons$*", "*.MainActivity*", "*.Logging*")
 
-                annotatedBy(
-                    "androidx.compose.ui.tooling.preview.Preview",
-                    "KoverIgnore"
-                )
+                annotatedBy("androidx.compose.ui.tooling.preview.Preview", "KoverIgnore")
             }
         }
     }

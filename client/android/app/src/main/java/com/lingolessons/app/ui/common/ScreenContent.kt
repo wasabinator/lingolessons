@@ -32,12 +32,10 @@ fun ScreenContent(
     },
     innerPadding: PaddingValues = PaddingValues(),
     updateStatus: (ScreenState.Status) -> Unit,
-    content: @Composable () -> Unit = {},
+    content: @Composable () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(innerPadding),
+        modifier = Modifier.fillMaxWidth().padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         content()
@@ -50,18 +48,15 @@ fun ScreenContent(
 }
 
 @Composable
-fun BusyContent(
-    updateStatus: (ScreenState.Status) -> Unit,
-) {
+fun BusyContent(updateStatus: (ScreenState.Status) -> Unit) {
     Dialog(
-        onDismissRequest = {
-            updateStatus(ScreenState.Status.None)
-        },
+        onDismissRequest = { updateStatus(ScreenState.Status.None) },
         DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
     ) {
         Box(
             contentAlignment = Center,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .size(100.dp)
                 .background(
                     MaterialTheme.colorScheme.background,
@@ -74,22 +69,13 @@ fun BusyContent(
 }
 
 @Composable
-fun ErrorContent(
-    message: String,
-    updateStatus: (ScreenState.Status) -> Unit,
-) {
+fun ErrorContent(message: String, updateStatus: (ScreenState.Status) -> Unit) {
     AlertDialog(
-        onDismissRequest = {
-            updateStatus(ScreenState.Status.None)
-        },
+        onDismissRequest = { updateStatus(ScreenState.Status.None) },
         title = { Text(stringResource(R.string.title_error)) },
         text = { Text(message) },
         confirmButton = {
-            Button(
-                onClick = {
-                    updateStatus(ScreenState.Status.None)
-                }
-            ) {
+            Button(onClick = { updateStatus(ScreenState.Status.None) }) {
                 Text(stringResource(R.string.btn_ok))
             }
         }

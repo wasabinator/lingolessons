@@ -19,11 +19,7 @@ class ProfileScreenTest : BaseUiTest() {
     }
 
     private fun ComposeUiTest.setContent() {
-        setContent {
-            ProfileScreen(
-                logout = { logout.call() },
-            )
-        }
+        setContent { ProfileScreen(logout = { logout.call() }) }
     }
 
     @Test

@@ -5,10 +5,8 @@ import com.lingolessons.app.domain.DomainState
 
 abstract class DomainStateViewModel(
     private val domainState: DomainState
-): ViewModel() {
-    val domainStateFlow by lazy {
-        domainState.state
-    }
+) : ViewModel() {
+    val domainStateFlow by lazy { domainState.state }
 
     abstract fun updateStatus(status: ScreenState.Status)
 }

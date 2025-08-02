@@ -28,36 +28,28 @@ class LessonViewModelTest : BaseTest() {
             language1 = "en",
             language2 = "jp",
             owner = "owner",
-            updatedAt = DateTime.now(),
+            updatedAt = DateTime.now()
         )
         domain = mockk<DomainInterface>().apply {
             coEvery { getSession() } returns Session.Authenticated("user")
         }
-        domainState = DomainState(
-            domain = domain
-        )
+        domainState = DomainState(domain = domain)
     }
 
     @Test
     fun `expect initial state to match the specified lesson`() {
         coEvery { domain.getLesson("123") } returns mockLesson
-        viewModel = LessonViewModel(
-            domainState = domainState,
-            lessonId = mockLesson.id,
-        )
+        viewModel = LessonViewModel(domainState = domainState, lessonId = mockLesson.id)
         advanceUntilIdle()
 
         assertEquals(mockLesson.id, viewModel.state.value.lessonId)
         assertEquals(ScreenState.Status.None, viewModel.state.value.status)
-   }
+    }
 
     @Test
     fun `expect error state if no lesson available`() {
         coEvery { domain.getLesson("123") } returns null
-        viewModel = LessonViewModel(
-            domainState = domainState,
-            lessonId = mockLesson.id,
-        )
+        viewModel = LessonViewModel(domainState = domainState, lessonId = mockLesson.id)
         advanceUntilIdle()
 
         assertTrue(viewModel.state.value.status is ScreenState.Status.Error)

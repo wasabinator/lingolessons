@@ -1,10 +1,15 @@
 package com.lingolessons.app.ui.common
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.lingolessons.app.R
+import com.lingolessons.shared.DomainException
+import java.io.IOException
 
-//suspend fun Result<Any>.getUiErrorMessage(): String =
-//    when (val error = exceptionOrNull()) {
-//        is DomainError -> error.userFacingError
-//        is IOException -> getString(R.string.error_connection)
-//        else -> null
-//    } ?: getString(Res.string.error_other)
+@Composable
+fun Result<Any>.uiMessage(fallbackMessage: String = stringResource(R.string.error_other)): String =
+    when (val error = exceptionOrNull()) {
+        is DomainException -> error.message
+        is IOException -> stringResource(R.string.error_connection)
+        else -> null
+    } ?: fallbackMessage

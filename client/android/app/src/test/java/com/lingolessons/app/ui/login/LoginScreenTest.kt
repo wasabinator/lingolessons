@@ -34,7 +34,7 @@ class LoginScreenTest : BaseUiTest() {
                 updateUsername = { updateUsername.call(it) },
                 updatePassword = { updatePassword.call(it) },
                 login = { login.call() },
-                dismissDialog = { dismissDialog.call() },
+                dismissDialog = { dismissDialog.call() }
             )
         }
     }
@@ -43,8 +43,6 @@ class LoginScreenTest : BaseUiTest() {
     fun `expect screen to be empty when state is empty`() = runComposeUiTest {
         setContent(State())
 
-        with(LoginScreenRobot(this)) {
-            assertIsShown()
-        }
+        with(LoginScreenRobot(this)) { assertIsShown() }
     }
 }

@@ -15,12 +15,8 @@ class ProfileViewModelTest : BaseTest() {
     private lateinit var viewModel: ProfileViewModel
 
     override fun setup() {
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } returns Session.None
-        }
-        domainState = DomainState(
-            domain = domain
-        )
+        domain = mockk<DomainInterface>().apply { coEvery { getSession() } returns Session.None }
+        domainState = DomainState(domain = domain)
         viewModel = ProfileViewModel(domainState)
     }
 
@@ -29,8 +25,6 @@ class ProfileViewModelTest : BaseTest() {
         viewModel.logout()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) {
-            domain.logout()
-        }
+        coVerify(exactly = 1) { domain.logout() }
     }
 }

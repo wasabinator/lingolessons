@@ -1,7 +1,11 @@
 { pkgs, devenv, ... }:
 
 {
-  packages = with pkgs; [ rustup ];
+  packages = with pkgs; [
+    ktfmt
+    ktlint
+    rustup
+  ];
 
   android = {
     enable = true;

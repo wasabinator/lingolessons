@@ -8,10 +8,8 @@ import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Lesson
 
-class LessonsPagingSource(
-    private val domain: DomainInterface,
-    private val searchText: String? = null,
-) : PagingSource<Int, Lesson>() {
+class LessonsPagingSource(private val domain: DomainInterface, private val searchText: String? = null) :
+    PagingSource<Int, Lesson>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> = try {
         val currentPage = params.key ?: 0
         val lessons: List<Lesson> = domain.getLessons(currentPage.toUByte()).let {
@@ -35,7 +33,5 @@ class LessonsPagingSource(
         LoadResult.Error(e)
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Lesson>): Int? {
-        return null
-    }
+    override fun getRefreshKey(state: PagingState<Int, Lesson>): Int? = null
 }

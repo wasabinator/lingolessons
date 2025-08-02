@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(
-    private val domainState: DomainState
-) : ViewModel() {
+class LoginViewModel(private val domainState: DomainState) : ViewModel() {
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
@@ -36,34 +34,22 @@ class LoginViewModel(
 
     fun login() {
         if (state.value.enabled) {
-            _state.update {
-                it.copy(
-                    status = ScreenState.Status.Busy
-                )
-            }
+            _state.update { it.copy(status = ScreenState.Status.Busy) }
             viewModelScope.launch {
                 try {
-                    val response = domainState.domain.login(
-                        username = state.value.username,
-                        password = state.value.password,
-                    )
-                    _state.update {
-                        it.copy(
-                            status = ScreenState.Status.None
+                    val response =
+                        domainState.domain.login(
+                            username = state.value.username,
+                            password = state.value.password
                         )
-                    }
-                } catch(e: DomainException) {
-                    val message = when {
-                        e is DomainException.Api -> e.v1
-                        else -> "Something went wrong"
-                    }
-                    _state.update {
-                        it.copy(
-                            status = ScreenState.Status.Error(
-                                message = message,
-                            ),
-                        )
-                    }
+                    _state.update { it.copy(status = ScreenState.Status.None) }
+                } catch (e: DomainException) {
+                    val message =
+                        when {
+                            e is DomainException.Api -> e.v1
+                            else -> "Something went wrong"
+                        }
+                    _state.update { it.copy(status = ScreenState.Status.Error(message = message)) }
                 } finally {
                     domainState.refresh()
                 }
@@ -72,17 +58,13 @@ class LoginViewModel(
     }
 
     fun dismissDialog() {
-        _state.update {
-            it.copy(
-                status = ScreenState.Status.None,
-            )
-        }
+        _state.update { it.copy(status = ScreenState.Status.None) }
     }
 
     data class State(
         val username: String = "",
         val password: String = "",
         val enabled: Boolean = false,
-        override val status: ScreenState.Status = ScreenState.Status.None,
+        override val status: ScreenState.Status = ScreenState.Status.None
     ) : ScreenState
 }

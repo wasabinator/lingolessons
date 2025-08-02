@@ -16,14 +16,11 @@ import kotlinx.coroutines.launch
 
 class LessonViewModel(
     domainState: DomainState,
-    lessonId: String,
-) : DomainStateViewModel(domainState = domainState) {
-    private val _state = MutableStateFlow(
-        State(
-            lessonId = lessonId,
-            status = Status.Busy,
-        )
-    )
+    lessonId: String
+) : DomainStateViewModel(
+    domainState = domainState
+) {
+    private val _state = MutableStateFlow(State(lessonId = lessonId, status = Status.Busy))
     val state = _state.asStateFlow()
 
     init {
@@ -31,21 +28,11 @@ class LessonViewModel(
             try {
                 val lesson = domainState.domain.getLesson(lessonId)
                 if (lesson != null) {
-                    _state.update {
-                        it.copy(
-                            lesson = lesson,
-                            status = Status.None,
-                        )
-                    }
+                    _state.update { it.copy(lesson = lesson, status = Status.None) }
                 } else {
                     logWarning("Couldn't find lesson for id: $lessonId")
                     _state.update {
-                        it.copy(
-                            status = Status.Error(
-                                "Couldn't find lesson",
-                                canRetry = true
-                            )
-                        )
+                        it.copy(status = Status.Error("Couldn't find lesson", canRetry = true))
                     }
                 }
             } catch (e: DomainException) {
@@ -57,14 +44,10 @@ class LessonViewModel(
     data class State(
         val lessonId: String,
         val lesson: Lesson? = null,
-        override val status: Status = Status.None,
+        override val status: Status = Status.None
     ) : ScreenState
 
     override fun updateStatus(status: Status) {
-        _state.update {
-            it.copy(
-                status = status
-            )
-        }
+        _state.update { it.copy(status = status) }
     }
 }

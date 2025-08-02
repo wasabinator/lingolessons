@@ -8,9 +8,7 @@ import org.koin.dsl.module
 
 val domainModule = module {
     single {
-        DomainState(
-            domain = get()
-        )
+        DomainState(domain = get())
     }
 
     single<DomainInterface> {

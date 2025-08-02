@@ -42,9 +42,7 @@ import com.lingolessons.app.common.KoverIgnore
 
 @Composable
 @KoverIgnore
-fun LoginScreen(
-    viewModel: LoginViewModel,
-) {
+fun LoginScreen(viewModel: LoginViewModel) {
     val state by viewModel.state.collectAsState()
     LoginScreen(
         state = state,
@@ -61,21 +59,24 @@ fun LoginScreen(
     updateUsername: (String) -> Unit,
     updatePassword: (String) -> Unit,
     login: () -> Unit,
-    dismissDialog: () -> Unit,
+    dismissDialog: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.background)
     ) {
-        Box(modifier = Modifier.weight(0.2f)) {}
+        Box(
+            modifier = Modifier.weight(0.2f)
+        )
+
         Column(
             modifier = Modifier
                 .weight(0.6f)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .imePadding()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 modifier = Modifier.padding(vertical = 48.dp),
@@ -89,34 +90,35 @@ fun LoginScreen(
                     .testTag("username"),
                 value = state.username,
                 onValueChange = updateUsername,
-                placeholder = { Text(stringResource(id = R.string.username)) },
+                placeholder = {
+                    Text(stringResource(id = R.string.username))
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                maxLines = 1,
+                maxLines = 1
             )
 
             OutlinedTextField(
-                modifier = Modifier
-                    .padding(bottom = 24.dp)
-                    .testTag("password"),
+                modifier = Modifier.padding(bottom = 24.dp).testTag("password"),
                 value = state.password,
                 onValueChange = updatePassword,
                 placeholder = { Text(stringResource(id = R.string.password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                maxLines = 1,
+                maxLines = 1
             )
 
             Button(
                 modifier = Modifier.testTag("login"),
                 enabled = state.enabled,
-                onClick = login,
+                onClick = login
             ) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                     Text(stringResource(R.string.btn_login))
                 }
             }
         }
-        Box(modifier = Modifier.weight(0.2f)) {}
+
+        Box(modifier = Modifier.weight(0.2f))
 
         if (state.isError) {
             AlertDialog(
@@ -124,9 +126,7 @@ fun LoginScreen(
                 title = { Text(stringResource(R.string.title_error)) },
                 text = { Text(state.errorMessage!!) },
                 confirmButton = {
-                    Button(
-                        onClick = dismissDialog
-                    ) {
+                    Button(onClick = dismissDialog) {
                         Text(stringResource(R.string.btn_ok))
                     }
                 }
@@ -162,6 +162,6 @@ fun LoginScreenPreview() {
         updateUsername = {},
         updatePassword = {},
         login = {},
-        dismissDialog = {},
+        dismissDialog = {}
     )
 }

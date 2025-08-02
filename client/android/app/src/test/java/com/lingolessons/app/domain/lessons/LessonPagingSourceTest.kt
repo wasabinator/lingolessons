@@ -28,7 +28,7 @@ class LessonPagingSourceTest : BaseTest() {
                 language1 = "en",
                 language2 = "jp",
                 owner = "owner",
-                updatedAt = DateTime.now(),
+                updatedAt = DateTime.now()
             )
         )
         domain = mockk<DomainInterface>().apply {
@@ -40,9 +40,7 @@ class LessonPagingSourceTest : BaseTest() {
 
     @Test
     fun `should call api on pager load`() = runTest {
-        val pagingSource = LessonsPagingSource(
-            domain = domain,
-        )
+        val pagingSource = LessonsPagingSource(domain = domain)
 
         val result: LoadResult<Int, Lesson> = pagingSource.load(
             Refresh(
@@ -61,7 +59,7 @@ class LessonPagingSourceTest : BaseTest() {
                 prevKey = null,
                 nextKey = 1
             ),
-            result,
+            result
         )
 
         coVerify(exactly = 1) { domain.getLessons(0u) }

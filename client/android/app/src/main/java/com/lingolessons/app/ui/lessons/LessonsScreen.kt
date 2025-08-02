@@ -42,16 +42,13 @@ import kotlinx.coroutines.flow.flowOf
 
 @Composable
 @KoverIgnore
-fun LessonsScreen(
-    viewModel: LessonsViewModel,
-    onLessonSelected: (Lesson) -> Unit,
-) {
+fun LessonsScreen(viewModel: LessonsViewModel, onLessonSelected: (Lesson) -> Unit) {
     val state = viewModel.state.collectAsState()
     LessonsScreen(
         state = state.value,
         updateStatus = viewModel::updateStatus,
         onLessonSelected = onLessonSelected,
-        onSearchTextChanged = viewModel::updateFilterText,
+        onSearchTextChanged = viewModel::updateFilterText
     )
 }
 
@@ -61,30 +58,26 @@ fun LessonsScreen(
     state: LessonsViewModel.State,
     updateStatus: (ScreenState.Status) -> Unit,
     onLessonSelected: (Lesson) -> Unit,
-    onSearchTextChanged: (String) -> Unit,
+    onSearchTextChanged: (String) -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 colors = topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.primary
                 ),
-                title = {
-                    Text(stringResource(R.string.feature_lessons))
-                }
+                title = { Text(stringResource(R.string.feature_lessons)) }
             )
         }
     ) { innerPadding ->
         ScreenContent(
             state = state,
             updateStatus = updateStatus,
-            innerPadding = innerPadding,
+            innerPadding = innerPadding
         ) {
             TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("search_text"),
+                modifier = Modifier.fillMaxWidth().testTag("search_text"),
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Rounded.Search,
@@ -94,25 +87,20 @@ fun LessonsScreen(
                 },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
                 ),
                 value = state.filterText,
-                onValueChange = onSearchTextChanged,
+                onValueChange = onSearchTextChanged
             )
             val items = state.lessons.collectAsLazyPagingItems()
             if (items.itemCount > 0) {
-                LessonList(
-                    items = items,
-                    onLessonSelected = onLessonSelected,
-                )
+                LessonList(items = items, onLessonSelected = onLessonSelected)
             } else {
                 Row(
                     modifier = Modifier.fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        stringResource(R.string.feature_lessons_none)
-                    )
+                    Text(stringResource(R.string.feature_lessons_none))
                 }
             }
         }
@@ -120,10 +108,7 @@ fun LessonsScreen(
 }
 
 @Composable
-private fun LessonList(
-    items: LazyPagingItems<Lesson>,
-    onLessonSelected: (Lesson) -> Unit,
-) {
+private fun LessonList(items: LazyPagingItems<Lesson>, onLessonSelected: (Lesson) -> Unit) {
     LazyColumn(
         modifier = Modifier.testTag("lesson_list"),
         state = rememberLazyListState()
@@ -131,12 +116,8 @@ private fun LessonList(
         items(items.itemCount) { index ->
             items[index]?.let {
                 ListItem(
-                    modifier = Modifier.clickable {
-                        onLessonSelected(it)
-                    },
-                    headlineContent = {
-                        Text(text = it.title)
-                    }
+                    modifier = Modifier.clickable { onLessonSelected(it) },
+                    headlineContent = { Text(text = it.title) }
                 )
                 HorizontalDivider()
             }
@@ -148,12 +129,10 @@ private fun LessonList(
 @Preview
 fun LessonsScreen_Empty_Preview() {
     LessonsScreen(
-        state = LessonsViewModel.State(
-            lessons = emptyFlow()
-        ),
+        state = LessonsViewModel.State(lessons = emptyFlow()),
         updateStatus = {},
         onLessonSelected = {},
-        onSearchTextChanged = {},
+        onSearchTextChanged = {}
     )
 }
 
@@ -172,7 +151,7 @@ fun LessonsScreen_List_Preview() {
                             language1 = "en",
                             language2 = "jp",
                             owner = "owner",
-                            updatedAt = DateTime.now(),
+                            updatedAt = DateTime.now()
                         ),
                         Lesson(
                             id = "",
@@ -181,7 +160,7 @@ fun LessonsScreen_List_Preview() {
                             language1 = "en",
                             language2 = "jp",
                             owner = "owner",
-                            updatedAt = DateTime.now(),
+                            updatedAt = DateTime.now()
                         )
                     )
                 )
@@ -189,6 +168,6 @@ fun LessonsScreen_List_Preview() {
         ),
         updateStatus = {},
         onSearchTextChanged = {},
-        onLessonSelected = {},
+        onLessonSelected = {}
     )
 }

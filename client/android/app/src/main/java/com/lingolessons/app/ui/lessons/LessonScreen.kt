@@ -24,31 +24,24 @@ import com.lingolessons.shared.LessonType
 
 @Composable
 @KoverIgnore
-fun LessonScreen(
-    viewModel: LessonViewModel,
-    navigateBack: () -> Unit,
-) {
+fun LessonScreen(viewModel: LessonViewModel, navigateBack: () -> Unit) {
     val state = viewModel.state.collectAsState()
     LessonScreen(
         state = state.value,
         updateStatus = viewModel::updateStatus,
-        navigateBack = navigateBack,
+        navigateBack = navigateBack
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LessonScreen(
-    state: LessonViewModel.State,
-    updateStatus: (ScreenState.Status) -> Unit,
-    navigateBack: () -> Unit,
-) {
+fun LessonScreen(state: LessonViewModel.State, updateStatus: (ScreenState.Status) -> Unit, navigateBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
                 colors = topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
                     Text(
@@ -63,7 +56,7 @@ fun LessonScreen(
                             contentDescription = "Localized description"
                         )
                     }
-                },
+                }
             )
         }
     ) { innerPadding ->
@@ -72,7 +65,6 @@ fun LessonScreen(
             innerPadding = innerPadding,
             updateStatus = updateStatus
         ) {
-
         }
     }
 }
@@ -90,11 +82,10 @@ fun LessonScreen_Preview() {
                 language1 = "en",
                 language2 = "jp",
                 owner = "owner",
-                updatedAt = DateTime.now(),
+                updatedAt = DateTime.now()
             )
-
         ),
         updateStatus = {},
-        navigateBack = {},
+        navigateBack = {}
     )
 }
