@@ -42,13 +42,13 @@ impl TokenApi for Api {
             .form(&[("username", username), ("password", password)])
             .send()
             .await?;
-        return match response.status() {
+        match response.status() {
             StatusCode::OK => {
                 let r = response.json::<LoginResponse>().await?;
                 Ok(r)
             }
             StatusCode::UNAUTHORIZED => Err(TokenApiError::Unauthorised()),
             _ => Err(TokenApiError::Unauthorised()),
-        };
+        }
     }
 }
