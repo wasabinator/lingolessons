@@ -12,6 +12,7 @@ pub enum DomainError {
     Unexpected(String),
     Database(String),
     Api(String),
+    Unauthorised,
 }
 
 impl std::fmt::Display for DomainError {
@@ -23,6 +24,7 @@ impl std::fmt::Display for DomainError {
                 DomainError::Unexpected(ref s) => s,
                 DomainError::Database(ref s) => s,
                 DomainError::Api(ref s) => s,
+                DomainError::Unauthorised => "Unauthorised",
             }
         )
     }

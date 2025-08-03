@@ -5,17 +5,6 @@ generated_code = true
 ij_formatter_enabled = false
 ktlint = disabled
 
-#[*.{kt,kts}]
-#max_line_length = 120
-#no-line-break-before-assignment = enabled
-#ktlint_annotation_handle_annotations_with_parameters_same_as_annotations_without_parameters = enabled
-#ktlint_code_style = android_studio
-#ktlint_function_naming_ignore_when_annotated_with = Composable
-#ktlint_standard_class-signature = disabled
-#ktlint_standard_chain_wrapping = enabled
-#ktlint_standard_chain-method-continuation = enabled
-#ktlint_standard_max-line-length = enabled
-
 [*.{kt,kts}]
 end_of_line = lf
 ij_kotlin_allow_trailing_comma = false

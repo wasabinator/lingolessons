@@ -37,11 +37,10 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
             _state.update { it.copy(status = ScreenState.Status.Busy) }
             viewModelScope.launch {
                 try {
-                    val response =
-                        domainState.domain.login(
-                            username = state.value.username,
-                            password = state.value.password
-                        )
+                    val session = domainState.domain.login(
+                        username = state.value.username,
+                        password = state.value.password
+                    )
                     _state.update { it.copy(status = ScreenState.Status.None) }
                 } catch (e: DomainException) {
                     val message =

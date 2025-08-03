@@ -21,6 +21,6 @@ impl TokenApiMocks for Server {
     }
 
     fn mock_login_failure(&mut self) -> Mock {
-        self.mock("POST", "/jwt/create").with_status(403).create()
+        self.mock("POST", "/jwt/create").with_status(401).create()
     }
 }

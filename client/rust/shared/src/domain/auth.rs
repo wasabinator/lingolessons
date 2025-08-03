@@ -76,7 +76,7 @@ mod tests {
             auth::api_mocks::TokenApiMocks,
             lessons::api_mocks::{mock_lessons, LessonApiMocks},
         },
-        domain::fake_domain,
+        domain::{fake_domain, DomainError},
     };
     use serial_test::serial;
     use std::ops::DerefMut;
@@ -107,5 +107,6 @@ mod tests {
 
         let r = domain.login("user".to_string(), "password".to_string()).await;
         assert!(r.is_err());
+        assert_eq!(DomainError::Unauthorised, r.unwrap_err())
     }
 }
