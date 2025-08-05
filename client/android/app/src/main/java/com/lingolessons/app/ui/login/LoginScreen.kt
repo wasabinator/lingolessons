@@ -124,7 +124,15 @@ fun LoginScreen(
             AlertDialog(
                 onDismissRequest = dismissDialog,
                 title = { Text(stringResource(R.string.title_error)) },
-                text = { Text(state.errorMessage!!) },
+                text = {
+                    Text(
+                        when (state.error?.source) {
+                            LoginViewModel.Errors.UnauthorisedError ->
+                                stringResource(R.string.auth_invalid_credentials)
+                            else -> stringResource(R.string.error_other)
+                        }
+                    )
+                },
                 confirmButton = {
                     Button(onClick = dismissDialog) {
                         Text(stringResource(R.string.btn_ok))

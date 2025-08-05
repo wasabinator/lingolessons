@@ -1,5 +1,9 @@
 package com.lingolessons.app.ui.common
 
+interface ErrorSource {
+    fun canRetry(): Boolean = true
+}
+
 interface ScreenState {
     val status: Status
 
@@ -8,7 +12,9 @@ interface ScreenState {
 
         data object Busy : Status()
 
-        data class Error(val message: String? = null, val canRetry: Boolean = false) : Status()
+        data class Error(
+            val source: ErrorSource
+        ) : Status()
     }
 
     val isBusy
@@ -17,6 +23,6 @@ interface ScreenState {
     val isError
         get() = status is Status.Error
 
-    val errorMessage
-        get() = (status as? Status.Error)?.message
+    val error: Status.Error?
+        get() = status as? Status.Error
 }

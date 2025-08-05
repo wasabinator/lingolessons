@@ -43,4 +43,7 @@
 
   scripts.avd.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel &";
   scripts.avd-cold.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel -no-snapshot &";
+
+  scripts.check.exec = "cargo +nightly clippy";
+  scripts.fix.exec = "cargo +nightly clippy --fix"; 
 }

@@ -1,7 +1,10 @@
 use super::{api::TokenApi, db::TokenDao};
 use crate::{
     data::{api::Api, auth::api::TokenApiError, db::Db, Runtime, SessionManager},
-    domain::{auth::Session, DomainError},
+    domain::{
+        auth::{AuthError, Session},
+        DomainError,
+    },
     ArcMutex,
 };
 use reqwest::RequestBuilder;
@@ -12,7 +15,7 @@ const SESSION_MANAGER_INIT_TASK: &str = "SESSION_MANAGER_INIT_TASK";
 impl From<TokenApiError> for DomainError {
     fn from(error: TokenApiError) -> Self {
         match error {
-            TokenApiError::Unauthorised() => DomainError::Unauthorised,
+            TokenApiError::Unauthorised() => DomainError::Auth(AuthError::InvalidCredentials),
             TokenApiError::Unexpected(s) => DomainError::Api(s),
         }
     }

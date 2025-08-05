@@ -42,7 +42,7 @@ fun ScreenContent(
 
         when {
             state.isBusy -> busyIndicator(updateStatus)
-            state.isError -> errorIndicator(state.errorMessage!!, updateStatus)
+            state.isError -> errorIndicator("", updateStatus)
         }
     }
 }
@@ -55,8 +55,7 @@ fun BusyContent(updateStatus: (ScreenState.Status) -> Unit) {
     ) {
         Box(
             contentAlignment = Center,
-            modifier =
-            Modifier
+            modifier = Modifier
                 .size(100.dp)
                 .background(
                     MaterialTheme.colorScheme.background,

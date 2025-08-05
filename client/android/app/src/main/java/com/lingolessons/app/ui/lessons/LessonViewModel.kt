@@ -5,6 +5,7 @@ import com.lingolessons.app.common.logError
 import com.lingolessons.app.common.logWarning
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.DomainStateViewModel
+import com.lingolessons.app.ui.common.ErrorSource
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.app.ui.common.ScreenState.Status
 import com.lingolessons.shared.DomainException
@@ -32,13 +33,17 @@ class LessonViewModel(
                 } else {
                     logWarning("Couldn't find lesson for id: $lessonId")
                     _state.update {
-                        it.copy(status = Status.Error("Couldn't find lesson", canRetry = true))
+                        it.copy(status = Status.Error(Errors.UnknownLesson))
                     }
                 }
             } catch (e: DomainException) {
                 logError("Error fetching lesson", e)
             }
         }
+    }
+
+    enum class Errors : ErrorSource {
+        UnknownLesson
     }
 
     data class State(

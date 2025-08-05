@@ -1,5 +1,5 @@
 use crate::data::api::Api;
-//use anyhow::{bail, Ok};
+//use anyhow::Ok;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -37,7 +37,7 @@ impl TokenApi for Api {
     async fn login(
         &self, username: String, password: String,
     ) -> Result<LoginResponse, TokenApiError> {
-        let response = self
+        let response: reqwest::Response = self
             .post(LOGIN_URL.to_string())
             .form(&[("username", username), ("password", password)])
             .send()
@@ -48,7 +48,7 @@ impl TokenApi for Api {
                 Ok(r)
             }
             StatusCode::UNAUTHORIZED => Err(TokenApiError::Unauthorised()),
-            _ => Err(TokenApiError::Unauthorised()),
+            other => Err(TokenApiError::Unexpected(format!("HTTP Error {other}"))),
         }
     }
 }

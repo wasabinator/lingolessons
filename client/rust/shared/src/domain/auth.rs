@@ -5,7 +5,15 @@ use crate::{
     ArcMutex,
 };
 use std::sync::Arc;
+use thiserror::Error;
 use uniffi::deps::log::trace;
+
+/// Errors produced by this domain
+#[derive(uniffi::Enum, Debug, Error, PartialEq, Clone)]
+pub enum AuthError {
+    #[error("Invalid Credentials")]
+    InvalidCredentials,
+}
 
 /// Session domain model
 #[derive(uniffi::Enum, PartialEq, Clone, Debug)]
@@ -101,12 +109,22 @@ mod tests {
     #[tokio::test]
     async fn test_login_failure() {
         let mut server = mockito::Server::new_async().await;
-        server.deref_mut().mock_login_failure();
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        let r = domain.login("user".to_string(), "password".to_string()).await;
-        assert!(r.is_err());
-        assert_eq!(DomainError::Unauthorised, r.unwrap_err())
+        server.deref_mut().mock_login_http_failure(401);
+        let r1 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r1.is_err());
+        assert_eq!(DomainError::Auth(AuthError::InvalidCredentials), r1.unwrap_err());
+
+        server.deref_mut().mock_login_http_failure(500);
+        let r2 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r2.is_err());
+        assert!(matches!(r2, Err(DomainError::Api(_))));
+
+        server.deref_mut().mock_login_other_failure();
+        let r3 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r3.is_err());
+        assert!(matches!(r3, Err(DomainError::Api(_))));
     }
 }

@@ -1,4 +1,4 @@
-use crate::data::DataServiceProvider;
+use crate::{data::DataServiceProvider, domain::auth::AuthError};
 use std::sync::Arc;
 
 pub mod auth;
@@ -7,27 +7,18 @@ pub mod lessons;
 pub mod runtime;
 pub mod settings;
 
+pub trait DomainRule {}
+
 #[derive(Debug, PartialEq, thiserror::Error, uniffi::Error, Clone)]
 pub enum DomainError {
+    #[error("Unexpected: {0}")]
     Unexpected(String),
+    #[error("Database: {0}")]
     Database(String),
+    #[error("Api: {0}")]
     Api(String),
-    Unauthorised,
-}
-
-impl std::fmt::Display for DomainError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                DomainError::Unexpected(ref s) => s,
-                DomainError::Database(ref s) => s,
-                DomainError::Api(ref s) => s,
-                DomainError::Unauthorised => "Unauthorised",
-            }
-        )
-    }
+    #[error("Auth: {0}")]
+    Auth(AuthError),
 }
 
 pub type DomainResult<T = ()> = anyhow::Result<T, DomainError>;
