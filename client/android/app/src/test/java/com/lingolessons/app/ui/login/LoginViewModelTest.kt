@@ -3,6 +3,8 @@ package com.lingolessons.app.ui.login
 import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.login.LoginViewModel.Errors
+import com.lingolessons.shared.AuthError
 import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
@@ -92,7 +94,7 @@ class LoginViewModelTest : BaseTest() {
                 username = "user1234",
                 password = "pass",
                 enabled = true,
-                status = ScreenState.Status.Error(message = "Error logging in")
+                status = ScreenState.Status.Error(Errors.UnknownError)
             ),
             viewModel.state.value
         )
