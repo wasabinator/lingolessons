@@ -4,7 +4,6 @@ import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.app.ui.login.LoginViewModel.Errors
-import com.lingolessons.shared.AuthError
 import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session

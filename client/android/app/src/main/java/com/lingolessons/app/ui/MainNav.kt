@@ -61,7 +61,9 @@ fun MainNav(navController: NavHostController) {
     ) {
         composable<AppScreen.Profile> {
             val viewModel: ProfileViewModel = koinViewModel()
-            AuthenticatedScreen(viewModel = viewModel) { ProfileScreen(viewModel = viewModel) }
+            AuthenticatedScreen(viewModel = viewModel) {
+                ProfileScreen(viewModel = viewModel)
+            }
         }
         composable<AppScreen.Study> {
             // TODO: Add study screen
@@ -78,7 +80,9 @@ fun MainNav(navController: NavHostController) {
             composable<AppScreen.LessonDetail> { backStackEntry ->
                 val lessonId: String = backStackEntry.toRoute<AppScreen.LessonDetail>().id
                 val viewModel: LessonViewModel = koinViewModel { parametersOf(lessonId) }
-                LessonScreen(viewModel = viewModel) { navController.navigateUp() }
+                LessonScreen(viewModel = viewModel) {
+                    navController.navigateUp()
+                }
             }
         }
     }
