@@ -21,7 +21,7 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
         _state.update {
             it.copy(
                 username = username,
-                enabled = it.username.isNotBlank() && it.password.isNotBlank()
+                enabled = it.username.isNotBlank() && it.password.isNotBlank(),
             )
         }
     }
@@ -30,7 +30,7 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
         _state.update {
             it.copy(
                 password = password,
-                enabled = it.username.isNotBlank() && password.isNotBlank()
+                enabled = it.username.isNotBlank() && password.isNotBlank(),
             )
         }
     }
@@ -42,20 +42,24 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
                 try {
                     domainState.domain.login(
                         username = state.value.username,
-                        password = state.value.password
+                        password = state.value.password,
                     )
                     _state.update { it.copy(status = ScreenState.Status.None) }
                 } catch (e: DomainException) {
                     _state.update {
                         it.copy(
-                            status = Status.Error(
-                                source = when (e) {
-                                    is DomainException.Auth -> when (e.v1) {
-                                        AuthError.INVALID_CREDENTIALS -> Errors.UnauthorisedError
-                                    }
-                                    else -> Errors.UnknownError
-                                }
-                            )
+                            status =
+                                Status.Error(
+                                    source =
+                                        when (e) {
+                                            is DomainException.Auth ->
+                                                when (e.v1) {
+                                                    AuthError.INVALID_CREDENTIALS ->
+                                                        Errors.UnauthorisedError
+                                                }
+                                            else -> Errors.UnknownError
+                                        },
+                                ),
                         )
                     }
                 } finally {

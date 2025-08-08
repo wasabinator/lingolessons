@@ -27,65 +27,60 @@ import com.lingolessons.shared.LessonType
 fun LessonScreen(viewModel: LessonViewModel, navigateBack: () -> Unit) {
     val state = viewModel.state.collectAsState()
     LessonScreen(
-        state = state.value,
-        updateStatus = viewModel::updateStatus,
-        navigateBack = navigateBack
-    )
+        state = state.value, updateStatus = viewModel::updateStatus, navigateBack = navigateBack)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LessonScreen(state: LessonViewModel.State, updateStatus: (ScreenState.Status) -> Unit, navigateBack: () -> Unit) {
+fun LessonScreen(
+    state: LessonViewModel.State,
+    updateStatus: (ScreenState.Status) -> Unit,
+    navigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
-                ),
+                colors =
+                    topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary),
                 title = {
                     Text(
                         modifier = Modifier.testTag("screen_title"),
-                        text = state.lesson?.title ?: ""
-                    )
+                        text = state.lesson?.title ?: "")
                 },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
+                            contentDescription = "Localized description")
                     }
-                }
-            )
+                })
+        }) { innerPadding ->
+            ScreenContent(
+                state = state, innerPadding = innerPadding, updateStatus = updateStatus) {}
         }
-    ) { innerPadding ->
-        ScreenContent(
-            state = state,
-            innerPadding = innerPadding,
-            updateStatus = updateStatus
-        ) {
-        }
-    }
 }
 
 @Composable
 @Preview
 fun LessonScreen_Preview() {
     LessonScreen(
-        state = LessonViewModel.State(
-            lessonId = "123",
-            lesson = Lesson(
-                id = "123",
-                title = "Lesson 1",
-                type = LessonType.GRAMMAR,
-                language1 = "en",
-                language2 = "jp",
-                owner = "owner",
-                updatedAt = DateTime.now()
-            )
-        ),
+        state =
+            LessonViewModel.State(
+                lessonId = "123",
+                lesson =
+                    Lesson(
+                        id = "123",
+                        title = "Lesson 1",
+                        type = LessonType.GRAMMAR,
+                        language1 = "en",
+                        language2 = "jp",
+                        owner = "owner",
+                        updatedAt = DateTime.now(),
+                    ),
+            ),
         updateStatus = {},
-        navigateBack = {}
+        navigateBack = {},
     )
 }

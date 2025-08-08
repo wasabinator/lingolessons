@@ -26,18 +26,14 @@ android {
         ndk.abiFilters += abiTargets
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+        vectorDrawables { useSupportLibrary = true }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -48,13 +44,8 @@ android {
         unitTests.isIncludeAndroidResources = true
         unitTests.isReturnDefaultValues = true
     }
-    buildFeatures {
-        compose = true
-    }
-    @Suppress("UnstableApiUsage")
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
+    buildFeatures { compose = true }
+    @Suppress("UnstableApiUsage") composeOptions { kotlinCompilerExtensionVersion = "1.5.1" }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -130,7 +121,9 @@ tasks.register("generateUniFFIBindings") {
 
 tasks.whenTaskAdded {
     when (name) {
-        "compileDebugKotlin", "compileReleaseKotlin", "compileReleaseTestKotlin" -> {
+        "compileDebugKotlin",
+        "compileReleaseKotlin",
+        "compileReleaseTestKotlin" -> {
             dependsOn("generateUniFFIBindings")
             mustRunAfter("generateUniFFIBindings")
         }

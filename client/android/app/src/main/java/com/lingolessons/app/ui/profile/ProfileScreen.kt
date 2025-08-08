@@ -36,17 +36,16 @@ fun ProfileScreen(logout: () -> Unit) {
         topBar = {
             TopAppBar(
                 colors =
-                topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
-                ),
-                title = { Text(stringResource(R.string.feature_profile)) }
+                    topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary),
+                title = { Text(stringResource(R.string.feature_profile)) },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier.fillMaxWidth().padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(modifier = Modifier.testTag("logout"), onClick = logout) {

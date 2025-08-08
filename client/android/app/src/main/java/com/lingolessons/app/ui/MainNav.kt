@@ -36,19 +36,20 @@ sealed class AppScreen {
     @Serializable data class LessonDetail(val id: String) : AppScreen()
 
     companion object {
-        fun getRoute(entry: NavBackStackEntry?): AppScreen = entry?.let {
-            when {
-                entry.destination.hasRoute<Profile>() -> entry.toRoute<Profile>()
-                entry.destination.hasRoute<Study>() -> entry.toRoute<Study>()
-                entry.destination.hasRoute<Lessons>() -> entry.toRoute<Lessons>()
-                entry.destination.hasRoute<LessonList>() -> entry.toRoute<LessonList>()
-                entry.destination.hasRoute<LessonDetail>() -> entry.toRoute<LessonDetail>()
-                else ->
-                    throw IllegalArgumentException(
-                        "Invalid route. Did you forget to implement getRouter()?"
-                    )
-            }
-        } ?: Profile
+        fun getRoute(entry: NavBackStackEntry?): AppScreen =
+            entry?.let {
+                when {
+                    entry.destination.hasRoute<Profile>() -> entry.toRoute<Profile>()
+                    entry.destination.hasRoute<Study>() -> entry.toRoute<Study>()
+                    entry.destination.hasRoute<Lessons>() -> entry.toRoute<Lessons>()
+                    entry.destination.hasRoute<LessonList>() -> entry.toRoute<LessonList>()
+                    entry.destination.hasRoute<LessonDetail>() -> entry.toRoute<LessonDetail>()
+                    else ->
+                        throw IllegalArgumentException(
+                            "Invalid route. Did you forget to implement getRouter()?",
+                        )
+                }
+            } ?: Profile
     }
 }
 
@@ -57,33 +58,28 @@ fun MainNav(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = AppScreen.Profile,
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-    ) {
-        composable<AppScreen.Profile> {
-            val viewModel: ProfileViewModel = koinViewModel()
-            AuthenticatedScreen(viewModel = viewModel) {
-                ProfileScreen(viewModel = viewModel)
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            composable<AppScreen.Profile> {
+                val viewModel: ProfileViewModel = koinViewModel()
+                AuthenticatedScreen(viewModel = viewModel) { ProfileScreen(viewModel = viewModel) }
             }
-        }
-        composable<AppScreen.Study> {
-            // TODO: Add study screen
-        }
-        navigation<AppScreen.Lessons>(startDestination = AppScreen.LessonList) {
-            composable<AppScreen.LessonList> {
-                val viewModel: LessonsViewModel = koinViewModel()
-                AuthenticatedScreen(viewModel = viewModel) {
-                    LessonsScreen(viewModel = viewModel) { lesson ->
-                        navController.navigate(AppScreen.LessonDetail(lesson.id))
+            composable<AppScreen.Study> {
+                // TODO: Add study screen
+            }
+            navigation<AppScreen.Lessons>(startDestination = AppScreen.LessonList) {
+                composable<AppScreen.LessonList> {
+                    val viewModel: LessonsViewModel = koinViewModel()
+                    AuthenticatedScreen(viewModel = viewModel) {
+                        LessonsScreen(viewModel = viewModel) { lesson ->
+                            navController.navigate(AppScreen.LessonDetail(lesson.id))
+                        }
                     }
                 }
-            }
-            composable<AppScreen.LessonDetail> { backStackEntry ->
-                val lessonId: String = backStackEntry.toRoute<AppScreen.LessonDetail>().id
-                val viewModel: LessonViewModel = koinViewModel { parametersOf(lessonId) }
-                LessonScreen(viewModel = viewModel) {
-                    navController.navigateUp()
+                composable<AppScreen.LessonDetail> { backStackEntry ->
+                    val lessonId: String = backStackEntry.toRoute<AppScreen.LessonDetail>().id
+                    val viewModel: LessonViewModel = koinViewModel { parametersOf(lessonId) }
+                    LessonScreen(viewModel = viewModel) { navController.navigateUp() }
                 }
             }
         }
-    }
 }

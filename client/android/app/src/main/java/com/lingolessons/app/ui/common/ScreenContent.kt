@@ -36,7 +36,7 @@ fun ScreenContent(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(innerPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         content()
 
@@ -51,20 +51,19 @@ fun ScreenContent(
 fun BusyContent(updateStatus: (ScreenState.Status) -> Unit) {
     Dialog(
         onDismissRequest = { updateStatus(ScreenState.Status.None) },
-        DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
-    ) {
-        Box(
-            contentAlignment = Center,
-            modifier = Modifier
-                .size(100.dp)
-                .background(
-                    MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(8.dp)
-                )
-        ) {
-            CircularProgressIndicator()
+        DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+            Box(
+                contentAlignment = Center,
+                modifier =
+                    Modifier.size(100.dp)
+                        .background(
+                            MaterialTheme.colorScheme.background,
+                            shape = RoundedCornerShape(8.dp),
+                        ),
+            ) {
+                CircularProgressIndicator()
+            }
         }
-    }
 }
 
 @Composable
@@ -77,6 +76,6 @@ fun ErrorContent(message: String, updateStatus: (ScreenState.Status) -> Unit) {
             Button(onClick = { updateStatus(ScreenState.Status.None) }) {
                 Text(stringResource(R.string.btn_ok))
             }
-        }
+        },
     )
 }

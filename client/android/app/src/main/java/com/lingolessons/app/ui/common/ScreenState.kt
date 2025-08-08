@@ -12,9 +12,7 @@ interface ScreenState {
 
         data object Busy : Status()
 
-        data class Error(
-            val source: ErrorSource
-        ) : Status()
+        data class Error(val source: ErrorSource) : Status()
     }
 
     val isBusy

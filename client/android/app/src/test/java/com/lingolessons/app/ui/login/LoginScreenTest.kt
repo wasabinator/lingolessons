@@ -34,7 +34,7 @@ class LoginScreenTest : BaseUiTest() {
                 updateUsername = { updateUsername.call(it) },
                 updatePassword = { updatePassword.call(it) },
                 login = { login.call() },
-                dismissDialog = { dismissDialog.call() }
+                dismissDialog = { dismissDialog.call() },
             )
         }
     }

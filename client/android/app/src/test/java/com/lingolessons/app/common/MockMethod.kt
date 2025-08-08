@@ -11,21 +11,23 @@ interface MockMethod {
     fun verify(times: Int? = null)
 }
 
-fun mockMethod() = object : MockMethod {
-    private val calls = mutableListOf<List<Any>>()
+fun mockMethod() =
+    object : MockMethod {
+        private val calls = mutableListOf<List<Any>>()
 
-    override fun call(vararg args: Any) {
-        calls.add(args.toList())
-    }
+        override fun call(vararg args: Any) {
+            calls.add(args.toList())
+        }
 
-    override fun expect(vararg args: Any) {
-        assertTrue(calls.isNotEmpty())
-        assertEquals(args.toList(), calls.removeFirst())
-    }
+        override fun expect(vararg args: Any) {
+            assertTrue(calls.isNotEmpty())
+            assertEquals(args.toList(), calls.removeFirst())
+        }
 
-    override fun verify(times: Int?) = if (times == null) {
-        assertTrue(calls.isNotEmpty())
-    } else {
-        assertEquals(times, calls.size)
+        override fun verify(times: Int?) =
+            if (times == null) {
+                assertTrue(calls.isNotEmpty())
+            } else {
+                assertEquals(times, calls.size)
+            }
     }
-}

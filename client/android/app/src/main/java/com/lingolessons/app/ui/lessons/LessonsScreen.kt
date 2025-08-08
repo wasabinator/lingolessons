@@ -48,7 +48,7 @@ fun LessonsScreen(viewModel: LessonsViewModel, onLessonSelected: (Lesson) -> Uni
         state = state.value,
         updateStatus = viewModel::updateStatus,
         onLessonSelected = onLessonSelected,
-        onSearchTextChanged = viewModel::updateFilterText
+        onSearchTextChanged = viewModel::updateFilterText,
     )
 }
 
@@ -63,44 +63,51 @@ fun LessonsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
-                ),
-                title = { Text(stringResource(R.string.feature_lessons)) }
+                colors =
+                    topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                title = {
+                    Text(
+                        stringResource(R.string.feature_lessons),
+                    )
+                },
             )
-        }
+        },
     ) { innerPadding ->
-        ScreenContent(
-            state = state,
-            updateStatus = updateStatus,
-            innerPadding = innerPadding
-        ) {
+        ScreenContent(state = state, updateStatus = updateStatus, innerPadding = innerPadding) {
             TextField(
                 modifier = Modifier.fillMaxWidth().testTag("search_text"),
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Rounded.Search,
                         tint = MaterialTheme.colorScheme.onBackground,
-                        contentDescription = "Search icon"
+                        contentDescription = "Search icon",
                     )
                 },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
+                colors =
+                    TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                    ),
                 value = state.filterText,
-                onValueChange = onSearchTextChanged
+                onValueChange = onSearchTextChanged,
             )
             val items = state.lessons.collectAsLazyPagingItems()
             if (items.itemCount > 0) {
-                LessonList(items = items, onLessonSelected = onLessonSelected)
+                LessonList(
+                    items = items,
+                    onLessonSelected = onLessonSelected,
+                )
             } else {
                 Row(
                     modifier = Modifier.fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.feature_lessons_none))
+                    Text(
+                        stringResource(R.string.feature_lessons_none),
+                    )
                 }
             }
         }
@@ -109,15 +116,16 @@ fun LessonsScreen(
 
 @Composable
 private fun LessonList(items: LazyPagingItems<Lesson>, onLessonSelected: (Lesson) -> Unit) {
-    LazyColumn(
-        modifier = Modifier.testTag("lesson_list"),
-        state = rememberLazyListState()
-    ) {
+    LazyColumn(modifier = Modifier.testTag("lesson_list"), state = rememberLazyListState()) {
         items(items.itemCount) { index ->
             items[index]?.let {
                 ListItem(
                     modifier = Modifier.clickable { onLessonSelected(it) },
-                    headlineContent = { Text(text = it.title) }
+                    headlineContent = {
+                        Text(
+                            text = it.title,
+                        )
+                    },
                 )
                 HorizontalDivider()
             }
@@ -132,7 +140,7 @@ fun LessonsScreen_Empty_Preview() {
         state = LessonsViewModel.State(lessons = emptyFlow()),
         updateStatus = {},
         onLessonSelected = {},
-        onSearchTextChanged = {}
+        onSearchTextChanged = {},
     )
 }
 
@@ -140,34 +148,36 @@ fun LessonsScreen_Empty_Preview() {
 @Preview
 fun LessonsScreen_List_Preview() {
     LessonsScreen(
-        state = LessonsViewModel.State(
-            lessons = flowOf(
-                PagingData.from(
-                    listOf(
-                        Lesson(
-                            id = "",
-                            title = "Lesson 1",
-                            type = LessonType.GRAMMAR,
-                            language1 = "en",
-                            language2 = "jp",
-                            owner = "owner",
-                            updatedAt = DateTime.now()
+        state =
+            LessonsViewModel.State(
+                lessons =
+                    flowOf(
+                        PagingData.from(
+                            listOf(
+                                Lesson(
+                                    id = "",
+                                    title = "Lesson 1",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                                Lesson(
+                                    id = "",
+                                    title = "Lesson 2",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                            ),
                         ),
-                        Lesson(
-                            id = "",
-                            title = "Lesson 2",
-                            type = LessonType.GRAMMAR,
-                            language1 = "en",
-                            language2 = "jp",
-                            owner = "owner",
-                            updatedAt = DateTime.now()
-                        )
-                    )
-                )
-            )
-        ),
+                    ),
+            ),
         updateStatus = {},
         onSearchTextChanged = {},
-        onLessonSelected = {}
+        onLessonSelected = {},
     )
 }

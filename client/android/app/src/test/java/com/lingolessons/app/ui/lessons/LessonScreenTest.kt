@@ -23,18 +23,14 @@ class LessonScreenTest : BaseUiTest() {
     }
 
     private fun ComposeUiTest.setContent(state: State) {
-        setContent {
-            LessonScreen(state = state, updateStatus = {}, navigateBack = {})
-        }
+        setContent { LessonScreen(state = state, updateStatus = {}, navigateBack = {}) }
     }
 
     @Test
     fun `expect screen placeholder to exist when state is empty`() = runComposeUiTest {
         setContent(State(lessonId = "123"))
 
-        onNodeWithTag("screen_title")
-            .assertExists()
-            .assertTextEquals("")
+        onNodeWithTag("screen_title").assertExists().assertTextEquals("")
     }
 
     @Test
@@ -42,20 +38,19 @@ class LessonScreenTest : BaseUiTest() {
         setContent(
             State(
                 lessonId = "123",
-                lesson = Lesson(
-                    id = "123",
-                    title = "Lesson Title",
-                    type = LessonType.VOCABULARY,
-                    language1 = "en",
-                    language2 = "jp",
-                    owner = "owner",
-                    updatedAt = Instant.now()
-                )
-            )
+                lesson =
+                    Lesson(
+                        id = "123",
+                        title = "Lesson Title",
+                        type = LessonType.VOCABULARY,
+                        language1 = "en",
+                        language2 = "jp",
+                        owner = "owner",
+                        updatedAt = Instant.now(),
+                    ),
+            ),
         )
 
-        onNodeWithTag("screen_title")
-            .assertExists()
-            .assertTextEquals("Lesson Title")
+        onNodeWithTag("screen_title").assertExists().assertTextEquals("Lesson Title")
     }
 }

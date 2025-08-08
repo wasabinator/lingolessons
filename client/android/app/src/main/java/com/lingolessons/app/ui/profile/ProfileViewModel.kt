@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ProfileViewModel(private val domainState: DomainState) : DomainStateViewModel(domainState = domainState) {
+class ProfileViewModel(private val domainState: DomainState) :
+    DomainStateViewModel(domainState = domainState) {
     private val _state = MutableStateFlow<ProfileState?>(null)
     val state = _state.asStateFlow()
 

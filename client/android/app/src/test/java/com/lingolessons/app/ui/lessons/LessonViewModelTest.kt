@@ -21,18 +21,20 @@ class LessonViewModelTest : BaseTest() {
     private lateinit var mockLesson: Lesson
 
     override fun setup() {
-        mockLesson = Lesson(
-            id = "123",
-            title = "lesson1",
-            type = LessonType.VOCABULARY,
-            language1 = "en",
-            language2 = "jp",
-            owner = "owner",
-            updatedAt = DateTime.now()
-        )
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } returns Session.Authenticated("user")
-        }
+        mockLesson =
+            Lesson(
+                id = "123",
+                title = "lesson1",
+                type = LessonType.VOCABULARY,
+                language1 = "en",
+                language2 = "jp",
+                owner = "owner",
+                updatedAt = DateTime.now(),
+            )
+        domain =
+            mockk<DomainInterface>().apply {
+                coEvery { getSession() } returns Session.Authenticated("user")
+            }
         domainState = DomainState(domain = domain)
     }
 

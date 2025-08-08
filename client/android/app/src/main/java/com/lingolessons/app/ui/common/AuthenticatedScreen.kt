@@ -15,7 +15,7 @@ fun AuthenticatedScreen(viewModel: DomainStateViewModel, content: @Composable (S
     when (val currentState = state) {
         is Session.None -> {
             LoginScreen(
-                viewModel = koinViewModel<LoginViewModel>()
+                viewModel = koinViewModel<LoginViewModel>(),
             )
         }
 

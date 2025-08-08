@@ -31,8 +31,7 @@ class LessonsScreenTest : BaseUiTest() {
                 state = state,
                 onLessonSelected = {},
                 updateStatus = {},
-                onSearchTextChanged = { mockSearchTextUpdated.call(it) }
-            )
+                onSearchTextChanged = { mockSearchTextUpdated.call(it) })
         }
     }
 
@@ -47,22 +46,23 @@ class LessonsScreenTest : BaseUiTest() {
     fun `expect screen to display lessons when state is not empty`() = runComposeUiTest {
         setContent(
             State(
-                lessons = flowOf(
-                    PagingData.from(
-                        listOf(
-                            Lesson(
-                                id = "",
-                                title = "title",
-                                type = LessonType.GRAMMAR,
-                                language1 = "en",
-                                language2 = "jp",
-                                owner = "owner",
-                                updatedAt = DateTime.now()
-                            )
-                        )
-                    )
-                )
-            )
+                lessons =
+                    flowOf(
+                        PagingData.from(
+                            listOf(
+                                Lesson(
+                                    id = "",
+                                    title = "title",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                            ),
+                        ),
+                    ),
+            ),
         )
 
         onNodeWithTag("lesson_list").assertExists()
@@ -72,22 +72,23 @@ class LessonsScreenTest : BaseUiTest() {
     fun `expect callback when text changed`() = runComposeUiTest {
         setContent(
             State(
-                lessons = flowOf(
-                    PagingData.from(
-                        listOf(
-                            Lesson(
-                                id = "",
-                                title = "title",
-                                type = LessonType.GRAMMAR,
-                                language1 = "en",
-                                language2 = "jp",
-                                owner = "owner",
-                                updatedAt = DateTime.now()
-                            )
-                        )
-                    )
-                )
-            )
+                lessons =
+                    flowOf(
+                        PagingData.from(
+                            listOf(
+                                Lesson(
+                                    id = "",
+                                    title = "title",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                            ),
+                        ),
+                    ),
+            ),
         )
 
         onNodeWithTag("search_text").performTextInput("123")

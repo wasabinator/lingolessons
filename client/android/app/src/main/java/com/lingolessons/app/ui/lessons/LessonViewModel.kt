@@ -15,12 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LessonViewModel(
-    domainState: DomainState,
-    lessonId: String
-) : DomainStateViewModel(
-    domainState = domainState
-) {
+class LessonViewModel(domainState: DomainState, lessonId: String) :
+    DomainStateViewModel(domainState = domainState) {
     private val _state = MutableStateFlow(State(lessonId = lessonId, status = Status.Busy))
     val state = _state.asStateFlow()
 
@@ -33,7 +29,9 @@ class LessonViewModel(
                 } else {
                     logWarning("Couldn't find lesson for id: $lessonId")
                     _state.update {
-                        it.copy(status = Status.Error(Errors.UnknownLesson))
+                        it.copy(
+                            status = Status.Error(Errors.UnknownLesson),
+                        )
                     }
                 }
             } catch (e: DomainException) {

@@ -29,7 +29,7 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
         assertEquals(
             LoginViewModel.State(username = "user123", enabled = false),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -39,7 +39,7 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
         assertEquals(
             LoginViewModel.State(password = "pass", enabled = false),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -49,7 +49,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updatePassword("pass")
         assertEquals(
             LoginViewModel.State(username = "user1234", password = "pass", enabled = true),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -67,7 +67,7 @@ class LoginViewModelTest : BaseTest() {
                 username = "user1234",
                 password = "pass",
                 enabled = true,
-                status = ScreenState.Status.Busy
+                status = ScreenState.Status.Busy,
             )
 
         assertEquals(expectedState, viewModel.state.value)
@@ -93,9 +93,9 @@ class LoginViewModelTest : BaseTest() {
                 username = "user1234",
                 password = "pass",
                 enabled = true,
-                status = ScreenState.Status.Error(Errors.UnknownError)
+                status = ScreenState.Status.Error(Errors.UnknownError),
             ),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 }

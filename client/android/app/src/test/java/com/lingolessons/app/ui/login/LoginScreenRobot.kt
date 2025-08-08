@@ -6,8 +6,9 @@ import androidx.compose.ui.test.onNodeWithTag
 
 @OptIn(ExperimentalTestApi::class)
 class LoginScreenRobot(private val composeTest: ComposeUiTest) {
-    fun assertIsShown() = with(composeTest) {
-        onNodeWithTag("username").assertExists()
-        onNodeWithTag("password").assertExists()
-    }
+    fun assertIsShown() =
+        with(composeTest) {
+            onNodeWithTag("username").assertExists()
+            onNodeWithTag("password").assertExists()
+        }
 }
