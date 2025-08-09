@@ -44,7 +44,8 @@ fun MainScreen() {
         largeScreen = false, // TODO
         mainNav = { MainNav(navController = navController) },
         currentRoute = currentRoute,
-        onNavItemClick = { screen: AppScreen -> navController.navigate(screen) { popUpTo(0) } })
+        onNavItemClick = { screen: AppScreen -> navController.navigate(screen) { popUpTo(0) } },
+    )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

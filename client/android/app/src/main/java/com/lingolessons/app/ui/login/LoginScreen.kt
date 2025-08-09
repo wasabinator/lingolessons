@@ -49,7 +49,8 @@ fun LoginScreen(viewModel: LoginViewModel) {
         updateUsername = viewModel::updateUsername,
         updatePassword = viewModel::updatePassword,
         login = viewModel::login,
-        dismissDialog = viewModel::dismissDialog)
+        dismissDialog = viewModel::dismissDialog,
+    )
 }
 
 @Composable
@@ -102,11 +103,12 @@ fun LoginScreen(
                 Button(
                     modifier = Modifier.testTag("login"),
                     enabled = state.enabled,
-                    onClick = login) {
-                        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                            Text(stringResource(R.string.btn_login))
-                        }
+                    onClick = login,
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                        Text(stringResource(R.string.btn_login))
                     }
+                }
             }
 
         Box(modifier = Modifier.weight(0.2f))
@@ -121,7 +123,8 @@ fun LoginScreen(
                             LoginViewModel.Errors.UnauthorisedError ->
                                 stringResource(R.string.auth_invalid_credentials)
                             else -> stringResource(R.string.error_other)
-                        })
+                        },
+                    )
                 },
                 confirmButton = {
                     Button(onClick = dismissDialog) { Text(stringResource(R.string.btn_ok)) }
@@ -131,19 +134,20 @@ fun LoginScreen(
         if (state.isBusy) {
             Dialog(
                 onDismissRequest = dismissDialog,
-                DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
-                    Box(
-                        contentAlignment = Center,
-                        modifier =
-                            Modifier.size(100.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.background,
-                                    shape = RoundedCornerShape(8.dp),
-                                ),
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+            ) {
+                Box(
+                    contentAlignment = Center,
+                    modifier =
+                        Modifier.size(100.dp)
+                            .background(
+                                MaterialTheme.colorScheme.background,
+                                shape = RoundedCornerShape(8.dp),
+                            ),
+                ) {
+                    CircularProgressIndicator()
                 }
+            }
         }
     }
 }
@@ -156,5 +160,6 @@ fun LoginScreenPreview() {
         updateUsername = {},
         updatePassword = {},
         login = {},
-        dismissDialog = {})
+        dismissDialog = {},
+    )
 }

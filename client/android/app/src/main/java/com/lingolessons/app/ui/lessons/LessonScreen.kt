@@ -27,7 +27,10 @@ import com.lingolessons.shared.LessonType
 fun LessonScreen(viewModel: LessonViewModel, navigateBack: () -> Unit) {
     val state = viewModel.state.collectAsState()
     LessonScreen(
-        state = state.value, updateStatus = viewModel::updateStatus, navigateBack = navigateBack)
+        state = state.value,
+        updateStatus = viewModel::updateStatus,
+        navigateBack = navigateBack,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,22 +46,28 @@ fun LessonScreen(
                 colors =
                     topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary),
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                    ),
                 title = {
                     Text(
                         modifier = Modifier.testTag("screen_title"),
-                        text = state.lesson?.title ?: "")
+                        text = state.lesson?.title ?: "",
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = navigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description")
+                            contentDescription = "Localized description",
+                        )
                     }
                 })
         }) { innerPadding ->
             ScreenContent(
-                state = state, innerPadding = innerPadding, updateStatus = updateStatus) {}
+                state = state,
+                innerPadding = innerPadding,
+                updateStatus = updateStatus,
+            ) {}
         }
 }
 
