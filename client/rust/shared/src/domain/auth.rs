@@ -1,14 +1,22 @@
+use super::{runtime::Runtime, DomainResult};
+use crate::{
+    data::{api::Api, db::Db},
+    domain::Domain,
+    ArcMutex,
+};
 use std::sync::Arc;
-
+use thiserror::Error;
 use uniffi::deps::log::trace;
 
-use crate::{data::{api::Api, db::Db}, domain::Domain, ArcMutex};
-
-use super::{runtime::Runtime, DomainResult};
+/// Errors produced by this domain
+#[derive(uniffi::Enum, Debug, Error, PartialEq, Clone)]
+pub enum AuthError {
+    #[error("Invalid Credentials")]
+    InvalidCredentials,
+}
 
 /// Session domain model
-#[derive(uniffi::Enum, PartialEq)]
-#[derive(Clone, Debug)]
+#[derive(uniffi::Enum, PartialEq, Clone, Debug)]
 pub enum Session {
     None,
     Authenticated(String),
@@ -25,7 +33,9 @@ pub(crate) struct SessionManager {
 
 pub trait Auth {
     fn get_session(&self) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
-    fn login(&self, username: String, password: String) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
+    fn login(
+        &self, username: String, password: String,
+    ) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
     fn logout(&self) -> impl std::future::Future<Output = DomainResult<()>> + Send;
 }
 
@@ -68,24 +78,23 @@ impl Auth for Domain {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::DerefMut;
-    use serial_test::serial;
-    use crate::{data::auth::api_mocks::TokenApiMocks, domain::fake_domain};
-    use crate::data::lessons::api_mocks::{mock_lessons, LessonApiMocks};
     use super::*;
+    use crate::{
+        data::{
+            auth::api_mocks::TokenApiMocks,
+            lessons::api_mocks::{mock_lessons, LessonApiMocks},
+        },
+        domain::{fake_domain, DomainError},
+    };
+    use serial_test::serial;
+    use std::ops::DerefMut;
 
     #[serial]
     #[tokio::test]
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(
-            mock_lessons(1),
-            0,
-            true,
-            1,
-            None
-        );
+        server.deref_mut().mock_lessons_success(mock_lessons(1), 0, true, 1, None);
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
@@ -100,11 +109,22 @@ mod tests {
     #[tokio::test]
     async fn test_login_failure() {
         let mut server = mockito::Server::new_async().await;
-        server.deref_mut().mock_login_failure();
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 
-        let r = domain.login("user".to_string(), "password".to_string()).await;
-        assert!(r.is_err());
+        server.deref_mut().mock_login_http_failure(401);
+        let r1 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r1.is_err());
+        assert_eq!(DomainError::Auth(AuthError::InvalidCredentials), r1.unwrap_err());
+
+        server.deref_mut().mock_login_http_failure(500);
+        let r2 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r2.is_err());
+        assert!(matches!(r2, Err(DomainError::Api(_))));
+
+        server.deref_mut().mock_login_other_failure();
+        let r3 = domain.login("user".to_string(), "password".to_string()).await;
+        assert!(r3.is_err());
+        assert!(matches!(r3, Err(DomainError::Api(_))));
     }
 }

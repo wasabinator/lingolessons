@@ -1,23 +1,31 @@
+use super::{api::TokenApi, db::TokenDao};
+use crate::{
+    data::{api::Api, auth::api::TokenApiError, db::Db, Runtime, SessionManager},
+    domain::{
+        auth::{AuthError, Session},
+        DomainError,
+    },
+    ArcMutex,
+};
+use reqwest::RequestBuilder;
 use std::{borrow::BorrowMut, sync::Arc};
 
-use reqwest::RequestBuilder;
-
-use crate::{data::{api::Api, db::Db, Runtime, SessionManager}, domain::DomainError, ArcMutex};
-use crate::domain::auth::Session;
-use super::api::TokenApi;
-
-use super::db::TokenDao;
-
 const SESSION_MANAGER_INIT_TASK: &str = "SESSION_MANAGER_INIT_TASK";
+
+impl From<TokenApiError> for DomainError {
+    fn from(error: TokenApiError) -> Self {
+        match error {
+            TokenApiError::Unauthorised() => DomainError::Auth(AuthError::InvalidCredentials),
+            TokenApiError::Unexpected(s) => DomainError::Api(s),
+        }
+    }
+}
 
 // All branches into session manager arrive via the domain thread
 //unsafe impl Send for SessionManager {}
 
 impl SessionManager {
-    pub(in crate::data) fn new(
-        api: Arc<Api>, 
-        db: ArcMutex<Db>
-    ) -> Self {
+    pub(in crate::data) fn new(api: Arc<Api>, db: ArcMutex<Db>) -> Self {
         let _db = db.clone();
 
         let (tx, rx) = tokio::sync::watch::channel(Session::None);
@@ -26,7 +34,7 @@ impl SessionManager {
             state: rx,
             state_mut: tx,
             api: api.clone(),
-            db: db.clone()
+            db: db.clone(),
         };
 
         manager.borrow_mut().start();
@@ -40,10 +48,10 @@ impl SessionManager {
 
         self.runtime.borrow_mut().spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
             log::trace!("Fetching session from db");
-            let session = match db.lock().await.get_token() { 
-                Ok(token) => token.map_or(Session::None, |token| {
-                    Session::Authenticated(token.username)
-                }),
+            let session = match db.lock().await.get_token() {
+                Ok(token) => {
+                    token.map_or(Session::None, |token| Session::Authenticated(token.username))
+                }
                 Err(_) => Session::None,
             };
             log::trace!("Initial Session from database {:?}", session);
@@ -51,7 +59,9 @@ impl SessionManager {
         });
     }
 
-    pub(crate) async fn login(&self, username: String, password: String) -> anyhow::Result<Session, DomainError> {
+    pub(crate) async fn login(
+        &self, username: String, password: String,
+    ) -> anyhow::Result<Session, DomainError> {
         log::trace!("session_manager::login()");
         let api = self.api.clone();
         let session = api.login(username.clone(), password).await?;
@@ -79,8 +89,8 @@ impl SessionManager {
                     #[cfg(test)]
                     log::trace!("Using test session token: {}", token.auth_token);
                     builder.bearer_auth(token.auth_token)
-                },
-                None => builder
+                }
+                None => builder,
             },
             Err(e) => {
                 log::error!("{:?}", e);

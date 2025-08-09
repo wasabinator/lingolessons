@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.junit.Test
 
+@OptIn(ExperimentalTestApi::class)
 class MainScreenTest : BaseUiTest() {
     private lateinit var largeScreen: MutableStateFlow<Boolean>
     private lateinit var currentRoute: MutableStateFlow<AppScreen?>
@@ -27,7 +28,6 @@ class MainScreenTest : BaseUiTest() {
         mockClickMethod = mockMethod()
     }
 
-    @OptIn(ExperimentalTestApi::class)
     private fun ComposeUiTest.setContent() {
         setContent {
             MainScreen(
@@ -39,7 +39,6 @@ class MainScreenTest : BaseUiTest() {
         }
     }
 
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun `should perform correct navigation on small screens`() = runComposeUiTest {
         setContent()
@@ -49,7 +48,6 @@ class MainScreenTest : BaseUiTest() {
         verifyNavigation()
     }
 
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun `should perform correct navigation on large screens`() = runComposeUiTest {
         largeScreen.update { true }
@@ -60,16 +58,6 @@ class MainScreenTest : BaseUiTest() {
         verifyNavigation()
     }
 
-    @OptIn(ExperimentalTestApi::class)
-    private fun ComposeUiTest.verifyNavigation() {
-        onNodeWithTag("profile").assertIsSelected()
-        onNodeWithTag("study").performClick()
-        mockClickMethod.expect(AppScreen.Study)
-        onNodeWithTag("lessons").performClick()
-        mockClickMethod.expect(AppScreen.Lessons)
-    }
-
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun `should select correct item selected for each route`() = runComposeUiTest {
         with(this) {
@@ -85,15 +73,22 @@ class MainScreenTest : BaseUiTest() {
         }
     }
 
-    context(ComposeUiTest)
+    private fun ComposeUiTest.verifyNavigation() {
+        onNodeWithTag("profile").assertIsSelected()
+        onNodeWithTag("study").performClick()
+        mockClickMethod.expect(AppScreen.Study)
+        onNodeWithTag("lessons").performClick()
+        mockClickMethod.expect(AppScreen.Lessons)
+    }
+
     @OptIn(ExperimentalTestApi::class)
-    private fun verifyCurrentNavItem(
+    private fun ComposeUiTest.verifyCurrentNavItem(
         largeScreen: Boolean,
         screen: AppScreen,
         tag: String,
     ) {
-        this.largeScreen.update { largeScreen }
-        this.currentRoute.update { screen }
+        this@MainScreenTest.largeScreen.update { largeScreen }
+        this@MainScreenTest.currentRoute.update { screen }
 
         onNodeWithTag(tag).assertIsSelected()
     }

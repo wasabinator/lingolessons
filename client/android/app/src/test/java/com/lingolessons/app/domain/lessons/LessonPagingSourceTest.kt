@@ -20,59 +20,46 @@ class LessonPagingSourceTest : BaseTest() {
     private lateinit var mockLessons: List<Lesson>
 
     override fun setup() {
-        mockLessons = listOf(
-            Lesson(
-                id = "",
-                title = "lesson1",
-                type = LessonType.VOCABULARY,
-                language1 = "en",
-                language2 = "jp",
-                owner = "owner",
-                updatedAt = DateTime.now(),
-            )
-        )
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } returns Session.Authenticated("user")
-            coEvery { getLessons(0u) } returns mockLessons
-            coEvery { getLessons(1u) } returns emptyList()
-        }
+        mockLessons =
+            listOf(
+                Lesson(
+                    id = "",
+                    title = "lesson1",
+                    type = LessonType.VOCABULARY,
+                    language1 = "en",
+                    language2 = "jp",
+                    owner = "owner",
+                    updatedAt = DateTime.now()))
+        domain =
+            mockk<DomainInterface>().apply {
+                coEvery { getSession() } returns Session.Authenticated("user")
+                coEvery { getLessons(0u) } returns mockLessons
+                coEvery { getLessons(1u) } returns emptyList()
+            }
     }
 
     @Test
     fun `should call api on pager load`() = runTest {
-        val pagingSource = LessonsPagingSource(
-            domain = domain,
-        )
+        val pagingSource = LessonsPagingSource(domain = domain)
 
-        val result: LoadResult<Int, Lesson> = pagingSource.load(
-            Refresh(
-                key = null,
-                loadSize = 2,
-                placeholdersEnabled = false
-            )
-        )
+        val result: LoadResult<Int, Lesson> =
+            pagingSource.load(Refresh(key = null, loadSize = 2, placeholdersEnabled = false))
 
         val page = result as? LoadResult.Page
         assertTrue(page != null)
 
-        assertEquals(
-            LoadResult.Page(
-                data = mockLessons,
-                prevKey = null,
-                nextKey = 1
-            ),
-            result,
-        )
+        assertEquals(LoadResult.Page(data = mockLessons, prevKey = null, nextKey = 1), result)
 
         coVerify(exactly = 1) { domain.getLessons(0u) }
 
-        val result2: LoadResult<Int, Lesson> = pagingSource.load(
-            Refresh(
-                key = 1,
-                loadSize = 2,
-                placeholdersEnabled = false
+        val result2: LoadResult<Int, Lesson> =
+            pagingSource.load(
+                Refresh(
+                    key = 1,
+                    loadSize = 2,
+                    placeholdersEnabled = false,
+                ),
             )
-        )
 
         coVerify(exactly = 1) { domain.getLessons(1u) }
     }

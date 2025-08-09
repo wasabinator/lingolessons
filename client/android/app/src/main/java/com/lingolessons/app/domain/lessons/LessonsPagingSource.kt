@@ -10,32 +10,32 @@ import com.lingolessons.shared.Lesson
 
 class LessonsPagingSource(
     private val domain: DomainInterface,
-    private val searchText: String? = null,
+    private val searchText: String? = null
 ) : PagingSource<Int, Lesson>() {
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> = try {
-        val currentPage = params.key ?: 0
-        val lessons: List<Lesson> = domain.getLessons(currentPage.toUByte()).let {
-            val currentSearchText = searchText
-            if (currentSearchText.isNullOrBlank()) {
-                it
-            } else {
-                val text = currentSearchText.toLowerCase(Locale.current)
-                it.filter { lesson ->
-                    lesson.title.toLowerCase(Locale.current).contains(text)
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> =
+        try {
+            val currentPage = params.key ?: 0
+            val lessons: List<Lesson> =
+                domain.getLessons(currentPage.toUByte()).let {
+                    val currentSearchText = searchText
+                    if (currentSearchText.isNullOrBlank()) {
+                        it
+                    } else {
+                        val text = currentSearchText.toLowerCase(Locale.current)
+                        it.filter { lesson ->
+                            lesson.title.toLowerCase(Locale.current).contains(text)
+                        }
+                    }
                 }
-            }
+
+            LoadResult.Page(
+                data = lessons,
+                prevKey = if (currentPage == 0) null else currentPage - 1,
+                nextKey = if (lessons.isNotEmpty()) currentPage + 1 else null,
+            )
+        } catch (e: DomainException) {
+            LoadResult.Error(e)
         }
 
-        LoadResult.Page(
-            data = lessons,
-            prevKey = if (currentPage == 0) null else currentPage - 1,
-            nextKey = if (lessons.isNotEmpty()) currentPage + 1 else null
-        )
-    } catch (e: DomainException) {
-        LoadResult.Error(e)
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, Lesson>): Int? {
-        return null
-    }
+    override fun getRefreshKey(state: PagingState<Int, Lesson>): Int? = null
 }

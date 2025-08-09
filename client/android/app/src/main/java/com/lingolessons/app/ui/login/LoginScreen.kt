@@ -42,16 +42,14 @@ import com.lingolessons.app.common.KoverIgnore
 
 @Composable
 @KoverIgnore
-fun LoginScreen(
-    viewModel: LoginViewModel,
-) {
+fun LoginScreen(viewModel: LoginViewModel) {
     val state by viewModel.state.collectAsState()
     LoginScreen(
         state = state,
         updateUsername = viewModel::updateUsername,
         updatePassword = viewModel::updatePassword,
         login = viewModel::login,
-        dismissDialog = viewModel::dismissDialog
+        dismissDialog = viewModel::dismissDialog,
     )
 }
 
@@ -61,91 +59,91 @@ fun LoginScreen(
     updateUsername: (String) -> Unit,
     updatePassword: (String) -> Unit,
     login: () -> Unit,
-    dismissDialog: () -> Unit,
+    dismissDialog: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.background)
+        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.background),
     ) {
-        Box(modifier = Modifier.weight(0.2f)) {}
+        Box(modifier = Modifier.weight(0.2f))
+
         Column(
-            modifier = Modifier
-                .weight(0.6f)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .imePadding()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                modifier = Modifier.padding(vertical = 48.dp),
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = null // decorative element
-            )
+            modifier =
+                Modifier.weight(0.6f)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .imePadding()
+                    .verticalScroll(
+                        rememberScrollState(),
+                    ),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    modifier = Modifier.padding(vertical = 48.dp),
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = null, // decorative element
+                )
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .testTag("username"),
-                value = state.username,
-                onValueChange = updateUsername,
-                placeholder = { Text(stringResource(id = R.string.username)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                maxLines = 1,
-            )
+                OutlinedTextField(
+                    modifier = Modifier.padding(bottom = 16.dp).testTag("username"),
+                    value = state.username,
+                    onValueChange = updateUsername,
+                    placeholder = { Text(stringResource(id = R.string.username)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    maxLines = 1,
+                )
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(bottom = 24.dp)
-                    .testTag("password"),
-                value = state.password,
-                onValueChange = updatePassword,
-                placeholder = { Text(stringResource(id = R.string.password)) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                maxLines = 1,
-            )
+                OutlinedTextField(
+                    modifier = Modifier.padding(bottom = 24.dp).testTag("password"),
+                    value = state.password,
+                    onValueChange = updatePassword,
+                    placeholder = { Text(stringResource(id = R.string.password)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    maxLines = 1,
+                )
 
-            Button(
-                modifier = Modifier.testTag("login"),
-                enabled = state.enabled,
-                onClick = login,
-            ) {
-                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    Text(stringResource(R.string.btn_login))
+                Button(
+                    modifier = Modifier.testTag("login"),
+                    enabled = state.enabled,
+                    onClick = login,
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                        Text(stringResource(R.string.btn_login))
+                    }
                 }
             }
-        }
-        Box(modifier = Modifier.weight(0.2f)) {}
+
+        Box(modifier = Modifier.weight(0.2f))
 
         if (state.isError) {
             AlertDialog(
                 onDismissRequest = dismissDialog,
                 title = { Text(stringResource(R.string.title_error)) },
-                text = { Text(state.errorMessage!!) },
+                text = {
+                    Text(
+                        when (state.error?.source) {
+                            LoginViewModel.Errors.UnauthorisedError ->
+                                stringResource(R.string.auth_invalid_credentials)
+                            else -> stringResource(R.string.error_other)
+                        },
+                    )
+                },
                 confirmButton = {
-                    Button(
-                        onClick = dismissDialog
-                    ) {
-                        Text(stringResource(R.string.btn_ok))
-                    }
-                }
-            )
+                    Button(onClick = dismissDialog) { Text(stringResource(R.string.btn_ok)) }
+                })
         }
 
         if (state.isBusy) {
             Dialog(
                 onDismissRequest = dismissDialog,
-                DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+                DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
             ) {
                 Box(
                     contentAlignment = Center,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(
-                            MaterialTheme.colorScheme.background,
-                            shape = RoundedCornerShape(8.dp)
-                        )
+                    modifier =
+                        Modifier.size(100.dp)
+                            .background(
+                                MaterialTheme.colorScheme.background,
+                                shape = RoundedCornerShape(8.dp),
+                            ),
                 ) {
                     CircularProgressIndicator()
                 }

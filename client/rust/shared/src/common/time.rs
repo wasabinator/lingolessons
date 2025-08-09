@@ -1,8 +1,7 @@
 use std::time::SystemTime;
 
 #[allow(dead_code)]
-pub(crate) struct UnixTimestamp {
-}
+pub(crate) struct UnixTimestamp {}
 
 impl UnixTimestamp {
     #[allow(dead_code)]

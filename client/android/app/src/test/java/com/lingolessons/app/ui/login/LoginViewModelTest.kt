@@ -3,6 +3,7 @@ package com.lingolessons.app.ui.login
 import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.login.LoginViewModel.Errors
 import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
@@ -17,12 +18,8 @@ class LoginViewModelTest : BaseTest() {
     private lateinit var viewModel: LoginViewModel
 
     override fun setup() {
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } returns Session.None
-        }
-        domainState = DomainState(
-            domain = domain
-        )
+        domain = mockk<DomainInterface>().apply { coEvery { getSession() } returns Session.None }
+        domainState = DomainState(domain = domain)
         viewModel = LoginViewModel(domainState)
     }
 
@@ -32,7 +29,7 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
         assertEquals(
             LoginViewModel.State(username = "user123", enabled = false),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -42,7 +39,7 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
         assertEquals(
             LoginViewModel.State(password = "pass", enabled = false),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -52,7 +49,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updatePassword("pass")
         assertEquals(
             LoginViewModel.State(username = "user1234", password = "pass", enabled = true),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 
@@ -61,33 +58,24 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
 
-        coEvery {
-            domain.login(any(), any())
-        } returns Session.Authenticated("user")
+        coEvery { domain.login(any(), any()) } returns Session.Authenticated("user")
 
         viewModel.login()
 
-        val expectedState = LoginViewModel.State(
-            username = "user1234",
-            password = "pass",
-            enabled = true,
-            status = ScreenState.Status.Busy
-        )
+        val expectedState =
+            LoginViewModel.State(
+                username = "user1234",
+                password = "pass",
+                enabled = true,
+                status = ScreenState.Status.Busy,
+            )
 
-        assertEquals(
-            expectedState,
-            viewModel.state.value
-        )
+        assertEquals(expectedState, viewModel.state.value)
 
         // Allow login to complete
         advanceUntilIdle()
 
-        assertEquals(
-            expectedState.copy(
-                status = ScreenState.Status.None
-            ),
-            viewModel.state.value
-        )
+        assertEquals(expectedState.copy(status = ScreenState.Status.None), viewModel.state.value)
     }
 
     @Test
@@ -95,9 +83,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
 
-        coEvery {
-            domain.login(any(), any())
-        } throws DomainException.Api("Error logging in")
+        coEvery { domain.login(any(), any()) } throws DomainException.Api("Error logging in")
 
         viewModel.login()
         advanceUntilIdle()
@@ -107,9 +93,9 @@ class LoginViewModelTest : BaseTest() {
                 username = "user1234",
                 password = "pass",
                 enabled = true,
-                status = ScreenState.Status.Error(message = "Error logging in")
+                status = ScreenState.Status.Error(Errors.UnknownError),
             ),
-            viewModel.state.value
+            viewModel.state.value,
         )
     }
 }

@@ -31,62 +31,65 @@ class LessonsScreenTest : BaseUiTest() {
                 state = state,
                 onLessonSelected = {},
                 updateStatus = {},
-                onSearchTextChanged = { mockSearchTextUpdated.call(it) },
-            )
+                onSearchTextChanged = { mockSearchTextUpdated.call(it) })
         }
     }
 
     @Test
     fun `expect screen to be empty when state is empty`() = runComposeUiTest {
-        setContent(State(
-            lessons = emptyFlow()
-        ))
+        setContent(State(lessons = emptyFlow()))
 
         onNodeWithTag("lesson_list").assertDoesNotExist()
     }
 
     @Test
     fun `expect screen to display lessons when state is not empty`() = runComposeUiTest {
-        setContent(State(
-            lessons = flowOf(
-                PagingData.from(
-                    listOf(
-                        Lesson(
-                            id = "",
-                            title = "title",
-                            type = LessonType.GRAMMAR,
-                            language1 = "en",
-                            language2 = "jp",
-                            owner = "owner",
-                            updatedAt = DateTime.now()
-                        )
-                    )
-                )
-            )
-        ))
+        setContent(
+            State(
+                lessons =
+                    flowOf(
+                        PagingData.from(
+                            listOf(
+                                Lesson(
+                                    id = "",
+                                    title = "title",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                            ),
+                        ),
+                    ),
+            ),
+        )
 
         onNodeWithTag("lesson_list").assertExists()
     }
 
     @Test
     fun `expect callback when text changed`() = runComposeUiTest {
-        setContent(State(
-            lessons = flowOf(
-                PagingData.from(
-                    listOf(
-                        Lesson(
-                            id = "",
-                            title = "title",
-                            type = LessonType.GRAMMAR,
-                            language1 = "en",
-                            language2 = "jp",
-                            owner = "owner",
-                            updatedAt = DateTime.now()
-                        )
-                    )
-                )
-            )
-        ))
+        setContent(
+            State(
+                lessons =
+                    flowOf(
+                        PagingData.from(
+                            listOf(
+                                Lesson(
+                                    id = "",
+                                    title = "title",
+                                    type = LessonType.GRAMMAR,
+                                    language1 = "en",
+                                    language2 = "jp",
+                                    owner = "owner",
+                                    updatedAt = DateTime.now(),
+                                ),
+                            ),
+                        ),
+                    ),
+            ),
+        )
 
         onNodeWithTag("search_text").performTextInput("123")
 

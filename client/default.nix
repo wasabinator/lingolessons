@@ -1,8 +1,12 @@
 { pkgs, devenv, ... }:
 
 {
-  packages = with pkgs; [ rustup ];
-  
+  packages = with pkgs; [
+    ktfmt
+    ktlint
+    rustup
+  ];
+
   android = {
     enable = true;
     ndk = {
@@ -21,35 +25,7 @@
     #android-studio.enable = true;
   };
 
-  languages.java.jdk.package = pkgs.jdk17;
-
-  languages.rust = {
-    enable = true;
-    channel = "stable";
-    components = [ "rustc" "cargo" "clippy" "rustfmt" "rust-analyzer" ];
-    targets = [
-      # iOS
-      "aarch64-apple-ios"
-      "aarch64-apple-ios-sim"
-
-      # Android
-      #"armv7-linux-androideabi"
-      #"i686-linux-android"
-      "aarch64-linux-android"
-      "x86_64-linux-android"
-
-      # Linux
-      "x86_64-unknown-linux-gnu"
-
-      # macOS
-      "x86_64-apple-darwin"
-      "aarch64-apple-darwin"
-
-      # Windows
-      #"x86_64-pc-windows-gnu"
-      #"x86_64-pc-windows-msvc"
-    ];
-  };
+  languages.java.jdk.package = pkgs.jdk21;
 
   enterShell = ''
       echo 'READY';
@@ -57,11 +33,17 @@
       export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.13004108/
       export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
       export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+
+      rustup default stable
   '';
-  
+
   scripts.create-avd.exec = if builtins.currentSystem == "aarch64-linux" || builtins.currentSystem == "aarch64-darwin"
   then "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;arm64-v8a' --device 'pixel_6a'"
   else "avdmanager create avd --force --name 'Pixel' --package 'system-images;android-35;google_apis_playstore;x86_64' --device 'pixel_6a'";
 
   scripts.avd.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel &";
+  scripts.avd-cold.exec = "nohup $ANDROID_HOME/emulator/emulator -avd Pixel -no-snapshot &";
+
+  scripts.check.exec = "cargo +nightly clippy";
+  scripts.fix.exec = "cargo +nightly clippy --fix"; 
 }

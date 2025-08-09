@@ -22,32 +22,29 @@ class LessonsViewModelTest : BaseTest() {
     private lateinit var pagingSources: MutableList<PagingSourceFactory<Int, Lesson>>
 
     override fun setup() {
-        mockLessons = listOf(
-            Lesson(
-                id = "",
-                title = "lesson1",
-                type = LessonType.VOCABULARY,
-                language1 = "en",
-                language2 = "jp",
-                owner = "owner",
-                updatedAt = DateTime.now(),
+        mockLessons =
+            listOf(
+                Lesson(
+                    id = "",
+                    title = "lesson1",
+                    type = LessonType.VOCABULARY,
+                    language1 = "en",
+                    language2 = "jp",
+                    owner = "owner",
+                    updatedAt = DateTime.now(),
+                ),
             )
-        )
 
         pagingSources = mutableListOf()
-        domain = mockk<DomainInterface>().apply {
-            coEvery { getSession() } returns Session.Authenticated("user")
-        }
-        domainState = DomainState(
-            domain = domain
-        )
-        viewModel = LessonsViewModel(
-            domainState = domainState
-        ) { _ ->
-            mockLessons.asPagingSourceFactory().also {
-                pagingSources.add(it)
+        domain =
+            mockk<DomainInterface>().apply {
+                coEvery { getSession() } returns Session.Authenticated("user")
             }
-        }
+        domainState = DomainState(domain = domain)
+        viewModel =
+            LessonsViewModel(domainState = domainState) { _ ->
+                mockLessons.asPagingSourceFactory().also { pagingSources.add(it) }
+            }
     }
 
     @Test

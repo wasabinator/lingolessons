@@ -1,11 +1,22 @@
-use std::{borrow::BorrowMut, sync::Arc};
-use lru::LruCache;
-use uuid::Uuid;
-use crate::{common::time::UnixTimestamp,
-            data::{api::AuthApi, db::Db, lessons::{api::LessonsApi, db::LessonDao}, SettingRepository},
-            domain::{lessons::{Lesson, LessonRepository}, runtime::Runtime, DomainError}, ArcMutex, Run};
-
 use super::{api::LessonResponse, db::LessonData};
+use crate::{
+    common::time::UnixTimestamp,
+    data::{
+        api::AuthApi,
+        db::Db,
+        lessons::{api::LessonsApi, db::LessonDao},
+        SettingRepository,
+    },
+    domain::{
+        lessons::{Lesson, LessonRepository},
+        runtime::Runtime,
+        DomainError,
+    },
+    ArcMutex, Run,
+};
+use lru::LruCache;
+use std::{borrow::BorrowMut, sync::Arc};
+use uuid::Uuid;
 
 impl From<LessonResponse> for LessonData {
     fn from(lesson: LessonResponse) -> Self {
@@ -29,11 +40,8 @@ const PAGE_SIZE: u8 = 20;
 
 impl LessonRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime,
-        api: Arc<AuthApi>,
-        db: ArcMutex<Db>,
-        settings: ArcMutex<SettingRepository>,
-        page_cache: LruCache<u8, Vec<Lesson>>,
+        runtime: Runtime, api: Arc<AuthApi>, db: ArcMutex<Db>,
+        settings: ArcMutex<SettingRepository>, page_cache: LruCache<u8, Vec<Lesson>>,
         lesson_cache: LruCache<Uuid, Lesson>,
     ) -> Self {
         LessonRepository {
@@ -61,25 +69,21 @@ impl LessonRepository {
 
             let mut finished = false;
             let mut page_no: u8 = 0;
-            let last_sync_time = settings.launch(
-                |settings| async move {
-                    settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await
-                }
-            ).await;
+            let last_sync_time = settings
+                .launch(
+                    |settings| async move { settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await },
+                )
+                .await;
 
             'sync: while !finished {
                 // Try to fetch from the server
                 log::trace!("Attempting to fetch lessons from api for page {}", page_no);
-                let response = api.get_lessons(
-                    page_no,
-                    last_sync_time,
-                ).await;
+                let response = api.get_lessons(page_no, last_sync_time).await;
                 log::trace!("Got response from api {:?}", response);
 
                 match response {
                     Ok(r) => {
-                        db.run(
-                        |db| {
+                        db.run(|db| {
                             for lesson in r.results {
                                 if lesson.is_deleted {
                                     let _ = db.del_lesson(lesson.id);
@@ -88,23 +92,28 @@ impl LessonRepository {
                                     let _ = db.set_lesson(&data);
                                 }
                             }
-                        }).await;
+                        })
+                        .await;
 
                         if r.next.is_none() {
                             // If the next link is null, then we've reached the end.
                             // Set the timestamp so we'll know where to pick up from next sync
-                            settings.launch(
-                                |settings| async move {
+                            settings
+                                .launch(|settings| async move {
                                     settings.put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time).await;
-                                }
-                            ).await;
+                                })
+                                .await;
                             finished = true;
                         } else {
                             page_no += 1;
                         }
-                    },
+                    }
                     Err(e) => {
-                        log::error!("Failed to fetch lessons for page {}. Exiting sync: {:?}", page_no, e);
+                        log::error!(
+                            "Failed to fetch lessons for page {}. Exiting sync: {:?}",
+                            page_no,
+                            e
+                        );
                         break 'sync;
                     }
                 };
@@ -121,7 +130,9 @@ impl LessonRepository {
         r.abort();
     }
 
-    pub(crate) async fn get_lessons(&mut self, page_no: u8) -> anyhow::Result<Vec<Lesson>, DomainError> {
+    pub(crate) async fn get_lessons(
+        &mut self, page_no: u8,
+    ) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
         log::trace!("Attempting to fetch lessons from cache");
@@ -129,12 +140,10 @@ impl LessonRepository {
             Some(lessons) => {
                 log::trace!("Got lessons {} from cache", lessons.len());
                 lessons.clone()
-            },
+            }
             None => {
                 log::trace!("Cache miss for page {}. Attempting to load lessons from db", page_no);
-                let lessons = self.db.run(
-                    |db| db.get_lessons()
-                ).await?;
+                let lessons = self.db.run(|db| db.get_lessons()).await?;
                 log::trace!("Got lessons {} from db", lessons.len());
                 // Map to domain type and cache
                 let lessons: Vec<Lesson> = lessons.iter().map(Lesson::from).collect();
@@ -148,7 +157,9 @@ impl LessonRepository {
         Ok(lessons)
     }
 
-    pub(crate) async fn get_lesson(&mut self, id: Uuid) -> anyhow::Result<Option<Lesson>, DomainError> {
+    pub(crate) async fn get_lesson(
+        &mut self, id: Uuid,
+    ) -> anyhow::Result<Option<Lesson>, DomainError> {
         use super::db::LessonDao;
 
         log::trace!("Attempting to fetch lesson {} from cache", id);
@@ -156,12 +167,10 @@ impl LessonRepository {
             Some(lesson) => {
                 log::trace!("Got lesson from cache");
                 Some(lesson.clone())
-            },
+            }
             None => {
                 log::trace!("Cache miss for lesson {}. Attempting to load lesson from db", id);
-                let lesson_data = self.db.run(
-                    |db| db.get_lesson(id)
-                ).await?;
+                let lesson_data = self.db.run(|db| db.get_lesson(id)).await?;
                 log::trace!("Got lesson {} from db", id);
                 // Map to domain type and cache
 

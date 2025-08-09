@@ -14,13 +14,11 @@ lazy_static::lazy_static! {
 
 impl Runtime {
     pub(crate) fn new() -> Self {
-        Self {
-            tasks: HashMap::new(),
-        }
+        Self { tasks: HashMap::new() }
     }
 
     pub(crate) fn spawn<F>(&mut self, key: String, future: F)
-    where 
+    where
         F: Future<Output = ()> + Send + 'static,
         F::Output: Send + 'static,
     {
@@ -30,7 +28,7 @@ impl Runtime {
         let x: JoinHandle<()> = RUNTIME.spawn(future);
         self.tasks.insert(key, x);
     }
-    
+
     #[allow(dead_code)]
     pub(crate) fn abort(&mut self) {
         for entry in self.tasks.iter() {

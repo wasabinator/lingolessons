@@ -1,4 +1,7 @@
-use crate::{data::db::Db, domain::lessons::{Lesson, LessonType}};
+use crate::{
+    data::db::Db,
+    domain::lessons::{Lesson, LessonType},
+};
 use chrono::{TimeZone, Utc};
 use rusqlite::OptionalExtension;
 use uuid::Uuid;
@@ -17,17 +20,15 @@ pub(super) struct LessonData {
 impl TryFrom<&rusqlite::Row<'_>> for LessonData {
     type Error = rusqlite::Error;
     fn try_from(row: &rusqlite::Row) -> rusqlite::Result<LessonData> {
-        Ok(
-            LessonData { 
-                id: row.get(0)?, 
-                title: row.get(1)?, 
-                r#type: row.get(2)?,
-                language1: row.get(3)?,
-                language2: row.get(4)?,
-                owner: row.get(5)?,
-                updated_at: row.get(6)?,
-            }
-        )
+        Ok(LessonData {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            r#type: row.get(2)?,
+            language1: row.get(3)?,
+            language2: row.get(4)?,
+            owner: row.get(5)?,
+            updated_at: row.get(6)?,
+        })
     }
 }
 
@@ -35,7 +36,7 @@ impl From<u8> for LessonType {
     fn from(value: u8) -> Self {
         match value {
             1 => Self::Grammar,
-            _ => Self::Vocabulary
+            _ => Self::Vocabulary,
         }
     }
 }
@@ -74,10 +75,7 @@ impl LessonDao for Db {
             ORDER BY updated_at DESC;
             "#,
         )?;
-        let rows = statement.query_map(
-            [],
-            |row| LessonData::try_from(row),
-        )?;
+        let rows = statement.query_map([], |row| LessonData::try_from(row))?;
 
         let mut lessons = Vec::new();
         for lesson in rows {
@@ -88,13 +86,15 @@ impl LessonDao for Db {
     }
 
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>> {
-        self.connection.query_row(
-            r#"
+        self.connection
+            .query_row(
+                r#"
             SELECT id, title, type, language1, language2, owner, updated_at
             FROM lesson WHERE id = ?;"#,
-            [id],
-            |row| LessonData::try_from(row)
-        ).optional()
+                [id],
+                |row| LessonData::try_from(row),
+            )
+            .optional()
     }
 
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()> {
@@ -104,7 +104,15 @@ impl LessonDao for Db {
             INTO lesson(id, title, type, language1, language2, owner, updated_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?);
             "#,
-            rusqlite::params![lesson.id, lesson.title, lesson.r#type, lesson.language1, lesson.language2, lesson.owner, lesson.updated_at]
+            rusqlite::params![
+                lesson.id,
+                lesson.title,
+                lesson.r#type,
+                lesson.language1,
+                lesson.language2,
+                lesson.owner,
+                lesson.updated_at
+            ],
         )?;
         Ok(())
     }
@@ -123,8 +131,8 @@ impl LessonDao for Db {
 
 #[cfg(test)]
 mod tests {
-    use crate::data::lessons::db_fixtures::DbFixtures;
     use super::*;
+    use crate::data::lessons::db_fixtures::DbFixtures;
 
     #[test]
     fn test_lessons() {

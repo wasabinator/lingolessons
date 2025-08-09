@@ -14,7 +14,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 
 @OptIn(ExperimentalTestApi::class)
-class IntegrationTests: BaseUiTest(), KoinTest {
+class IntegrationTests() : BaseUiTest(), KoinTest {
     private lateinit var mockSession: Session
 
     override fun setup() {
@@ -23,20 +23,14 @@ class IntegrationTests: BaseUiTest(), KoinTest {
         loadKoinModules(
             module {
                 single<DomainInterface> {
-                    mockk {
-                        coEvery { getSession() } answers { mockSession }
-                    }
+                    mockk { coEvery { getSession() } answers { mockSession } }
                 }
-            }
-        )
+            })
     }
 
     @Test
-    fun `expect to see the the login screen on launch when there is no session`() = runAndroidComposeUiTest(
-        activityClass = MainActivity::class.java,
-    ) {
-        with(LoginScreenRobot(this)) {
-            assertIsShown()
+    fun `expect to see the the login screen on launch when there is no session`() =
+        runAndroidComposeUiTest(activityClass = MainActivity::class.java) {
+            with(LoginScreenRobot(this)) { assertIsShown() }
         }
-    }
 }

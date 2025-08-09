@@ -10,8 +10,10 @@
     <string name="password">Password</string>
 
     // Errors
-    <string name="error_connection">Could not connect to the server. Please check your connection and try again.</string>
     <string name="error_other">Something went wrong. Please try again later.</string>
+    <string name="auth_invalid_credentials">Username or password incorrect.</string>
+    //
+
     <string name="feature_profile">Profile</string>
     <string name="feature_study">Study</string>
     <string name="feature_lessons">Lessons</string>

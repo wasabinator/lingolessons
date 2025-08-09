@@ -1,6 +1,6 @@
+use crate::UniffiCustomTypeConverter;
 use std::str::FromStr;
 use uuid::Uuid;
-use crate::UniffiCustomTypeConverter;
 
 // Use `Uuid` as a custom type, with `String` as the Builtin
 uniffi::custom_type!(Uuid, String);

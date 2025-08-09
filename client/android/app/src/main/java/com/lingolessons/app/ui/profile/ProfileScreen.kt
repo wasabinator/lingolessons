@@ -25,44 +25,30 @@ import com.lingolessons.app.common.KoverIgnore
 
 @Composable
 @KoverIgnore
-fun ProfileScreen(
-    viewModel: ProfileViewModel,
-) {
-    ProfileScreen(
-        logout = viewModel::logout
-    )
+fun ProfileScreen(viewModel: ProfileViewModel) {
+    ProfileScreen(logout = viewModel::logout)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    logout: () -> Unit
-) {
+fun ProfileScreen(logout: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(stringResource(R.string.feature_profile))
-                }
+                colors =
+                    topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary),
+                title = { Text(stringResource(R.string.feature_profile)) },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxWidth().padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
             Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                modifier = Modifier.testTag("logout"),
-                onClick = logout,
-            ) {
+            Button(modifier = Modifier.testTag("logout"), onClick = logout) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                     Text(stringResource(R.string.btn_logout))
                 }
@@ -74,7 +60,5 @@ fun ProfileScreen(
 @Composable
 @Preview
 fun ProfileScreenPreview() {
-    ProfileScreen {
-
-    }
+    ProfileScreen {}
 }

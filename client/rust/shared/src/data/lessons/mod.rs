@@ -1,6 +1,6 @@
-pub(super) mod repository;
-pub(super) mod db;
 pub(super) mod api;
+pub(super) mod db;
+pub(super) mod repository;
 
 #[cfg(test)]
 pub(crate) mod api_mocks;

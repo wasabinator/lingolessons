@@ -9,9 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class DomainState(
-    val domain: DomainInterface
-) {
+class DomainState(val domain: DomainInterface) {
     private val _state = MutableStateFlow<Session>(Session.None)
     val state = _state.asStateFlow()
 
@@ -22,8 +20,6 @@ class DomainState(
     }
 
     fun refresh() {
-        scope.launch {
-            _state.update { domain.getSession() }
-        }
+        scope.launch { _state.update { domain.getSession() } }
     }
 }

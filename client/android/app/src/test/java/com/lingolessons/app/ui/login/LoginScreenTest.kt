@@ -43,8 +43,6 @@ class LoginScreenTest : BaseUiTest() {
     fun `expect screen to be empty when state is empty`() = runComposeUiTest {
         setContent(State())
 
-        with(LoginScreenRobot(this)) {
-            assertIsShown()
-        }
+        with(LoginScreenRobot(this)) { assertIsShown() }
     }
 }

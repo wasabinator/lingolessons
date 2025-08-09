@@ -44,11 +44,7 @@ fun MainScreen() {
         largeScreen = false, // TODO
         mainNav = { MainNav(navController = navController) },
         currentRoute = currentRoute,
-        onNavItemClick = { screen: AppScreen ->
-            navController.navigate(screen) {
-                popUpTo(0)
-            }
-        }
+        onNavItemClick = { screen: AppScreen -> navController.navigate(screen) { popUpTo(0) } },
     )
 }
 
@@ -58,17 +54,17 @@ fun MainScreen(
     largeScreen: Boolean,
     mainNav: @Composable () -> Unit,
     currentRoute: AppScreen?,
-    onNavItemClick: (AppScreen) -> Unit,
+    onNavItemClick: (AppScreen) -> Unit
 ) {
     if (largeScreen) {
-        Scaffold(modifier = Modifier.testTag("largeScreen")) { _ ->
+        Scaffold(modifier = Modifier.testTag("largeScreen")) { paddingValues ->
             PermanentNavigationDrawer(
                 drawerContent = {
                     DrawerNavigation(
                         currentScreen = currentRoute ?: AppScreen.Profile,
-                        onClick = onNavItemClick
+                        onClick = onNavItemClick,
                     )
-                }
+                },
             ) {
                 mainNav()
             }
@@ -79,24 +75,18 @@ fun MainScreen(
             bottomBar = {
                 BottomNavigationBar(
                     currentScreen = currentRoute ?: AppScreen.Profile,
-                    onClick = onNavItemClick
+                    onClick = onNavItemClick,
                 )
-            }
-        ) { _ -> // Inner Scaffolds will provide this padding
-            Box(modifier = Modifier
-                .fillMaxSize()
-            ) {
-                mainNav()
-            }
+            },
+        ) { _ ->
+            // Inner Scaffolds will provide this padding
+            Box(modifier = Modifier.fillMaxSize()) { mainNav() }
         }
     }
 }
 
 @Composable
-fun DrawerNavigation(
-    currentScreen: AppScreen,
-    onClick: (AppScreen) -> Unit
-) {
+fun DrawerNavigation(currentScreen: AppScreen, onClick: (AppScreen) -> Unit) {
     PermanentDrawerSheet(modifier = Modifier.width(240.dp)) {
         Spacer(Modifier.height(24.dp))
         NavigationDrawerItem(
@@ -104,44 +94,39 @@ fun DrawerNavigation(
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.account_circle_48px),
                     contentDescription = "",
-                    tint = drawerIconColor(currentScreen == AppScreen.Study)
+                    tint = drawerIconColor(currentScreen == AppScreen.Study),
                 )
             },
             label = { Text(stringResource(R.string.feature_profile)) },
             selected = currentScreen == AppScreen.Profile,
             onClick = { onClick(AppScreen.Profile) },
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .testTag("profile")
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("profile"),
         )
         NavigationDrawerItem(
             icon = {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.school_48px),
                     contentDescription = "",
-                    tint = drawerIconColor(currentScreen == AppScreen.Study)
+                    tint = drawerIconColor(currentScreen == AppScreen.Study),
                 )
             },
             label = { Text(stringResource(R.string.feature_study)) },
             selected = currentScreen == AppScreen.Study,
             onClick = { onClick(AppScreen.Study) },
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .testTag("study")
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("study"),
         )
         NavigationDrawerItem(
             icon = {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.library_books_48px),
                     contentDescription = "",
-                    tint = drawerIconColor(currentScreen == AppScreen.Study)
+                    tint = drawerIconColor(currentScreen == AppScreen.Study),
                 )
-            }, label = { Text(stringResource(R.string.feature_lessons)) },
+            },
+            label = { Text(stringResource(R.string.feature_lessons)) },
             selected = currentScreen == AppScreen.Lessons,
             onClick = { onClick(AppScreen.Lessons) },
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .testTag("lessons")
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("lessons"),
         )
     }
 }
@@ -150,12 +135,8 @@ fun DrawerNavigation(
 fun drawerIconColor(isSelected: Boolean) =
     NavigationDrawerItemDefaults.colors().iconColor(isSelected).value
 
-
 @Composable
-fun BottomNavigationBar(
-    currentScreen: AppScreen,
-    onClick: (AppScreen) -> Unit
-) {
+fun BottomNavigationBar(currentScreen: AppScreen, onClick: (AppScreen) -> Unit) {
     NavigationBar {
         NavigationBarItem(
             selected = currentScreen == AppScreen.Profile,
@@ -165,7 +146,7 @@ fun BottomNavigationBar(
                     imageVector = ImageVector.vectorResource(R.drawable.account_circle_48px),
                     modifier = Modifier.size(32.dp),
                     contentDescription = "",
-                    tint = navBarIconColor(currentScreen == AppScreen.Study)
+                    tint = navBarIconColor(currentScreen == AppScreen.Study),
                 )
             },
             label = { Text(stringResource(R.string.feature_profile)) },
@@ -179,7 +160,7 @@ fun BottomNavigationBar(
                     imageVector = ImageVector.vectorResource(R.drawable.school_48px),
                     modifier = Modifier.size(32.dp),
                     contentDescription = "",
-                    tint = navBarIconColor(currentScreen == AppScreen.Study)
+                    tint = navBarIconColor(currentScreen == AppScreen.Study),
                 )
             },
             label = { Text(stringResource(R.string.feature_study)) },
@@ -193,7 +174,7 @@ fun BottomNavigationBar(
                     imageVector = ImageVector.vectorResource(R.drawable.library_books_48px),
                     modifier = Modifier.size(32.dp),
                     contentDescription = "",
-                    tint = navBarIconColor(currentScreen == AppScreen.Study)
+                    tint = navBarIconColor(currentScreen == AppScreen.Study),
                 )
             },
             label = { Text(stringResource(R.string.feature_lessons)) },
@@ -203,8 +184,9 @@ fun BottomNavigationBar(
 }
 
 @Composable
-fun navBarIconColor(isSelected: Boolean) = if (isSelected) {
-    NavigationBarItemDefaults.colors().selectedIconColor
-} else {
-    NavigationBarItemDefaults.colors().unselectedIconColor
-}
+fun navBarIconColor(isSelected: Boolean) =
+    if (isSelected) {
+        NavigationBarItemDefaults.colors().selectedIconColor
+    } else {
+        NavigationBarItemDefaults.colors().unselectedIconColor
+    }

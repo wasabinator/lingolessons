@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ProfileViewModel(
-    private val domainState: DomainState,
-) : DomainStateViewModel(domainState = domainState) {
+class ProfileViewModel(private val domainState: DomainState) :
+    DomainStateViewModel(domainState = domainState) {
     private val _state = MutableStateFlow<ProfileState?>(null)
     val state = _state.asStateFlow()
 
@@ -21,11 +20,7 @@ class ProfileViewModel(
         }
     }
 
-    override fun updateStatus(status: ScreenState.Status) {
-
-    }
+    override fun updateStatus(status: ScreenState.Status) {}
 }
 
-data class ProfileState(
-    val username: String,
-)
+data class ProfileState(val username: String)
