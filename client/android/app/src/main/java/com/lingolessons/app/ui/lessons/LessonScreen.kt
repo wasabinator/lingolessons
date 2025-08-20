@@ -14,31 +14,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.lingolessons.app.R
 import com.lingolessons.app.common.KoverIgnore
+import com.lingolessons.app.ui.common.ErrorSource
 import com.lingolessons.app.ui.common.ScreenContent
 import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.lessons.LessonViewModel.ScreenData
 import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
 
 @Composable
 @KoverIgnore
-fun LessonScreen(viewModel: LessonViewModel, navigateBack: () -> Unit) {
+fun LessonScreen(viewModel: LessonViewModel, onNavigateBack: () -> Unit) {
     val state = viewModel.state.collectAsState()
     LessonScreen(
         state = state.value,
-        updateStatus = viewModel::updateStatus,
-        navigateBack = navigateBack,
+        errorMessage = { stringResource(R.string.error_other) },
+        onNavigateBack = onNavigateBack,
+        clearStatus = viewModel::clearStatus,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonScreen(
-    state: LessonViewModel.State,
-    updateStatus: (ScreenState.Status) -> Unit,
-    navigateBack: () -> Unit
+    state: ScreenState<ScreenData>,
+    errorMessage: @Composable (ErrorSource) -> String,
+    onNavigateBack: () -> Unit,
+    clearStatus: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -51,11 +57,11 @@ fun LessonScreen(
                 title = {
                     Text(
                         modifier = Modifier.testTag("screen_title"),
-                        text = state.lesson?.title ?: "",
+                        text = state.data.lesson?.title ?: "",
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Localized description",
@@ -66,7 +72,8 @@ fun LessonScreen(
             ScreenContent(
                 state = state,
                 innerPadding = innerPadding,
-                updateStatus = updateStatus,
+                errorMessage = errorMessage,
+                clearStatus = clearStatus,
             ) {}
         }
 }
@@ -76,20 +83,24 @@ fun LessonScreen(
 fun LessonScreen_Preview() {
     LessonScreen(
         state =
-            LessonViewModel.State(
-                lessonId = "123",
-                lesson =
-                    Lesson(
-                        id = "123",
-                        title = "Lesson 1",
-                        type = LessonType.GRAMMAR,
-                        language1 = "en",
-                        language2 = "jp",
-                        owner = "owner",
-                        updatedAt = DateTime.now(),
+            ScreenState(
+                data =
+                    ScreenData(
+                        lessonId = "123",
+                        lesson =
+                            Lesson(
+                                id = "123",
+                                title = "Lesson 1",
+                                type = LessonType.GRAMMAR,
+                                language1 = "en",
+                                language2 = "jp",
+                                owner = "owner",
+                                updatedAt = DateTime.now(),
+                            ),
                     ),
             ),
-        updateStatus = {},
-        navigateBack = {},
+        errorMessage = { "" },
+        onNavigateBack = {},
+        clearStatus = {},
     )
 }

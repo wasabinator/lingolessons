@@ -78,7 +78,9 @@ fun MainNav(navController: NavHostController) {
                 composable<AppScreen.LessonDetail> { backStackEntry ->
                     val lessonId: String = backStackEntry.toRoute<AppScreen.LessonDetail>().id
                     val viewModel: LessonViewModel = koinViewModel { parametersOf(lessonId) }
-                    LessonScreen(viewModel = viewModel) { navController.navigateUp() }
+                    AuthenticatedScreen(viewModel = viewModel) {
+                        LessonScreen(viewModel = viewModel) { navController.navigateUp() }
+                    }
                 }
             }
         }

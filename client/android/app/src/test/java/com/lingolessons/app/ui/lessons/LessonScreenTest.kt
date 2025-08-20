@@ -8,7 +8,8 @@ import androidx.compose.ui.test.runComposeUiTest
 import com.lingolessons.app.common.BaseUiTest
 import com.lingolessons.app.common.MockMethod
 import com.lingolessons.app.common.mockMethod
-import com.lingolessons.app.ui.lessons.LessonViewModel.State
+import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.lessons.LessonViewModel.ScreenData
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
 import java.time.Instant
@@ -22,13 +23,20 @@ class LessonScreenTest : BaseUiTest() {
         mockSearchTextUpdated = mockMethod()
     }
 
-    private fun ComposeUiTest.setContent(state: State) {
-        setContent { LessonScreen(state = state, updateStatus = {}, navigateBack = {}) }
+    private fun ComposeUiTest.setContent(state: ScreenState<ScreenData>) {
+        setContent {
+            LessonScreen(
+                state = state,
+                clearStatus = {},
+                errorMessage = { "" },
+                onNavigateBack = {},
+            )
+        }
     }
 
     @Test
     fun `expect screen placeholder to exist when state is empty`() = runComposeUiTest {
-        setContent(State(lessonId = "123"))
+        setContent(ScreenState(ScreenData(lessonId = "123")))
 
         onNodeWithTag("screen_title").assertExists().assertTextEquals("")
     }
@@ -36,18 +44,20 @@ class LessonScreenTest : BaseUiTest() {
     @Test
     fun `expect lesson details displayed when loaded`() = runComposeUiTest {
         setContent(
-            State(
-                lessonId = "123",
-                lesson =
-                    Lesson(
-                        id = "123",
-                        title = "Lesson Title",
-                        type = LessonType.VOCABULARY,
-                        language1 = "en",
-                        language2 = "jp",
-                        owner = "owner",
-                        updatedAt = Instant.now(),
-                    ),
+            ScreenState(
+                ScreenData(
+                    lessonId = "123",
+                    lesson =
+                        Lesson(
+                            id = "123",
+                            title = "Lesson Title",
+                            type = LessonType.VOCABULARY,
+                            language1 = "en",
+                            language2 = "jp",
+                            owner = "owner",
+                            updatedAt = Instant.now(),
+                        ),
+                ),
             ),
         )
 

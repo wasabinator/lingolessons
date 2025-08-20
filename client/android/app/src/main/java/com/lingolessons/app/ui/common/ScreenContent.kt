@@ -22,16 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.lingolessons.app.R
+import com.lingolessons.app.ui.common.ScreenState.Status
 
 @Composable
-fun ScreenContent(
-    state: ScreenState,
-    busyIndicator: @Composable ((ScreenState.Status) -> Unit) -> Unit = { u -> BusyContent(u) },
-    errorIndicator: @Composable (String, (ScreenState.Status) -> Unit) -> Unit = { s, u ->
-        ErrorContent(s, u)
-    },
+fun <T> ScreenContent(
+    state: ScreenState<T>,
+    busyIndicator: @Composable (() -> Unit) -> Unit = { c -> BusyContent(c) },
+    errorIndicator: @Composable (String, () -> Unit) -> Unit = { s, c -> ErrorContent(s, c) },
     innerPadding: PaddingValues = PaddingValues(),
-    updateStatus: (ScreenState.Status) -> Unit,
+    errorMessage: @Composable (ErrorSource) -> String,
+    clearStatus: () -> Unit,
     content: @Composable () -> Unit = {}
 ) {
     Column(
@@ -40,17 +40,19 @@ fun ScreenContent(
     ) {
         content()
 
-        when {
-            state.isBusy -> busyIndicator(updateStatus)
-            state.isError -> errorIndicator("", updateStatus)
+        val status = state.status
+        when (status) {
+            Status.Busy -> busyIndicator(clearStatus)
+            is Status.Error -> errorIndicator(errorMessage(status.source), clearStatus)
+            else -> {}
         }
     }
 }
 
 @Composable
-fun BusyContent(updateStatus: (ScreenState.Status) -> Unit) {
+fun BusyContent(clearStatus: () -> Unit) {
     Dialog(
-        onDismissRequest = { updateStatus(ScreenState.Status.None) },
+        onDismissRequest = clearStatus,
         DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
             Box(
                 contentAlignment = Center,
@@ -67,15 +69,11 @@ fun BusyContent(updateStatus: (ScreenState.Status) -> Unit) {
 }
 
 @Composable
-fun ErrorContent(message: String, updateStatus: (ScreenState.Status) -> Unit) {
+fun ErrorContent(message: String, clearStatus: () -> Unit) {
     AlertDialog(
-        onDismissRequest = { updateStatus(ScreenState.Status.None) },
+        onDismissRequest = clearStatus,
         title = { Text(stringResource(R.string.title_error)) },
         text = { Text(message) },
-        confirmButton = {
-            Button(onClick = { updateStatus(ScreenState.Status.None) }) {
-                Text(stringResource(R.string.btn_ok))
-            }
-        },
+        confirmButton = { Button(onClick = clearStatus) { Text(stringResource(R.string.btn_ok)) } },
     )
 }

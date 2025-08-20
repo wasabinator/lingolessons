@@ -9,7 +9,8 @@ import androidx.paging.PagingData
 import com.lingolessons.app.common.BaseUiTest
 import com.lingolessons.app.common.MockMethod
 import com.lingolessons.app.common.mockMethod
-import com.lingolessons.app.ui.lessons.LessonsViewModel.State
+import com.lingolessons.app.ui.common.ScreenState
+import com.lingolessons.app.ui.lessons.LessonsViewModel.ScreenData
 import com.lingolessons.shared.DateTime
 import com.lingolessons.shared.Lesson
 import com.lingolessons.shared.LessonType
@@ -25,19 +26,21 @@ class LessonsScreenTest : BaseUiTest() {
         mockSearchTextUpdated = mockMethod()
     }
 
-    private fun ComposeUiTest.setContent(state: State) {
+    private fun ComposeUiTest.setContent(state: ScreenState<ScreenData>) {
         setContent {
             LessonsScreen(
                 state = state,
+                errorMessage = { "" },
                 onLessonSelected = {},
-                updateStatus = {},
-                onSearchTextChanged = { mockSearchTextUpdated.call(it) })
+                onSearchTextChanged = { mockSearchTextUpdated.call(it) },
+                clearStatus = {},
+            )
         }
     }
 
     @Test
     fun `expect screen to be empty when state is empty`() = runComposeUiTest {
-        setContent(State(lessons = emptyFlow()))
+        setContent(ScreenState(ScreenData(lessons = emptyFlow())))
 
         onNodeWithTag("lesson_list").assertDoesNotExist()
     }
@@ -45,23 +48,25 @@ class LessonsScreenTest : BaseUiTest() {
     @Test
     fun `expect screen to display lessons when state is not empty`() = runComposeUiTest {
         setContent(
-            State(
-                lessons =
-                    flowOf(
-                        PagingData.from(
-                            listOf(
-                                Lesson(
-                                    id = "",
-                                    title = "title",
-                                    type = LessonType.GRAMMAR,
-                                    language1 = "en",
-                                    language2 = "jp",
-                                    owner = "owner",
-                                    updatedAt = DateTime.now(),
+            ScreenState(
+                ScreenData(
+                    lessons =
+                        flowOf(
+                            PagingData.from(
+                                listOf(
+                                    Lesson(
+                                        id = "",
+                                        title = "title",
+                                        type = LessonType.GRAMMAR,
+                                        language1 = "en",
+                                        language2 = "jp",
+                                        owner = "owner",
+                                        updatedAt = DateTime.now(),
+                                    ),
                                 ),
                             ),
                         ),
-                    ),
+                ),
             ),
         )
 
@@ -71,23 +76,25 @@ class LessonsScreenTest : BaseUiTest() {
     @Test
     fun `expect callback when text changed`() = runComposeUiTest {
         setContent(
-            State(
-                lessons =
-                    flowOf(
-                        PagingData.from(
-                            listOf(
-                                Lesson(
-                                    id = "",
-                                    title = "title",
-                                    type = LessonType.GRAMMAR,
-                                    language1 = "en",
-                                    language2 = "jp",
-                                    owner = "owner",
-                                    updatedAt = DateTime.now(),
+            ScreenState(
+                ScreenData(
+                    lessons =
+                        flowOf(
+                            PagingData.from(
+                                listOf(
+                                    Lesson(
+                                        id = "",
+                                        title = "title",
+                                        type = LessonType.GRAMMAR,
+                                        language1 = "en",
+                                        language2 = "jp",
+                                        owner = "owner",
+                                        updatedAt = DateTime.now(),
+                                    ),
                                 ),
                             ),
                         ),
-                    ),
+                ),
             ),
         )
 

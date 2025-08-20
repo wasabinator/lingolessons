@@ -4,6 +4,7 @@ import com.lingolessons.app.common.BaseTest
 import com.lingolessons.app.domain.DomainState
 import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.app.ui.login.LoginViewModel.Errors
+import com.lingolessons.app.ui.login.LoginViewModel.ScreenData
 import com.lingolessons.shared.DomainException
 import com.lingolessons.shared.DomainInterface
 import com.lingolessons.shared.Session
@@ -28,7 +29,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user123")
         advanceUntilIdle()
         assertEquals(
-            LoginViewModel.State(username = "user123", enabled = false),
+            ScreenState(ScreenData(username = "user123", enabled = false)),
             viewModel.state.value,
         )
     }
@@ -38,7 +39,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updatePassword("pass")
         advanceUntilIdle()
         assertEquals(
-            LoginViewModel.State(password = "pass", enabled = false),
+            ScreenState(ScreenData(password = "pass", enabled = false)),
             viewModel.state.value,
         )
     }
@@ -48,7 +49,7 @@ class LoginViewModelTest : BaseTest() {
         viewModel.updateUsername("user1234")
         viewModel.updatePassword("pass")
         assertEquals(
-            LoginViewModel.State(username = "user1234", password = "pass", enabled = true),
+            ScreenState(ScreenData(username = "user1234", password = "pass", enabled = true)),
             viewModel.state.value,
         )
     }
@@ -63,10 +64,12 @@ class LoginViewModelTest : BaseTest() {
         viewModel.login()
 
         val expectedState =
-            LoginViewModel.State(
-                username = "user1234",
-                password = "pass",
-                enabled = true,
+            ScreenState(
+                ScreenData(
+                    username = "user1234",
+                    password = "pass",
+                    enabled = true,
+                ),
                 status = ScreenState.Status.Busy,
             )
 
@@ -89,10 +92,12 @@ class LoginViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         assertEquals(
-            LoginViewModel.State(
-                username = "user1234",
-                password = "pass",
-                enabled = true,
+            ScreenState(
+                ScreenData(
+                    username = "user1234",
+                    password = "pass",
+                    enabled = true,
+                ),
                 status = ScreenState.Status.Error(Errors.UnknownError),
             ),
             viewModel.state.value,
