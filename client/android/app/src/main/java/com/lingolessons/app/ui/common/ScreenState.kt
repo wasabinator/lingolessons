@@ -4,9 +4,10 @@ interface ErrorSource {
     fun canRetry(): Boolean = true
 }
 
-interface ScreenState {
-    val status: Status
-
+data class ScreenState<T>(
+    val data: T,
+    val status: Status = Status.None,
+) {
     sealed class Status {
         data object None : Status()
 
@@ -15,12 +16,8 @@ interface ScreenState {
         data class Error(val source: ErrorSource) : Status()
     }
 
-    val isBusy
-        get() = status == Status.Busy
-
-    val isError
-        get() = status is Status.Error
-
     val error: Status.Error?
         get() = status as? Status.Error
+
+    fun clearStatus() = copy(status = Status.None)
 }

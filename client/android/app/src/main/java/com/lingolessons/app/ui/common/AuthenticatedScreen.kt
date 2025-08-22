@@ -9,8 +9,11 @@ import com.lingolessons.shared.Session
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun AuthenticatedScreen(viewModel: DomainStateViewModel, content: @Composable (String) -> Unit) {
-    val state by viewModel.domainStateFlow.collectAsState()
+fun <T> AuthenticatedScreen(
+    viewModel: DomainStateViewModel<T>,
+    content: @Composable (String) -> Unit
+) {
+    val state by viewModel.domainState.state.collectAsState()
 
     when (val currentState = state) {
         is Session.None -> {

@@ -103,7 +103,7 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_1_8)
             allWarningsAsErrors = true
-            freeCompilerArgs.add("-Xcontext-parameters")
+            freeCompilerArgs.addAll("-Xcontext-parameters", "-Xnested-type-aliases")
         }
     }
 }

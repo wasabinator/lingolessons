@@ -1,24 +1,23 @@
 package com.lingolessons.app.ui.login
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lingolessons.app.domain.DomainState
+import com.lingolessons.app.ui.common.DomainStateViewModel
 import com.lingolessons.app.ui.common.ErrorSource
-import com.lingolessons.app.ui.common.ScreenState
 import com.lingolessons.app.ui.common.ScreenState.Status
+import com.lingolessons.app.ui.login.LoginViewModel.ScreenData
 import com.lingolessons.shared.AuthError
 import com.lingolessons.shared.DomainException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private val domainState: DomainState) : ViewModel() {
-    private val _state = MutableStateFlow(State())
-    val state = _state.asStateFlow()
+class LoginViewModel(domainState: DomainState) :
+    DomainStateViewModel<ScreenData>(
+        domainState = domainState,
+        initData = ScreenData(),
+    ) {
 
     fun updateUsername(username: String) {
-        _state.update {
+        updateData {
             it.copy(
                 username = username,
                 enabled = it.username.isNotBlank() && it.password.isNotBlank(),
@@ -27,7 +26,7 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
     }
 
     fun updatePassword(password: String) {
-        _state.update {
+        updateData {
             it.copy(
                 password = password,
                 enabled = it.username.isNotBlank() && password.isNotBlank(),
@@ -36,32 +35,29 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
     }
 
     fun login() {
-        if (state.value.enabled) {
-            _state.update { it.copy(status = ScreenState.Status.Busy) }
+        if (data.enabled) {
+            updateStatus(Status.Busy)
             viewModelScope.launch {
                 try {
                     domainState.domain.login(
-                        username = state.value.username,
-                        password = state.value.password,
+                        username = data.username,
+                        password = data.password,
                     )
-                    _state.update { it.copy(status = ScreenState.Status.None) }
+                    clearStatus()
                 } catch (e: DomainException) {
-                    _state.update {
-                        it.copy(
-                            status =
-                                Status.Error(
-                                    source =
-                                        when (e) {
-                                            is DomainException.Auth ->
-                                                when (e.v1) {
-                                                    AuthError.INVALID_CREDENTIALS ->
-                                                        Errors.UnauthorisedError
-                                                }
-                                            else -> Errors.UnknownError
-                                        },
-                                ),
-                        )
-                    }
+                    updateStatus(
+                        Status.Error(
+                            source =
+                                when (e) {
+                                    is DomainException.Auth ->
+                                        when (e.v1) {
+                                            AuthError.INVALID_CREDENTIALS ->
+                                                Errors.UnauthorisedError
+                                        }
+                                    else -> Errors.UnknownError
+                                },
+                        ),
+                    )
                 } finally {
                     domainState.refresh()
                 }
@@ -69,19 +65,14 @@ class LoginViewModel(private val domainState: DomainState) : ViewModel() {
         }
     }
 
-    fun dismissDialog() {
-        _state.update { it.copy(status = Status.None) }
-    }
-
     enum class Errors : ErrorSource {
         UnauthorisedError,
         UnknownError
     }
 
-    data class State(
+    data class ScreenData(
         val username: String = "",
         val password: String = "",
         val enabled: Boolean = false,
-        override val status: Status = Status.None
-    ) : ScreenState
+    )
 }

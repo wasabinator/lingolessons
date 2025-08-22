@@ -44,7 +44,7 @@ class LessonViewModelTest : BaseTest() {
         viewModel = LessonViewModel(domainState = domainState, lessonId = mockLesson.id)
         advanceUntilIdle()
 
-        assertEquals(mockLesson.id, viewModel.state.value.lessonId)
+        assertEquals(mockLesson.id, viewModel.state.value.data.lessonId)
         assertEquals(ScreenState.Status.None, viewModel.state.value.status)
     }
 
