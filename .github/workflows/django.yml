@@ -35,6 +35,7 @@ jobs:
       uses: astral-sh/setup-uv@v6
 
     - name: Install Dependencies
+      working-directory: ./server
       run: uv sync --locked --all-extras --dev
 
     - name: Run Tests
