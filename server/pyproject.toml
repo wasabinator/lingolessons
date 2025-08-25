@@ -1,7 +1,7 @@
 [project]
 name = "LingoLessons"
 version = "0.0.1"
-requires-python = ">= 3.12"
+requires-python = ">=3.12"
 dependencies = [
     "asgiref==3.8.1",
     "certifi==2024.7.4",
