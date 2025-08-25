@@ -75,9 +75,38 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+#Nix
+.android
 .devenv
+.direnv
+local.properties
 
 .DS_Store
 
 #Shell launches (eg. avd command)
 nohup.out
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+.devenv
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# Zed
+.ropeproject
