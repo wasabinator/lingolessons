@@ -15,6 +15,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
     strategy:
       max-parallel: 4
       matrix:
@@ -36,7 +39,6 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        cd server
         uv sync --locked --all-extras --dev
 
     - name: Run Tests
