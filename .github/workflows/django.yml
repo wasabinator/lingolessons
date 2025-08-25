@@ -15,9 +15,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./server
     strategy:
       max-parallel: 4
       matrix:
@@ -39,5 +36,5 @@ jobs:
       run: uv sync --locked --all-extras --dev
 
     - name: Run Tests
-      run: |
-        python manage.py test --verbosity 2
+      working-directory: ./server
+      run: python manage.py test --verbosity 2
