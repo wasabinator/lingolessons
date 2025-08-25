@@ -34,12 +34,8 @@ jobs:
         enable-cache: true
         cache-dependency-glob: "server/uv.lock"
 
-    - name: Install Dependencies
+    - name: Install Dependencies and Test
       run: |
         cd server
         uv sync --locked --all-extras --dev
-
-    - name: Run Tests
-      working-directory: ./server
-      run: |
         python manage.py test --verbosity 2
