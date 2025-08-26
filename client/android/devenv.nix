@@ -38,4 +38,12 @@
     export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
     export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
   '';
+
+  git-hooks.hooks.ktfmt = {
+    enable = true;
+    name = "ktfmt";
+    entry = "ktfmt --kotlinlang-style";
+    files = "\\.(kt|kts)$";
+    language = "system";
+  };
 }
