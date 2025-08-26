@@ -40,5 +40,11 @@ in
         extraArgs = "--all-targets";
       };
     };
+    check-added-large-files.enable = true;
+    check-json.enable = true;
+    check-merge-conflicts.enable = true;
+    check-toml.enable = true;
+    check-yaml.enable = true;
+    end-of-file-fixer.enable = true;
   };
 }

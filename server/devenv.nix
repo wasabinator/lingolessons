@@ -25,6 +25,11 @@
     };
   };
 
+  git-hooks.hooks = {
+    pylint.enable = true;
+    pyright.enable = true;
+  };
+
   scripts = {
     tailwind.exec = "python manage.py tailwind start";
     run.exec = "python manage.py runserver";
