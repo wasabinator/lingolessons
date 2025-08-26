@@ -1,10 +1,10 @@
 {
   "formatter": "language_server",
-  "format_on_save": "on",
+  "format_on_save": "off",
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {
-        "checkOnSave": true,
+        "checkOnSave": false,
         "check": {
           "command": "clippy",
           "extraArgs": [

@@ -7,6 +7,7 @@
   languages = {
     javascript = {
       enable = true;
+      directory = "./server";
       npm = {
         enable = true;
         install.enable = true;
@@ -15,11 +16,18 @@
 
     python = {
       enable = true;
-      venv = {
+      directory = "./server";
+      venv.enable = true;
+      uv = {
         enable = true;
-        requirements = ./requirements.txt;
+        sync.enable = true;
       };
     };
+  };
+
+  git-hooks.hooks = {
+    pylint.enable = true;
+    pyright.enable = true;
   };
 
   scripts = {

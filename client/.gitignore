@@ -21,10 +21,6 @@ captures
 Pods.devenv
 shared.xcframework
 
-#Nix
-.android
-.direnv
-
 #Rust
 debug/
 target/
