@@ -8,6 +8,7 @@ use crate::{
         SettingRepository,
     },
     domain::{
+        facts::FactRepository,
         lessons::{Lesson, LessonRepository},
         runtime::Runtime,
         DomainError,
@@ -54,9 +55,12 @@ impl LessonRepository {
         }
     }
 
-    pub(in crate::data) fn start(&mut self) {
+    pub(in crate::data) fn start(&mut self, fact_repository: ArcMutex<FactRepository>) {
         log::trace!("lesson_repo::start");
+        self.refresh(fact_repository);
+    }
 
+    pub(in crate::data) fn refresh(&mut self, fact_repository: ArcMutex<FactRepository>) {
         let api = self.api.clone();
         let db = self.db.clone();
         let settings = self.settings.clone();
@@ -83,17 +87,31 @@ impl LessonRepository {
 
                 match response {
                     Ok(r) => {
-                        db.run(|db| {
-                            for lesson in r.results {
-                                if lesson.is_deleted {
-                                    let _ = db.del_lesson(lesson.id);
-                                } else {
-                                    let data = LessonData::from(lesson);
-                                    let _ = db.set_lesson(&data);
+                        let res = r.results.clone();
+                        fact_repository
+                            .launch(|mut repo| async move {
+                                for lesson in res {
+                                    if lesson.is_deleted {
+                                        let _ = repo.del_facts(lesson.id).await;
+                                    } else {
+                                        let _ = repo.refresh(lesson.id);
+                                    }
                                 }
-                            }
-                        })
-                        .await;
+                            })
+                            .await;
+
+                        let _ = db
+                            .run(|db| {
+                                for lesson in r.results {
+                                    if lesson.is_deleted {
+                                        let _ = db.del_lesson(lesson.id);
+                                    } else {
+                                        let data = LessonData::from(lesson);
+                                        let _ = db.set_lesson(&data);
+                                    }
+                                }
+                            })
+                            .await;
 
                         if r.next.is_none() {
                             // If the next link is null, then we've reached the end.

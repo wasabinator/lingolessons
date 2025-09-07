@@ -30,7 +30,18 @@ class LanguageSerializer(serializers.ModelSerializer):
 class FactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fact
-        fields = ['id', 'element1', 'element2', 'hint']
+        fields = ['id', 'element1', 'element2', 'hint', 'is_deleted']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # If the lesson is deleted, we can suppress details from the response as this will not be used.
+        if data['is_deleted'] == 1:
+            data['id'] = ''
+            data['element1'] = ''
+            data['element2'] = ''
+            data['hint'] = ''
+        data['updated_at'] = int(time.mktime(instance.updated_at.timetuple()))  # Add updated at in utc format
+        return data
 
 
 class LessonSerializer(serializers.ModelSerializer):

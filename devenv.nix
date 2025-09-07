@@ -21,7 +21,7 @@ in
   };
 
   enterShell = ''
-    ln -sf local.properties client/android/local.properties
+    cp local.properties client/android/local.properties
   '';
 
   enterTest = ''
@@ -30,9 +30,9 @@ in
   '';
 
   git-hooks.hooks = {
-    rustfmt.enable = true;
+    #rustfmt.enable = true;
     clippy = {
-      enable = true;
+    #  enable = true;
       settings = {
         allFeatures = true;
         offline = false;

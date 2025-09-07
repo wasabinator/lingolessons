@@ -67,7 +67,8 @@ fun LessonScreen(
                             contentDescription = "Localized description",
                         )
                     }
-                })
+                },
+            )
         }) { innerPadding ->
             ScreenContent(
                 state = state,

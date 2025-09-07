@@ -1,10 +1,10 @@
-use super::api::{LessonResponse, LessonsResponse};
+use super::api::LessonResponse;
 use crate::{
     domain::lessons::{Lesson, LessonType},
     DateTime,
 };
 use chrono::{TimeDelta, Utc};
-use mockito::{Matcher, Mock, Server};
+use mockito::{Mock, Server};
 use std::ops::Add;
 use uuid::Uuid;
 
@@ -37,7 +37,21 @@ pub fn mock_lessons(count: u16) -> Vec<Lesson> {
         .collect()
 }
 
-fn mock_lesson_responses(lessons: Vec<Lesson>, with_deleted: u16) -> Vec<LessonResponse> {
+// pub fn mock_lesson(id: Uuid) -> Lesson {
+//     let time = DateTime::from(Utc::now());
+
+//     Lesson {
+//         id: id,
+//         title: format!("Lesson"),
+//         r#type: LessonType::Vocabulary,
+//         language1: "en".to_string(),
+//         language2: "jp".to_string(),
+//         owner: "owner".to_string(),
+//         updated_at: time,
+//     }
+// }
+
+fn mock_lesson_responses(lessons: &Vec<Lesson>, with_deleted: u16) -> Vec<LessonResponse> {
     let mut i = 0u16;
     lessons
         .iter()
@@ -68,54 +82,72 @@ impl LessonApiMocks for Server {
         &mut self, lessons: Vec<Lesson>, with_deleted: u16, with_session: bool, in_pages: usize,
         at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
-        let count = lessons.len();
-        let lessons = mock_lesson_responses(lessons, with_deleted);
-        let responses: Vec<Vec<LessonResponse>> =
-            lessons.chunks(count / in_pages).map(|chunk| chunk.to_vec()).collect();
+        //     let count = lessons.len();
+        //     let lessons = mock_lesson_responses(lessons, with_deleted);
+        //     let responses: Vec<Vec<LessonResponse>> =
+        //         lessons.chunks(count / in_pages).map(|chunk| chunk.to_vec()).collect();
 
-        let mut i = 1;
-        let max = responses.len();
+        //     let mut i = 1;
+        //     let max = responses.len();
 
-        responses
-            .iter()
-            .map(|response| {
-                let previous = match i {
-                    1 => None,
-                    _ => Some(format!("page={i}")),
-                };
+        //     responses
+        //         .iter()
+        //         .map(|response| {
+        //             use crate::data::lessons::api::LessonsResponse;
+        //             use mockito::Matcher;
 
-                let next = if i < max { Some(format!("page={}", i + 1)) } else { None };
+        //             let previous = match i {
+        //                 1 => None,
+        //                 _ => Some(format!("page={i}")),
+        //             };
 
-                let r = LessonsResponse {
-                    count: count as u16,
-                    previous,
-                    next,
-                    results: response.clone(),
-                };
+        //             let next = if i < max { Some(format!("page={}", i + 1)) } else { None };
 
-                let mut mock = self
-                    .mock("GET", "/lessons")
-                    .with_status(200)
-                    .match_query(Matcher::UrlEncoded("page_no".into(), format!("{i}")))
-                    .with_body(serde_json::to_string(&r).unwrap());
+        //             let r = LessonsResponse {
+        //                 count: count as u16,
+        //                 previous,
+        //                 next,
+        //                 results: response.clone(),
+        //             };
 
-                mock = if with_session {
-                    mock.match_header("Authorization", "Bearer mock_access_token")
-                } else {
-                    mock.match_header("Authorization", Matcher::Missing)
-                };
+        //             let mut mock = self
+        //                 .mock("GET", "/lessons")
+        //                 .with_status(200)
+        //                 .match_query(Matcher::UrlEncoded("page_no".into(), format!("{i}")))
+        //                 .with_body(serde_json::to_string(&r).unwrap());
 
-                mock = if let Some(timestamp) = at_timestamp {
-                    mock.match_query(Matcher::UrlEncoded("since".into(), timestamp.to_string()))
-                } else {
-                    mock
-                };
+        //             mock = if with_session {
+        //                 mock.match_header("Authorization", "Bearer mock_access_token")
+        //             } else {
+        //                 mock.match_header("Authorization", Matcher::Missing)
+        //             };
 
-                i += 1;
+        //             mock = if let Some(timestamp) = at_timestamp {
+        //                 mock.match_query(Matcher::UrlEncoded("since".into(), timestamp.to_string()))
+        //             } else {
+        //                 mock
+        //             };
 
-                mock.create()
-            })
-            .collect()
+        //             i += 1;
+
+        //             mock.create()
+        //         })
+        //         .collect()
+
+        use crate::data::api_mocks::mock_api_success;
+        use std::collections::HashMap;
+
+        let mock_responses = mock_lesson_responses(&lessons, with_deleted);
+        return mock_api_success(
+            self,
+            "/lessons",
+            HashMap::new(),
+            lessons,
+            mock_responses,
+            with_session,
+            in_pages,
+            at_timestamp,
+        );
     }
 
     #[allow(unused)] // TODO: This will be used during the future lesson repo sync detail testing

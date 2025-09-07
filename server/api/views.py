@@ -40,7 +40,13 @@ class FactViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.Destroy
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):  # Swagger inspection won't pass a lesson_id
             return Fact.objects.none()
-        return Fact.objects.filter(lesson__id=self.kwargs['id']).order_by('id')
+
+        qs = Q()
+        qs.add(Q(lesson__id=self.kwargs['id']), Q.AND)
+        since = self.request.query_params.get('since', None)
+        if since is not None:
+            qs.add(Q(updated_at__gte=datetime.datetime.fromtimestamp(int(since), tz=pytz.UTC)), Q.AND)
+        return Fact.objects.filter(qs).order_by('-updated_at')
 
 
 class LessonViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin,

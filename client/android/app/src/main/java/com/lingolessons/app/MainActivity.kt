@@ -10,7 +10,6 @@ import com.lingolessons.app.ui.theme.AppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
         setContent { AppTheme { MainScreen() } }
     }

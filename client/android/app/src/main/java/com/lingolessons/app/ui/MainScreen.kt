@@ -61,7 +61,7 @@ fun MainScreen(
             PermanentNavigationDrawer(
                 drawerContent = {
                     DrawerNavigation(
-                        currentScreen = currentRoute ?: AppScreen.Profile,
+                        currentScreen = currentRoute?.root ?: AppScreen.Profile,
                         onClick = onNavItemClick,
                     )
                 },
@@ -74,7 +74,7 @@ fun MainScreen(
             modifier = Modifier.testTag("smallScreen"),
             bottomBar = {
                 BottomNavigationBar(
-                    currentScreen = currentRoute ?: AppScreen.Profile,
+                    currentScreen = currentRoute?.root ?: AppScreen.Profile,
                     onClick = onNavItemClick,
                 )
             },
@@ -120,7 +120,7 @@ fun DrawerNavigation(currentScreen: AppScreen, onClick: (AppScreen) -> Unit) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.library_books_48px),
                     contentDescription = "",
-                    tint = drawerIconColor(currentScreen == AppScreen.Study),
+                    tint = drawerIconColor(currentScreen == AppScreen.Lessons),
                 )
             },
             label = { Text(stringResource(R.string.feature_lessons)) },
@@ -174,7 +174,7 @@ fun BottomNavigationBar(currentScreen: AppScreen, onClick: (AppScreen) -> Unit) 
                     imageVector = ImageVector.vectorResource(R.drawable.library_books_48px),
                     modifier = Modifier.size(32.dp),
                     contentDescription = "",
-                    tint = navBarIconColor(currentScreen == AppScreen.Study),
+                    tint = navBarIconColor(currentScreen == AppScreen.Lessons),
                 )
             },
             label = { Text(stringResource(R.string.feature_lessons)) },

@@ -12,6 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.lingolessons.app.ui.AppScreen.LessonDetail
+import com.lingolessons.app.ui.AppScreen.LessonList
+import com.lingolessons.app.ui.AppScreen.Lessons
 import com.lingolessons.app.ui.common.AuthenticatedScreen
 import com.lingolessons.app.ui.lessons.LessonScreen
 import com.lingolessons.app.ui.lessons.LessonViewModel
@@ -52,6 +55,14 @@ sealed class AppScreen {
             } ?: Profile
     }
 }
+
+val AppScreen.root: AppScreen
+    get() =
+        when (this) {
+            LessonList,
+            is LessonDetail -> Lessons
+            else -> this
+        }
 
 @Composable
 fun MainNav(navController: NavHostController) {

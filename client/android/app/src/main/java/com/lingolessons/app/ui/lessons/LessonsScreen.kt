@@ -33,6 +33,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.lingolessons.app.R
 import com.lingolessons.app.common.KoverIgnore
+import com.lingolessons.app.common.toLocalDateString
 import com.lingolessons.app.ui.common.ErrorSource
 import com.lingolessons.app.ui.common.ScreenContent
 import com.lingolessons.app.ui.common.ScreenState
@@ -141,7 +142,14 @@ private fun LessonList(items: LazyPagingItems<Lesson>, onLessonSelected: (Lesson
                             text = it.title,
                         )
                     },
-                )
+                    supportingContent = {
+                        Text(
+                            stringResource(
+                                R.string.lesson_item_supporting_text,
+                                it.updatedAt.toLocalDateString(),
+                                it.owner,
+                            ))
+                    })
                 HorizontalDivider()
             }
         }

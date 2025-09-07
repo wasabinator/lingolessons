@@ -82,6 +82,7 @@ mod tests {
     use crate::{
         data::{
             auth::api_mocks::TokenApiMocks,
+            facts::api_mocks::FactsApiMocks,
             lessons::api_mocks::{mock_lessons, LessonApiMocks},
         },
         domain::{fake_domain, DomainError},
@@ -94,7 +95,9 @@ mod tests {
     async fn test_login_success() {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
-        server.deref_mut().mock_lessons_success(mock_lessons(1), 0, true, 1, None);
+        let mock_lessons = mock_lessons(1);
+        server.deref_mut().mock_facts_success(mock_lessons[0].id, Vec::new(), 0, true, 1, None);
+        server.deref_mut().mock_lessons_success(mock_lessons, 0, true, 1, None);
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
 

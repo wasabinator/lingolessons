@@ -5,6 +5,7 @@ use crate::{
 };
 use concat_string::concat_string;
 use reqwest::RequestBuilder;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -72,4 +73,15 @@ impl AuthApi {
 
         session_manager.decorate(api.post(url)).await
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) struct PagedResponse<T>
+where
+    T: Serialize,
+{
+    pub count: u16,
+    pub next: Option<String>,
+    pub previous: Option<String>,
+    pub results: Vec<T>,
 }

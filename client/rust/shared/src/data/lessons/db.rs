@@ -100,8 +100,8 @@ impl LessonDao for Db {
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()> {
         self.connection.execute(
             r#"
-            INSERT OR REPLACE 
-            INTO lesson(id, title, type, language1, language2, owner, updated_at) 
+            INSERT OR REPLACE
+            INTO lesson(id, title, type, language1, language2, owner, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?);
             "#,
             rusqlite::params![
