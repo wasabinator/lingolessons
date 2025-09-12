@@ -23,7 +23,7 @@ impl From<(Uuid, FactResponse)> for FactData {
 
         FactData {
             id: fact.id,
-            lesson_id: lesson_id,
+            lesson_id,
             element1: fact.element1,
             element2: fact.element2,
             hint: fact.hint,
@@ -45,14 +45,13 @@ impl FactRepository {
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
-            page_cache: page_cache,
+            page_cache,
         }
     }
 
     pub(in crate::data) fn refresh(&self, lesson_id: Uuid) {
         log::trace!("fact_repo::refresh");
 
-        let lesson_id = lesson_id.clone();
         let api = self.api.clone();
         let db = self.db.clone();
         let settings = self.settings.clone();
@@ -64,7 +63,7 @@ impl FactRepository {
             log::info!("fact_repo - refresh task started for lesson: {lesson_id}");
 
             let sync_time = UnixTimestamp::now();
-            let last_sync_time_key = format!("FACTS_LAST_SYNC_TIME_{}", lesson_id);
+            let last_sync_time_key = format!("FACTS_LAST_SYNC_TIME_{lesson_id}");
 
             let mut finished = false;
             let mut page_no: u8 = 0;
