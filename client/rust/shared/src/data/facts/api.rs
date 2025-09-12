@@ -1,4 +1,5 @@
 use crate::data::api::AuthApi;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -33,6 +34,7 @@ impl FactsApi for AuthApi {
         &self, lesson_id: Uuid, page_no: u8, updated_after: Option<u64>,
     ) -> reqwest::Result<FactsResponse> {
         let mut params: Vec<(String, String)> = Vec::new();
+        debug!("!!!!!!!!!!!!!!!!!!!! lesson_id: {lesson_id}, page_no: {page_no}");
         params.push(("lesson_id".to_string(), lesson_id.to_string()));
         params.push(("page_no".to_string(), (page_no + 1).to_string())); // Api is 1 based
         if let Some(updated_after) = updated_after {

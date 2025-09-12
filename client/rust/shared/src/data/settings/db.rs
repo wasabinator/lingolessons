@@ -36,12 +36,13 @@ pub(super) trait SettingDao {
 
 impl SettingDao for Db {
     fn get(&self, key: &str) -> rusqlite::Result<Setting> {
-        self.connection
-            .query_row("SELECT text, number FROM setting WHERE key = ?;", [key], |row| {
+        self.perform(|conn| {
+            conn.query_row("SELECT text, number FROM setting WHERE key = ?;", [key], |row| {
                 Setting::try_from(row)
             })
-            .optional()
-            .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
+        })
+        .optional()
+        .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
     }
 
     fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()> {
@@ -57,10 +58,10 @@ impl SettingDao for Db {
             }
         };
 
-        self.connection.execute(
+        self.perform(|conn| { conn.execute(
             "INSERT OR REPLACE INTO setting(key, text, number, modified) VALUES (?, ?, ?, CAST(strftime('%s', 'now') AS INTEGER));",
             params,
-        )?;
+        )})?;
         Ok(())
     }
 }

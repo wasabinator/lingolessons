@@ -8,7 +8,6 @@ pub(crate) mod lessons;
 pub(crate) mod settings;
 
 use crate::{
-    arc_mutex,
     data::db::Db,
     domain::{
         auth::{Session, SessionManager},
@@ -18,35 +17,39 @@ use crate::{
         settings::SettingRepository,
         DomainError,
     },
-    ArcMutex, Run,
 };
 use api::{Api, AuthApi};
 use lru::LruCache;
-use std::{num::NonZeroUsize, result::Result, sync::Arc, thread::yield_now};
+use std::{
+    num::NonZeroUsize,
+    result::Result,
+    sync::{Arc, RwLock},
+    thread::yield_now,
+};
 
 pub(crate) struct DataServiceProvider {
-    pub(super) session_manager: ArcMutex<SessionManager>,
-    pub(super) lesson_repository: ArcMutex<LessonRepository>,
-    pub(super) fact_repository: ArcMutex<FactRepository>,
+    pub(super) session_manager: Arc<SessionManager>,
+    pub(super) lesson_repository: Arc<LessonRepository>,
+    pub(super) fact_repository: Arc<FactRepository>,
     #[allow(unused)]
-    pub(super) setting_repository: ArcMutex<SettingRepository>,
+    pub(super) setting_repository: Arc<SettingRepository>,
     #[allow(unused)]
     service_manager: Arc<DataServiceManager>,
 }
 
 struct DataServiceManager {
     runtime: Runtime,
-    session_manager: ArcMutex<SessionManager>,
-    lesson_repository: ArcMutex<LessonRepository>,
-    fact_repository: ArcMutex<FactRepository>,
+    session_manager: Arc<SessionManager>,
+    lesson_repository: Arc<LessonRepository>,
+    fact_repository: Arc<FactRepository>,
 }
 
 static MANAGER_START_TASK: &str = "MANAGER_START_TASK";
 
 impl DataServiceManager {
     fn new(
-        session_manager: ArcMutex<SessionManager>, lesson_repository: ArcMutex<LessonRepository>,
-        fact_repository: ArcMutex<FactRepository>,
+        session_manager: Arc<SessionManager>, lesson_repository: Arc<LessonRepository>,
+        fact_repository: Arc<FactRepository>,
     ) -> Self {
         let mut manager = DataServiceManager {
             runtime: Runtime::new(),
@@ -69,11 +72,11 @@ impl DataServiceManager {
     }
 
     async fn run(
-        session_manager: ArcMutex<SessionManager>, lesson_repository: ArcMutex<LessonRepository>,
-        fact_repository: ArcMutex<FactRepository>,
+        session_manager: Arc<SessionManager>, lesson_repository: Arc<LessonRepository>,
+        fact_repository: Arc<FactRepository>,
     ) {
         log::trace!("DataServiceManager::run()");
-        let mut state = session_manager.run(|manager| manager.state.clone()).await;
+        let mut state = session_manager.state.clone();
 
         log::trace!("Beginning state change await loop");
         while state.changed().await.is_ok() {
@@ -85,11 +88,11 @@ impl DataServiceManager {
 
             if let Session::Authenticated(_) = session {
                 log::trace!("Session Started - Stopping repos...");
-                lesson_repo.lock_owned().await.start(fact_repo);
+                lesson_repo.start(fact_repo);
             } else {
                 log::trace!("Session Ended - Stopping repos...");
-                lesson_repo.lock_owned().await.stop();
-                fact_repo.lock_owned().await.stop();
+                lesson_repo.stop();
+                fact_repo.stop();
             }
 
             log::trace!("Finished state loop, yielding then repeating");
@@ -103,27 +106,27 @@ impl DataServiceProvider {
         base_url: String, data_path: String,
     ) -> Result<DataServiceProvider, DomainError> {
         let api = Arc::new(Api::new(base_url)?);
-        let db = arc_mutex(Db::open(data_path)?);
+        let db = Arc::new(Db::open(data_path)?);
 
-        let session_manager = arc_mutex(SessionManager::new(api.clone(), db.clone()));
+        let session_manager = Arc::new(SessionManager::new(api.clone(), db.clone()));
 
-        let settings = arc_mutex(SettingRepository::new(db.clone()));
+        let settings = Arc::new(SettingRepository::new(db.clone()));
 
         let auth_api = Arc::new(AuthApi::new(api.clone(), session_manager.clone()));
-        let fact_repository = arc_mutex(FactRepository::new(
+        let fact_repository = Arc::new(FactRepository::new(
             Runtime::new(),
             auth_api.clone(),
             db.clone(),
             settings.clone(),
-            LruCache::new(NonZeroUsize::new(8).unwrap()),
+            RwLock::new(LruCache::new(NonZeroUsize::new(8).unwrap())),
         ));
-        let lesson_repository = arc_mutex(LessonRepository::new(
+        let lesson_repository = Arc::new(LessonRepository::new(
             Runtime::new(),
             auth_api,
             db,
             settings.clone(),
-            LruCache::new(NonZeroUsize::new(8).unwrap()),
-            LruCache::new(NonZeroUsize::new(20).unwrap()),
+            RwLock::new(LruCache::new(NonZeroUsize::new(8).unwrap())),
+            RwLock::new(LruCache::new(NonZeroUsize::new(20).unwrap())),
         ));
 
         let service_manager = Arc::new(DataServiceManager::new(

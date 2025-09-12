@@ -13,10 +13,10 @@ use crate::{
         runtime::Runtime,
         DomainError,
     },
-    ArcMutex, Run,
 };
+use log::debug;
 use lru::LruCache;
-use std::{borrow::BorrowMut, sync::Arc};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 impl From<LessonResponse> for LessonData {
@@ -41,9 +41,9 @@ const PAGE_SIZE: u8 = 20;
 
 impl LessonRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime, api: Arc<AuthApi>, db: ArcMutex<Db>,
-        settings: ArcMutex<SettingRepository>, page_cache: LruCache<u8, Vec<Lesson>>,
-        lesson_cache: LruCache<Uuid, Lesson>,
+        runtime: Runtime, api: Arc<AuthApi>, db: Arc<Db>, settings: Arc<SettingRepository>,
+        page_cache: RwLock<LruCache<u8, Vec<Lesson>>>,
+        lesson_cache: RwLock<LruCache<Uuid, Lesson>>,
     ) -> Self {
         LessonRepository {
             runtime,
@@ -55,12 +55,12 @@ impl LessonRepository {
         }
     }
 
-    pub(in crate::data) fn start(&mut self, fact_repository: ArcMutex<FactRepository>) {
+    pub(in crate::data) fn start(&self, fact_repository: Arc<FactRepository>) {
         log::trace!("lesson_repo::start");
         self.refresh(fact_repository);
     }
 
-    pub(in crate::data) fn refresh(&mut self, fact_repository: ArcMutex<FactRepository>) {
+    pub(in crate::data) fn refresh(&self, fact_repository: Arc<FactRepository>) {
         let api = self.api.clone();
         let db = self.db.clone();
         let settings = self.settings.clone();
@@ -73,11 +73,7 @@ impl LessonRepository {
 
             let mut finished = false;
             let mut page_no: u8 = 0;
-            let last_sync_time = settings
-                .launch(
-                    |settings| async move { settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await },
-                )
-                .await;
+            let last_sync_time = settings.get_timestamp(LESSONS_LAST_SYNC_TIME).await;
 
             'sync: while !finished {
                 // Try to fetch from the server
@@ -88,39 +84,34 @@ impl LessonRepository {
                 match response {
                     Ok(r) => {
                         let res = r.results.clone();
-                        fact_repository
-                            .launch(|mut repo| async move {
-                                for lesson in res {
-                                    if lesson.is_deleted {
-                                        let _ = repo.del_facts(lesson.id).await;
-                                    } else {
-                                        let _ = repo.refresh(lesson.id);
-                                    }
-                                }
-                            })
-                            .await;
 
-                        let _ = db
-                            .run(|db| {
-                                for lesson in r.results {
-                                    if lesson.is_deleted {
-                                        let _ = db.del_lesson(lesson.id);
-                                    } else {
-                                        let data = LessonData::from(lesson);
-                                        let _ = db.set_lesson(&data);
-                                    }
+                        for lesson in r.results {
+                            let r = if lesson.is_deleted {
+                                db.del_lesson(lesson.id)
+                            } else {
+                                let data = LessonData::from(lesson);
+                                db.set_lesson(&data)
+                            };
+                            if r.is_err() {
+                                break;
+                            }
+                        }
+
+                        for lesson in res {
+                            if lesson.is_deleted {
+                                if (fact_repository.del_facts(lesson.id)).await.is_err() {
+                                    break;
                                 }
-                            })
-                            .await;
+                            } else {
+                                debug!(">>>>>>>>>>> lesson_id: {}, refresh fact repo", lesson.id);
+                                fact_repository.refresh(lesson.id);
+                            }
+                        }
 
                         if r.next.is_none() {
                             // If the next link is null, then we've reached the end.
                             // Set the timestamp so we'll know where to pick up from next sync
-                            settings
-                                .launch(|settings| async move {
-                                    settings.put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time).await;
-                                })
-                                .await;
+                            settings.put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time).await;
                             finished = true;
                         } else {
                             page_no += 1;
@@ -142,32 +133,32 @@ impl LessonRepository {
         log::trace!("lesson_repo::start finished");
     }
 
-    pub(in crate::data) fn stop(&mut self) {
+    pub(crate) fn stop(&self) {
         log::trace!("lesson_repo::stop");
-        let r = self.runtime.borrow_mut();
-        r.abort();
+        self.runtime.abort();
     }
 
     pub(crate) async fn get_lessons(
-        &mut self, page_no: u8,
+        &self, page_no: u8,
     ) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
         log::trace!("Attempting to fetch lessons from cache");
-        let lessons = match self.page_cache.get(&page_no) {
+        let mut cache = self.page_cache.write().unwrap();
+        let lessons = match cache.get(&page_no) {
             Some(lessons) => {
                 log::trace!("Got lessons {} from cache", lessons.len());
                 lessons.clone()
             }
             None => {
                 log::trace!("Cache miss for page {}. Attempting to load lessons from db", page_no);
-                let lessons = self.db.run(|db| db.get_lessons()).await?;
+                let lessons = self.db.get_lessons()?;
                 log::trace!("Got lessons {} from db", lessons.len());
                 // Map to domain type and cache
                 let lessons: Vec<Lesson> = lessons.iter().map(Lesson::from).collect();
                 if !lessons.is_empty() {
                     log::trace!("Caching {} lessons for page {}", lessons.len(), page_no);
-                    self.page_cache.put(page_no, lessons.clone());
+                    cache.put(page_no, lessons.clone());
                 }
                 lessons
             }
@@ -175,27 +166,26 @@ impl LessonRepository {
         Ok(lessons)
     }
 
-    pub(crate) async fn get_lesson(
-        &mut self, id: Uuid,
-    ) -> anyhow::Result<Option<Lesson>, DomainError> {
+    pub(crate) async fn get_lesson(&self, id: Uuid) -> anyhow::Result<Option<Lesson>, DomainError> {
         use super::db::LessonDao;
 
         log::trace!("Attempting to fetch lesson {} from cache", id);
-        let lesson = match self.lesson_cache.get(&id) {
+        let mut cache = self.lesson_cache.write().unwrap();
+        let lesson = match cache.get(&id) {
             Some(lesson) => {
                 log::trace!("Got lesson from cache");
                 Some(lesson.clone())
             }
             None => {
                 log::trace!("Cache miss for lesson {}. Attempting to load lesson from db", id);
-                let lesson_data = self.db.run(|db| db.get_lesson(id)).await?;
+                let lesson_data = self.db.get_lesson(id)?;
                 log::trace!("Got lesson {} from db", id);
                 // Map to domain type and cache
 
                 if let Some(lesson) = lesson_data {
                     let lesson = Lesson::from(&lesson);
                     log::trace!("Caching lesson for id {}", id);
-                    self.lesson_cache.put(id, lesson.clone());
+                    cache.put(id, lesson.clone());
                     Some(lesson)
                 } else {
                     None

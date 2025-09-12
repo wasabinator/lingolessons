@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 pub mod auth;
 mod common;
-pub mod lessons;
 pub mod facts;
+pub mod lessons;
 pub mod runtime;
 pub mod settings;
 

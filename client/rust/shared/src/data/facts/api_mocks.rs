@@ -17,7 +17,7 @@ pub(crate) trait FactsApiMocks {
 
 // We mock the facts in domain terms, as the response data type is not available to packages external to data
 // Then internally we will map those to the responses for mocking.
-pub fn mock_facts(lesson_id: Uuid, count: u16) -> Vec<Fact> {
+pub fn mock_facts(lesson_id: Uuid, count: usize) -> Vec<Fact> {
     (0..count)
         .map(|_| Fact {
             id: Uuid::new_v4(),
@@ -59,8 +59,10 @@ impl FactsApiMocks for Server {
         in_pages: usize, at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
         use crate::data::api_mocks::mock_api_success;
+        use log::debug;
         use std::collections::HashMap;
 
+        debug!("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         let mock_responses = mock_fact_responses(&facts, with_deleted);
         return mock_api_success(
             self,

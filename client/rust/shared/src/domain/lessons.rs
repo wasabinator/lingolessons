@@ -2,11 +2,10 @@ use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
 use crate::{
     data::{api::AuthApi, db::Db},
     domain::Domain,
-    ArcMutex, Run,
 };
 use chrono::{DateTime, Local};
 use lru::LruCache;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use uniffi::deps::log::trace;
 use uuid::Uuid;
 
@@ -33,10 +32,10 @@ pub enum LessonType {
 pub(crate) struct LessonRepository {
     pub(crate) runtime: Runtime,
     pub(crate) api: Arc<AuthApi>,
-    pub(crate) db: ArcMutex<Db>,
-    pub(crate) settings: ArcMutex<SettingRepository>,
-    pub(crate) page_cache: LruCache<u8, Vec<Lesson>>,
-    pub(crate) lesson_cache: LruCache<Uuid, Lesson>,
+    pub(crate) db: Arc<Db>,
+    pub(crate) settings: Arc<SettingRepository>,
+    pub(crate) page_cache: RwLock<LruCache<u8, Vec<Lesson>>>,
+    pub(crate) lesson_cache: RwLock<LruCache<Uuid, Lesson>>,
 }
 
 pub trait Lessons {
@@ -56,8 +55,7 @@ impl Lessons for Domain {
         let repo = self.provider.lesson_repository.clone();
 
         trace!("About to call repository::get_lessons()");
-        let lessons =
-            repo.launch(|mut repo| async move { repo.get_lessons(page_no).await }).await?;
+        let lessons = repo.get_lessons(page_no).await?;
 
         trace!("Received lessons");
         Ok(lessons)
@@ -69,7 +67,7 @@ impl Lessons for Domain {
         let repo = self.provider.lesson_repository.clone();
 
         trace!("About to call repository::get_lessons()");
-        let lesson = repo.launch(|mut repo| async move { repo.get_lesson(id).await }).await?;
+        let lesson = repo.get_lesson(id).await?;
 
         trace!("Received optional lesson from repo");
         Ok(lesson)
@@ -87,10 +85,9 @@ mod tests {
             lessons::api_mocks::{mock_lessons, LessonApiMocks},
         },
         domain::{auth::Auth, facts::Facts, fake_domain},
-        Run,
     };
     use serial_test::serial;
-    use std::{ops::DerefMut, thread::sleep, time::Duration};
+    use std::ops::DerefMut;
 
     #[serial]
     #[tokio::test]
@@ -198,19 +195,12 @@ mod tests {
 
         let settings = domain.provider.setting_repository.clone();
         let r = await_condition(
-            || async {
-                settings
-                    .launch(
-                        |repo| async move { repo.get_timestamp("LESSONS_LAST_SYNC_TIME").await },
-                    )
-                    .await
-            },
+            || async { settings.get_timestamp("LESSONS_LAST_SYNC_TIME").await },
             |timestamp| timestamp.is_some(),
         )
         .await;
 
         let _ = domain.stop();
-        sleep(Duration::new(10, 0));
 
         assert!(r.is_ok());
         assert!(r.unwrap().is_some()) // A timestamp should now exist
@@ -231,9 +221,7 @@ mod tests {
         let settings = domain.provider.setting_repository.clone();
 
         // Insert a mock timestamp
-        settings
-            .launch(|repo| async move { repo.put_timestamp("LESSONS_LAST_SYNC_TIME", 1337).await })
-            .await;
+        settings.put_timestamp("LESSONS_LAST_SYNC_TIME", 1337).await;
 
         let _ = domain.login("user".to_string(), "password".to_string()).await;
 

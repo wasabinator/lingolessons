@@ -21,8 +21,8 @@ pub(super) trait TokenDao {
 
 impl TokenDao for Db {
     fn get_token(&self) -> rusqlite::Result<Option<Token>> {
-        self.connection
-            .query_row(
+        self.perform(|conn| {
+            conn.query_row(
                 "SELECT username, authToken, refreshToken FROM token WHERE id = 1;",
                 [],
                 |row| {
@@ -34,20 +34,21 @@ impl TokenDao for Db {
                 },
             )
             .optional()
+        })
     }
 
     fn set_token(
         &self, username: String, auth_token: String, refresh_token: String,
     ) -> rusqlite::Result<()> {
-        self.connection.execute(
+        self.perform(|conn| conn.execute(
             "INSERT OR REPLACE INTO token(id, username, authToken, refreshToken) VALUES (1, ?, ?, ?);",
             rusqlite::params![username, auth_token, refresh_token]
-        )?;
+        ))?;
         Ok(())
     }
 
     fn del_token(&self) -> rusqlite::Result<()> {
-        self.connection.execute("DELETE FROM token;", [])?;
+        self.perform(|conn| conn.execute("DELETE FROM token;", []))?;
         Ok(())
     }
 }

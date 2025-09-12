@@ -46,62 +46,72 @@ pub(super) trait FactDao {
 
 impl FactDao for Db {
     fn get_facts(&self, lesson_id: Uuid) -> rusqlite::Result<Vec<FactData>> {
-        let mut statement = self.connection.prepare(
-            r#"
-            SELECT id, lesson_id, element1, element2, hint, updated_at
-            FROM fact
-            WHERE lesson_id = (?1)
-            ORDER BY updated_at DESC;
-            "#,
-        )?;
-        let rows = statement.query_map([lesson_id], |row| FactData::try_from(row))?;
+        let rows = self.perform(|conn| {
+            let mut stmt = conn
+                .prepare(
+                    r#"
+                SELECT id, lesson_id, element1, element2, hint, updated_at
+                FROM fact
+                WHERE lesson_id = (?1)
+                ORDER BY updated_at DESC;
+                "#,
+                )
+                .unwrap();
+            let rows = stmt.query_map([lesson_id], |row| FactData::try_from(row)).unwrap();
+            rows.collect::<Result<Vec<_>, _>>()
+        })?;
 
         let mut facts = Vec::new();
         for fact in rows {
-            facts.push(fact?);
+            facts.push(fact);
         }
-
         Ok(facts)
     }
 
     fn del_facts(&self, lesson_id: Uuid) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            DELETE FROM fact
-            WHERE lesson_id = ?;
-            "#,
-            rusqlite::params![lesson_id],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                DELETE FROM fact
+                WHERE lesson_id = ?;
+                "#,
+                rusqlite::params![lesson_id],
+            )
+        })?;
         Ok(())
     }
 
     fn set_fact(&self, fact: &FactData) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            INSERT OR REPLACE
-            INTO fact(id, lesson_id, element1, element2, hint, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?);
-            "#,
-            rusqlite::params![
-                fact.id,
-                fact.lesson_id,
-                fact.element1,
-                fact.element2,
-                fact.hint,
-                fact.updated_at
-            ],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                INSERT OR REPLACE
+                INTO fact(id, lesson_id, element1, element2, hint, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?);
+                "#,
+                rusqlite::params![
+                    fact.id,
+                    fact.lesson_id,
+                    fact.element1,
+                    fact.element2,
+                    fact.hint,
+                    fact.updated_at
+                ],
+            )
+        })?;
         Ok(())
     }
 
     fn del_fact(&self, id: Uuid) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            DELETE FROM fact
-            WHERE id = ?;
-            "#,
-            rusqlite::params![id],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                DELETE FROM fact
+                WHERE id = ?;
+                "#,
+                rusqlite::params![id],
+            )
+        })?;
         Ok(())
     }
 }

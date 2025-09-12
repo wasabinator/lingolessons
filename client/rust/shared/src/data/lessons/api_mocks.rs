@@ -82,61 +82,11 @@ impl LessonApiMocks for Server {
         &mut self, lessons: Vec<Lesson>, with_deleted: u16, with_session: bool, in_pages: usize,
         at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
-        //     let count = lessons.len();
-        //     let lessons = mock_lesson_responses(lessons, with_deleted);
-        //     let responses: Vec<Vec<LessonResponse>> =
-        //         lessons.chunks(count / in_pages).map(|chunk| chunk.to_vec()).collect();
-
-        //     let mut i = 1;
-        //     let max = responses.len();
-
-        //     responses
-        //         .iter()
-        //         .map(|response| {
-        //             use crate::data::lessons::api::LessonsResponse;
-        //             use mockito::Matcher;
-
-        //             let previous = match i {
-        //                 1 => None,
-        //                 _ => Some(format!("page={i}")),
-        //             };
-
-        //             let next = if i < max { Some(format!("page={}", i + 1)) } else { None };
-
-        //             let r = LessonsResponse {
-        //                 count: count as u16,
-        //                 previous,
-        //                 next,
-        //                 results: response.clone(),
-        //             };
-
-        //             let mut mock = self
-        //                 .mock("GET", "/lessons")
-        //                 .with_status(200)
-        //                 .match_query(Matcher::UrlEncoded("page_no".into(), format!("{i}")))
-        //                 .with_body(serde_json::to_string(&r).unwrap());
-
-        //             mock = if with_session {
-        //                 mock.match_header("Authorization", "Bearer mock_access_token")
-        //             } else {
-        //                 mock.match_header("Authorization", Matcher::Missing)
-        //             };
-
-        //             mock = if let Some(timestamp) = at_timestamp {
-        //                 mock.match_query(Matcher::UrlEncoded("since".into(), timestamp.to_string()))
-        //             } else {
-        //                 mock
-        //             };
-
-        //             i += 1;
-
-        //             mock.create()
-        //         })
-        //         .collect()
-
         use crate::data::api_mocks::mock_api_success;
+        use log::debug;
         use std::collections::HashMap;
 
+        debug!("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[");
         let mock_responses = mock_lesson_responses(&lessons, with_deleted);
         return mock_api_success(
             self,

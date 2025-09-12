@@ -1,8 +1,8 @@
-use std::{collections::HashMap, future::Future};
+use std::{collections::HashMap, future::Future, sync::RwLock};
 use tokio::task::JoinHandle;
 
 pub(crate) struct Runtime {
-    tasks: HashMap<String, JoinHandle<()>>,
+    tasks: RwLock<HashMap<String, JoinHandle<()>>>,
 }
 
 lazy_static::lazy_static! {
@@ -14,26 +14,27 @@ lazy_static::lazy_static! {
 
 impl Runtime {
     pub(crate) fn new() -> Self {
-        Self { tasks: HashMap::new() }
+        Self { tasks: RwLock::new(HashMap::new()) }
     }
 
-    pub(crate) fn spawn<F>(&mut self, key: String, future: F)
+    pub(crate) fn spawn<F>(&self, key: String, future: F)
     where
         F: Future<Output = ()> + Send + 'static,
         F::Output: Send + 'static,
     {
-        if let Some(task) = self.tasks.get(&key) {
+        if let Some(task) = self.tasks.read().unwrap().get(&key) {
             task.abort();
         }
+
         let x: JoinHandle<()> = RUNTIME.spawn(future);
-        self.tasks.insert(key, x);
+        self.tasks.write().unwrap().insert(key, x);
     }
 
     #[allow(dead_code)]
-    pub(crate) fn abort(&mut self) {
-        for entry in self.tasks.iter() {
+    pub(crate) fn abort(&self) {
+        for entry in self.tasks.read().unwrap().iter() {
             entry.1.abort();
         }
-        self.tasks.clear();
+        self.tasks.write().unwrap().clear();
     }
 }

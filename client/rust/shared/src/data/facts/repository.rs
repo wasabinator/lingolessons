@@ -12,10 +12,9 @@ use crate::{
         runtime::Runtime,
         DomainError,
     },
-    ArcMutex, Run,
 };
 use lru::LruCache;
-use std::{borrow::BorrowMut, sync::Arc};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 impl From<(Uuid, FactResponse)> for FactData {
@@ -38,8 +37,8 @@ const PAGE_SIZE: u8 = 20;
 
 impl FactRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime, api: Arc<AuthApi>, db: ArcMutex<Db>,
-        settings: ArcMutex<SettingRepository>, page_cache: LruCache<(Uuid, u8), Vec<Fact>>,
+        runtime: Runtime, api: Arc<AuthApi>, db: Arc<Db>, settings: Arc<SettingRepository>,
+        page_cache: RwLock<LruCache<(Uuid, u8), Vec<Fact>>>,
     ) -> Self {
         FactRepository {
             runtime,
@@ -50,8 +49,8 @@ impl FactRepository {
         }
     }
 
-    pub(in crate::data) fn refresh(&mut self, lesson_id: Uuid) {
-        log::trace!("fact_repo::start");
+    pub(in crate::data) fn refresh(&self, lesson_id: Uuid) {
+        log::trace!("fact_repo::refresh");
 
         let lesson_id = lesson_id.clone();
         let api = self.api.clone();
@@ -60,49 +59,46 @@ impl FactRepository {
         log::trace!("fact_repo - spawning refresh task");
 
         let refresh_task_key = format!("FACTS_REFRESH_TASK_{lesson_id}");
-
+        log::trace!("Refresh task key: {refresh_task_key}");
         self.runtime.spawn(refresh_task_key, async move {
             log::info!("fact_repo - refresh task started for lesson: {lesson_id}");
 
             let sync_time = UnixTimestamp::now();
-            let last_sync_time_key = format!("FACTS_LAST_SYNC_TIME_{lesson_id}");
+            let last_sync_time_key = format!("FACTS_LAST_SYNC_TIME_{}", lesson_id);
 
             let mut finished = false;
             let mut page_no: u8 = 0;
             let key = last_sync_time_key.clone();
-            let last_sync_time = settings
-                .launch(|settings| async move { settings.get_timestamp(key.as_str()).await })
-                .await;
+            let last_sync_time = settings.get_timestamp(key.as_str()).await;
 
             'sync: while !finished {
                 // Try to fetch from the server
-                log::info!("Attempting to fetch facts from api for page {}", page_no);
+                log::info!("Attempting to fetch facts from api for {}-{}", lesson_id, page_no);
                 let response = api.get_facts(lesson_id, page_no, last_sync_time).await;
                 log::info!("Got response from api {:?}", response);
 
                 match response {
                     Ok(r) => {
-                        db.run(|db| {
-                            for fact in r.results {
-                                if fact.is_deleted {
-                                    let _ = db.del_fact(fact.id);
+                        for fact in r.results {
+                            if fact.is_deleted {
+                                let _ = db.del_fact(fact.id);
+                            } else {
+                                let data = FactData::from((lesson_id, fact));
+                                let r = db.set_fact(&data);
+                                if r.is_err() {
+                                    log::trace!("could not save fact");
                                 } else {
-                                    let data = FactData::from((lesson_id, fact));
-                                    let _ = db.set_fact(&data);
+                                    log::trace!("saved fact");
                                 }
                             }
-                        })
-                        .await;
+                        }
 
                         if r.next.is_none() {
                             // If the next link is null, then we've reached the end.
                             // Set the timestamp so we'll know where to pick up from next sync
                             let key = last_sync_time_key.clone();
-                            settings
-                                .launch(|settings| async move {
-                                    settings.put_timestamp(key.as_str(), sync_time).await;
-                                })
-                                .await;
+                            log::debug!("!!!!!!!!!!!!!!!!! key: {key}");
+                            settings.put_timestamp(key.as_str(), sync_time).await;
                             finished = true;
                         } else {
                             page_no += 1;
@@ -110,7 +106,7 @@ impl FactRepository {
                     }
                     Err(e) => {
                         log::error!(
-                            "Failed to fetch facts for page {}. Exiting sync: {:?}",
+                            "Failed to fetch facts for {lesson_id}-{}. Exiting sync: {:?}",
                             page_no + 1,
                             e
                         );
@@ -124,32 +120,33 @@ impl FactRepository {
         log::trace!("fact_repo::start finished");
     }
 
-    pub(crate) fn stop(&mut self) {
+    pub(crate) fn stop(&self) {
         log::trace!("lesson_repo::stop");
-        let r = self.runtime.borrow_mut();
-        r.abort();
+        self.runtime.abort();
     }
 
     pub(crate) async fn get_facts(
-        &mut self, lesson_id: Uuid, page_no: u8,
+        &self, lesson_id: Uuid, page_no: u8,
     ) -> anyhow::Result<Vec<Fact>, DomainError> {
         use super::db::FactDao;
 
         log::trace!("Attempting to fetch facts from cache");
-        let facts = match self.page_cache.get(&(lesson_id, page_no)) {
+        let mut cache = self.page_cache.write().unwrap();
+        let facts = match cache.get(&(lesson_id, page_no)) {
             Some(facts) => {
                 log::trace!("Got facts {} from cache", facts.len());
                 facts.clone()
             }
             None => {
                 log::trace!("Cache miss for page {}. Attempting to load facts from db", page_no);
-                let facts = self.db.run(|db| db.get_facts(lesson_id)).await?;
+                let facts = self.db.get_facts(lesson_id).unwrap();
                 log::trace!("Got facts {} from db", facts.len());
                 // Map to domain type and cache
                 let facts: Vec<Fact> = facts.iter().map(Fact::from).collect();
                 if !facts.is_empty() {
-                    log::trace!("Caching {} facts for page {}{}", facts.len(), lesson_id, page_no);
-                    self.page_cache.put((lesson_id, page_no), facts.clone());
+                    log::trace!("Caching {} facts for page {}-{}", facts.len(), lesson_id, page_no);
+                    cache.put((lesson_id, page_no), facts.clone());
+                    log::trace!("Cached {} facts for page {}-{}", facts.len(), lesson_id, page_no);
                 }
                 facts
             }
@@ -157,8 +154,8 @@ impl FactRepository {
         Ok(facts)
     }
 
-    pub(crate) async fn del_facts(&mut self, lesson_id: Uuid) -> anyhow::Result<(), DomainError> {
-        let _ = self.db.run(|db| db.del_facts(lesson_id)).await;
+    pub(crate) async fn del_facts(&self, lesson_id: Uuid) -> anyhow::Result<(), DomainError> {
+        let _ = self.db.del_facts(lesson_id);
         Ok(())
     }
 }

@@ -5,7 +5,6 @@ use crate::{
         auth::{AuthError, Session},
         DomainError,
     },
-    ArcMutex,
 };
 use reqwest::RequestBuilder;
 use std::{borrow::BorrowMut, sync::Arc};
@@ -25,7 +24,7 @@ impl From<TokenApiError> for DomainError {
 //unsafe impl Send for SessionManager {}
 
 impl SessionManager {
-    pub(in crate::data) fn new(api: Arc<Api>, db: ArcMutex<Db>) -> Self {
+    pub(in crate::data) fn new(api: Arc<Api>, db: Arc<Db>) -> Self {
         let _db = db.clone();
 
         let (tx, rx) = tokio::sync::watch::channel(Session::None);
@@ -48,7 +47,7 @@ impl SessionManager {
 
         self.runtime.borrow_mut().spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
             log::trace!("Fetching session from db");
-            let session = match db.lock().await.get_token() {
+            let session = match db.get_token() {
                 Ok(token) => {
                     token.map_or(Session::None, |token| Session::Authenticated(token.username))
                 }
@@ -67,7 +66,7 @@ impl SessionManager {
         let session = api.login(username.clone(), password).await?;
         log::trace!("api::Login response {:?}", session);
         let db = self.db.clone();
-        db.lock().await.set_token(username.clone(), session.access, session.refresh)?;
+        db.set_token(username.clone(), session.access, session.refresh)?;
         let session = Session::Authenticated(username);
         log::trace!("New session: {:?}", session);
         let r = self.state_mut.send(session.clone());
@@ -75,14 +74,14 @@ impl SessionManager {
         anyhow::Result::Ok(session)
     }
 
-    pub(crate) async fn logout(&mut self) -> uniffi::Result<(), DomainError> {
+    pub(crate) async fn logout(&self) -> uniffi::Result<(), DomainError> {
         let db = self.db.clone();
-        db.lock().await.del_token()?;
+        db.del_token()?;
         Ok(())
     }
 
     pub(crate) async fn decorate(&self, builder: RequestBuilder) -> RequestBuilder {
-        let db = self.db.lock().await;
+        let db = self.db.clone();
         match db.get_token() {
             Ok(session) => match session {
                 Some(token) => {

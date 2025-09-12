@@ -68,63 +68,73 @@ pub(super) trait LessonDao {
 
 impl LessonDao for Db {
     fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>> {
-        let mut statement = self.connection.prepare(
-            r#"
-            SELECT id, title, type, language1, language2, owner, updated_at
-            FROM lesson
-            ORDER BY updated_at DESC;
-            "#,
-        )?;
-        let rows = statement.query_map([], |row| LessonData::try_from(row))?;
+        let rows = self.perform(|conn| {
+            let mut stmt = conn
+                .prepare(
+                    r#"
+                    SELECT id, title, type, language1, language2, owner, updated_at
+                    FROM lesson
+                    ORDER BY updated_at DESC;
+                    "#,
+                )
+                .unwrap();
+            let rows = stmt.query_map([], |row| LessonData::try_from(row)).unwrap();
+            rows.collect::<Result<Vec<_>, _>>()
+        })?;
 
         let mut lessons = Vec::new();
         for lesson in rows {
-            lessons.push(lesson?);
+            lessons.push(lesson);
         }
-
         Ok(lessons)
     }
 
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>> {
-        self.connection
-            .query_row(
+        self.perform(|conn| {
+            conn.query_row(
                 r#"
-            SELECT id, title, type, language1, language2, owner, updated_at
-            FROM lesson WHERE id = ?;"#,
+                SELECT id, title, type, language1, language2, owner, updated_at
+                FROM lesson WHERE id = ?;
+                "#,
                 [id],
                 |row| LessonData::try_from(row),
             )
             .optional()
+        })
     }
 
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            INSERT OR REPLACE
-            INTO lesson(id, title, type, language1, language2, owner, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            "#,
-            rusqlite::params![
-                lesson.id,
-                lesson.title,
-                lesson.r#type,
-                lesson.language1,
-                lesson.language2,
-                lesson.owner,
-                lesson.updated_at
-            ],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                INSERT OR REPLACE
+                INTO lesson(id, title, type, language1, language2, owner, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                "#,
+                rusqlite::params![
+                    lesson.id,
+                    lesson.title,
+                    lesson.r#type,
+                    lesson.language1,
+                    lesson.language2,
+                    lesson.owner,
+                    lesson.updated_at
+                ],
+            )
+        })?;
         Ok(())
     }
 
     fn del_lesson(&self, id: Uuid) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            DELETE FROM lesson
-            WHERE id = ?;
-            "#,
-            rusqlite::params![id],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                DELETE FROM lesson
+                WHERE id = ?;
+                "#,
+                rusqlite::params![id],
+            )
+        })?;
         Ok(())
     }
 }

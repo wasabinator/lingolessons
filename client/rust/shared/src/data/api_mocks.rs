@@ -1,4 +1,5 @@
 use crate::data::api::PagedResponse;
+use log::debug;
 #[cfg(test)]
 use mockito::Server;
 use mockito::{Matcher, Mock};
@@ -14,11 +15,14 @@ where
     T: Clone,
     U: Clone + Serialize,
 {
+    debug!("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
     let count = entities.len();
     //let  = mock_responses(entities, with_deleted);
     let responses: Vec<Vec<U>> = if count > 0 {
+        debug!("@@@@@@@@@ base_url: {base_url}, count {count}");
         mock_responses.chunks(count / in_pages).map(|chunk| chunk.to_vec()).collect()
     } else {
+        debug!("@@@@@@@@@ base_url: {base_url}, count {count}");
         vec![Vec::new()]
     };
 

@@ -1,8 +1,5 @@
 use super::SessionManager;
-use crate::{
-    domain::{DomainError, DomainResult},
-    ArcMutex, Run,
-};
+use crate::domain::{DomainError, DomainResult};
 use concat_string::concat_string;
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
@@ -46,32 +43,26 @@ impl Api {
 
 pub(crate) struct AuthApi {
     api: Arc<Api>,
-    session_manager: ArcMutex<SessionManager>,
+    session_manager: Arc<SessionManager>,
 }
 
 impl AuthApi {
-    pub(super) fn new(api: Arc<Api>, session_manager: ArcMutex<SessionManager>) -> Self {
+    pub(super) fn new(api: Arc<Api>, session_manager: Arc<SessionManager>) -> Self {
         AuthApi { api, session_manager }
     }
 
     pub(super) async fn get(
         &self, url: String, params: Option<std::slice::Iter<'_, (String, String)>>,
     ) -> RequestBuilder {
-        log::trace!("about to obtain session manager lock to decorate the request");
-        self.session_manager
-            .launch(|manager| async move {
-                log::trace!("got session manager lock. decorating the request");
-                manager.decorate(manager.api.get(url, params.clone())).await
-            })
-            .await
+        println!("about to obtain session manager lock to decorate the request");
+        self.session_manager.decorate(self.api.get(url, params.clone())).await
     }
 
     #[allow(dead_code)]
     pub(super) async fn post(&self, url: String) -> RequestBuilder {
         let api = self.api.clone();
-        let session_manager = self.session_manager.lock().await;
 
-        session_manager.decorate(api.post(url)).await
+        self.session_manager.decorate(api.post(url)).await
     }
 }
 

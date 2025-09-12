@@ -1,4 +1,4 @@
-use std::{future::Future, time::Duration};
+use std::{future::Future, thread::sleep, time::Duration};
 use tokio::time::error::Elapsed;
 
 /// Allows an async future to get tested against an expected condition within a time threshhold.
@@ -18,6 +18,7 @@ where
             if condition(&r) {
                 return r;
             }
+            sleep(Duration::from_millis(1000));
         }
     })
     .await

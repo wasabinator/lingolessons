@@ -2,7 +2,6 @@ use super::{runtime::Runtime, DomainResult};
 use crate::{
     data::{api::Api, db::Db},
     domain::Domain,
-    ArcMutex,
 };
 use std::sync::Arc;
 use thiserror::Error;
@@ -28,7 +27,7 @@ pub(crate) struct SessionManager {
     pub(crate) state_mut: tokio::sync::watch::Sender<Session>,
     pub(crate) state: tokio::sync::watch::Receiver<Session>,
     pub(crate) api: Arc<Api>,
-    pub(crate) db: ArcMutex<Db>,
+    pub(crate) db: Arc<Db>,
 }
 
 pub trait Auth {
@@ -47,8 +46,6 @@ impl Auth for Domain {
         trace!("get_session - domain thread");
         let manager = provider.session_manager.clone();
 
-        let manager = manager.lock().await;
-        trace!("got manager");
         let session = manager.state.borrow();
         Ok(session.clone())
     }
@@ -61,7 +58,6 @@ impl Auth for Domain {
         let manager = provider.session_manager.clone();
 
         trace!("got manager");
-        let manager = manager.lock().await;
         let session = manager.login(username, password).await?;
         Ok(session)
     }
@@ -70,7 +66,6 @@ impl Auth for Domain {
         let provider = self.provider.clone();
         trace!("logout");
         let manager = provider.session_manager.clone();
-        let mut manager = manager.lock().await;
         manager.logout().await?;
         Ok(())
     }
