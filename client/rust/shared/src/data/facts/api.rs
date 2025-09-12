@@ -1,15 +1,9 @@
-use crate::data::api::AuthApi;
+use crate::data::api::{AuthApi, PagedResponse};
 use log::debug;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub(super) struct FactsResponse {
-    pub count: u16,
-    pub next: Option<String>,
-    pub previous: Option<String>,
-    pub results: Vec<FactResponse>,
-}
+type FactsResponse = PagedResponse<FactResponse>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(super) struct FactResponse {
