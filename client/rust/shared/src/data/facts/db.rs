@@ -1,4 +1,5 @@
 use crate::{data::db::Db, domain::facts::Fact};
+use rusqlite::params;
 use uuid::Uuid;
 
 #[derive(PartialEq, Clone)]
@@ -38,27 +39,42 @@ impl From<&FactData> for Fact {
 }
 
 pub(super) trait FactDao {
-    fn get_facts(&self, lesson_id: Uuid) -> rusqlite::Result<Vec<FactData>>;
+    fn get_facts(
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
+        page_size: u8,
+    ) -> rusqlite::Result<Vec<FactData>>;
     fn del_facts(&self, lesson_id: Uuid) -> rusqlite::Result<()>;
     fn set_fact(&self, fact: &FactData) -> rusqlite::Result<()>;
     fn del_fact(&self, id: Uuid) -> rusqlite::Result<()>;
 }
 
 impl FactDao for Db {
-    fn get_facts(&self, lesson_id: Uuid) -> rusqlite::Result<Vec<FactData>> {
+    fn get_facts(
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
+        page_size: u8,
+    ) -> rusqlite::Result<Vec<FactData>> {
         let rows = self.perform(|conn| {
             let mut stmt = conn
                 .prepare(
                     r#"
-                SELECT id, lesson_id, element1, element2, hint, updated_at
-                FROM fact
-                WHERE lesson_id = (?1)
-                ORDER BY updated_at DESC;
-                "#,
+                    SELECT id, lesson_id, element1, element2, hint, updated_at
+                    FROM fact
+                    WHERE lesson_id = (?1)
+                    ORDER BY updated_at DESC
+                    LIMIT ?2 OFFSET ?3;
+                    "#,
                 )
                 .unwrap();
+            let page_no: u16 = page_no as u16 + 1;
+            let page_size: u16 = page_size as u16;
             let rows = stmt
-                .query_map([lesson_id], |row| FactData::try_from(row))
+                .query_map(params![lesson_id, page_size, page_no * page_size], |row| {
+                    FactData::try_from(row)
+                })
                 .unwrap();
             rows.collect::<Result<Vec<_>, _>>()
         })?;
@@ -77,7 +93,7 @@ impl FactDao for Db {
                 DELETE FROM fact
                 WHERE lesson_id = ?;
                 "#,
-                rusqlite::params![lesson_id],
+                params![lesson_id],
             )
         })?;
         Ok(())
@@ -89,9 +105,9 @@ impl FactDao for Db {
                 r#"
                 INSERT OR REPLACE
                 INTO fact(id, lesson_id, element1, element2, hint, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?);
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6);
                 "#,
-                rusqlite::params![
+                params![
                     fact.id,
                     fact.lesson_id,
                     fact.element1,
@@ -111,7 +127,7 @@ impl FactDao for Db {
                 DELETE FROM fact
                 WHERE id = ?;
                 "#,
-                rusqlite::params![id],
+                params![id],
             )
         })?;
         Ok(())
@@ -127,7 +143,7 @@ mod tests {
     fn test_facts() {
         let db = Db::open("blah.txt".to_string()).unwrap();
 
-        let r = db.get_facts(Uuid::new_v4());
+        let r = db.get_facts(Uuid::new_v4(), 0, 10);
         assert!(r.unwrap().is_empty());
 
         let lesson_id = Uuid::new_v4();
@@ -141,7 +157,7 @@ mod tests {
         let facts = DbFixtures::create_facts(&db, lesson_id, 5);
 
         // Now fetch and compare the facts
-        let f = db.get_facts(lesson_id).unwrap();
+        let f = db.get_facts(lesson_id, 0, 10).unwrap();
         for fact in &f {
             assert!(facts.contains(fact));
         }
@@ -150,13 +166,13 @@ mod tests {
         db.del_fact(id).unwrap();
 
         // Make sure we have 4 facts left in the db
-        let facts = db.get_facts(lesson_id).unwrap();
+        let facts = db.get_facts(lesson_id, 0, 10).unwrap();
         assert_eq!(4, facts.len());
 
-        let facts = db.get_facts(lesson_id).unwrap();
+        let facts = db.get_facts(lesson_id, 0, 10).unwrap();
         assert_eq!(4, facts.len());
 
-        let facts = db.get_facts(Uuid::new_v4()).unwrap();
+        let facts = db.get_facts(Uuid::new_v4(), 0, 10).unwrap();
         assert_eq!(0, facts.len());
     }
 
@@ -165,7 +181,7 @@ mod tests {
         let lesson_id: Uuid = Uuid::new_v4();
 
         let db = Db::open("blah.txt".to_string()).unwrap();
-        let r = db.get_facts(lesson_id);
+        let r = db.get_facts(lesson_id, 0, 10);
         assert!(r.unwrap().is_empty());
 
         crate::data::lessons::db_fixtures::DbFixtures::insert_lesson(
@@ -177,12 +193,12 @@ mod tests {
         let facts = DbFixtures::create_facts(&db, lesson_id, 1);
         let fact = facts.first().unwrap();
         db.set_fact(fact).unwrap();
-        let r = db.get_facts(lesson_id);
+        let r = db.get_facts(lesson_id, 0, 10);
         assert_eq!(1, r.unwrap().len());
 
         // Should update rather than insert a duplicate
         db.set_fact(fact).unwrap();
-        let r = db.get_facts(lesson_id);
+        let r = db.get_facts(lesson_id, 0, 10);
         assert_eq!(1, r.unwrap().len());
     }
 }

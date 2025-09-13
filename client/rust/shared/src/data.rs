@@ -19,13 +19,7 @@ use crate::{
     },
 };
 use api::{Api, AuthApi};
-use lru::LruCache;
-use std::{
-    num::NonZeroUsize,
-    result::Result,
-    sync::{Arc, RwLock},
-    thread::yield_now,
-};
+use std::{result::Result, sync::Arc, thread::yield_now};
 
 pub(crate) struct DataServiceProvider {
     pub(super) session_manager: Arc<SessionManager>,
@@ -121,15 +115,12 @@ impl DataServiceProvider {
             auth_api.clone(),
             db.clone(),
             settings.clone(),
-            RwLock::new(LruCache::new(NonZeroUsize::new(8).unwrap())),
         ));
         let lesson_repository = Arc::new(LessonRepository::new(
             Runtime::new(),
             auth_api,
             db,
             settings.clone(),
-            RwLock::new(LruCache::new(NonZeroUsize::new(8).unwrap())),
-            RwLock::new(LruCache::new(NonZeroUsize::new(20).unwrap())),
         ));
 
         let service_manager = Arc::new(DataServiceManager::new(

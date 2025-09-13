@@ -4,8 +4,7 @@ use crate::{
     domain::Domain,
 };
 use chrono::{DateTime, Local};
-use lru::LruCache;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use uniffi::deps::log::trace;
 use uuid::Uuid;
 
@@ -34,14 +33,13 @@ pub(crate) struct LessonRepository {
     pub(crate) api: Arc<AuthApi>,
     pub(crate) db: Arc<Db>,
     pub(crate) settings: Arc<SettingRepository>,
-    pub(crate) page_cache: RwLock<LruCache<u8, Vec<Lesson>>>,
-    pub(crate) lesson_cache: RwLock<LruCache<Uuid, Lesson>>,
 }
 
 pub trait Lessons {
     fn get_lessons(
         &self,
         page_no: u8,
+        page_size: u8,
     ) -> impl std::future::Future<Output = DomainResult<Vec<Lesson>>> + Send;
     fn get_lesson(
         &self,
@@ -51,13 +49,13 @@ pub trait Lessons {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Lessons for Domain {
-    async fn get_lessons(&self, page_no: u8) -> DomainResult<Vec<Lesson>> {
+    async fn get_lessons(&self, page_no: u8, page_size: u8) -> DomainResult<Vec<Lesson>> {
         trace!("get_lessons");
 
         let repo = self.provider.lesson_repository.clone();
 
         trace!("About to call repository::get_lessons()");
-        let lessons = repo.get_lessons(page_no).await?;
+        let lessons = repo.get_lessons(page_no, page_size).await?;
 
         trace!("Received lessons");
         Ok(lessons)
@@ -113,7 +111,7 @@ mod tests {
 
         // We wrap this check around a timeout
         let r = await_condition(
-            || async { domain.get_lessons(0).await.unwrap().len() },
+            || async { domain.get_lessons(0, 10).await.unwrap().len() },
             |count| *count == 5,
         )
         .await;
@@ -188,7 +186,7 @@ mod tests {
             .await;
 
         let r = await_condition(
-            || async { domain.get_lessons(0).await.unwrap().len() },
+            || async { domain.get_lessons(0, 10).await.unwrap().len() },
             |count| *count == 4,
         )
         .await;
@@ -259,7 +257,7 @@ mod tests {
 
         let r = await_condition(
             || async {
-                let r = domain.get_lessons(0).await;
+                let r = domain.get_lessons(0, 10).await;
                 r.unwrap().len()
             },
             |count| *count == 2,

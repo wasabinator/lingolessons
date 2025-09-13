@@ -3,8 +3,7 @@ use crate::{
     domain::{runtime::Runtime, settings::SettingRepository, Domain, DomainResult},
 };
 use log::trace;
-use lru::LruCache;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// Fact domain model
@@ -23,7 +22,6 @@ pub(crate) struct FactRepository {
     pub(crate) api: Arc<AuthApi>,
     pub(crate) db: Arc<Db>,
     pub(crate) settings: Arc<SettingRepository>,
-    pub(crate) page_cache: RwLock<LruCache<(Uuid, u8), Vec<Fact>>>,
 }
 
 pub trait Facts {
@@ -31,6 +29,7 @@ pub trait Facts {
         &self,
         lesson_id: Uuid,
         page_no: u8,
+        page_size: u8,
     ) -> impl std::future::Future<Output = DomainResult<Vec<Fact>>> + Sync;
 
     fn stop(&self) -> impl std::future::Future<Output = ()>;
@@ -38,12 +37,17 @@ pub trait Facts {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Facts for Domain {
-    async fn get_facts(&self, lesson_id: Uuid, page_no: u8) -> DomainResult<Vec<Fact>> {
+    async fn get_facts(
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
+        page_size: u8,
+    ) -> DomainResult<Vec<Fact>> {
         trace!("get_facts");
         let facts = self
             .provider
             .fact_repository
-            .get_facts(lesson_id, page_no)
+            .get_facts(lesson_id, page_no, page_size)
             .await?;
         trace!("Received facts");
         Ok(facts)
@@ -92,7 +96,7 @@ mod tests {
 
         let r = await_condition(
             || async {
-                let r = domain.get_facts(lessons[0].id, 0).await.unwrap().len();
+                let r = domain.get_facts(lessons[0].id, 0, 10).await.unwrap().len();
                 log::debug!("facts: {r}");
                 r
             },
@@ -104,7 +108,7 @@ mod tests {
         assert_eq!(1, r.unwrap());
 
         let r = await_condition(
-            || async { domain.get_facts(lessons[4].id, 0).await.unwrap().len() },
+            || async { domain.get_facts(lessons[4].id, 0, 10).await.unwrap().len() },
             |count| *count == 5,
         )
         .await;
@@ -139,7 +143,7 @@ mod tests {
 
         let r = await_condition(
             || async {
-                let r = domain.get_facts(lesson_id, 0).await.unwrap().len();
+                let r = domain.get_facts(lesson_id, 0, 10).await.unwrap().len();
                 log::debug!("facts: {r}");
                 r
             },
@@ -175,7 +179,7 @@ mod tests {
             .login("user".to_string(), "password".to_string())
             .await;
 
-        let _ = domain.get_facts(lesson_id, 0).await;
+        let _ = domain.get_facts(lesson_id, 0, 10).await;
         let key = format!("FACTS_LAST_SYNC_TIME_{}", lesson_id);
         let settings = domain.provider.setting_repository.clone();
 
@@ -229,7 +233,7 @@ mod tests {
 
         let r = await_condition(
             || async {
-                let r = domain.get_facts(lesson_id, 0).await;
+                let r = domain.get_facts(lesson_id, 0, 10).await;
                 r.unwrap().len()
             },
             |count| *count == 5,

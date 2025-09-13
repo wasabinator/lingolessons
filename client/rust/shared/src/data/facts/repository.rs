@@ -13,8 +13,7 @@ use crate::{
         DomainError,
     },
 };
-use lru::LruCache;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use uuid::Uuid;
 
 impl From<(Uuid, FactResponse)> for FactData {
@@ -32,23 +31,18 @@ impl From<(Uuid, FactResponse)> for FactData {
     }
 }
 
-#[allow(unused)] // Implementing shortly
-const PAGE_SIZE: u8 = 20;
-
 impl FactRepository {
     pub(in crate::data) fn new(
         runtime: Runtime,
         api: Arc<AuthApi>,
         db: Arc<Db>,
         settings: Arc<SettingRepository>,
-        page_cache: RwLock<LruCache<(Uuid, u8), Vec<Fact>>>,
     ) -> Self {
         FactRepository {
             runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
-            page_cache,
         }
     }
 
@@ -103,7 +97,6 @@ impl FactRepository {
                             // If the next link is null, then we've reached the end.
                             // Set the timestamp so we'll know where to pick up from next sync
                             let key = last_sync_time_key.clone();
-                            log::debug!("!!!!!!!!!!!!!!!!! key: {key}");
                             settings.put_timestamp(key.as_str(), sync_time).await;
                             finished = true;
                         } else {
@@ -135,43 +128,13 @@ impl FactRepository {
         &self,
         lesson_id: Uuid,
         page_no: u8,
+        page_size: u8,
     ) -> anyhow::Result<Vec<Fact>, DomainError> {
         use super::db::FactDao;
 
-        log::trace!("Attempting to fetch facts from cache");
-        let mut cache = self.page_cache.write().unwrap();
-        let facts = match cache.get(&(lesson_id, page_no)) {
-            Some(facts) => {
-                log::trace!("Got facts {} from cache", facts.len());
-                facts.clone()
-            }
-            None => {
-                log::trace!(
-                    "Cache miss for page {}. Attempting to load facts from db",
-                    page_no
-                );
-                let facts = self.db.get_facts(lesson_id).unwrap();
-                log::trace!("Got facts {} from db", facts.len());
-                // Map to domain type and cache
-                let facts: Vec<Fact> = facts.iter().map(Fact::from).collect();
-                if !facts.is_empty() {
-                    log::trace!(
-                        "Caching {} facts for page {}-{}",
-                        facts.len(),
-                        lesson_id,
-                        page_no
-                    );
-                    cache.put((lesson_id, page_no), facts.clone());
-                    log::trace!(
-                        "Cached {} facts for page {}-{}",
-                        facts.len(),
-                        lesson_id,
-                        page_no
-                    );
-                }
-                facts
-            }
-        };
+        let facts = self.db.get_facts(lesson_id, page_no, page_size).unwrap();
+        log::trace!("Got facts {} from db", facts.len());
+        let facts: Vec<Fact> = facts.iter().map(Fact::from).collect();
         Ok(facts)
     }
 

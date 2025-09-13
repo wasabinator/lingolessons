@@ -10,13 +10,13 @@ import com.lingolessons.shared.Lesson
 
 class LessonsPagingSource(
     private val domain: DomainInterface,
-    private val searchText: String? = null
+    private val searchText: String? = null,
 ) : PagingSource<Int, Lesson>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> =
         try {
             val currentPage = params.key ?: 0
             val lessons: List<Lesson> =
-                domain.getLessons(currentPage.toUByte()).let {
+                domain.getLessons(currentPage.toUByte(), params.loadSize.toUByte()).let {
                     val currentSearchText = searchText
                     if (currentSearchText.isNullOrBlank()) {
                         it

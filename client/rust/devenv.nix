@@ -44,15 +44,6 @@ in
 
   git-hooks.hooks = {
     #rustfmt.enable = true;
-    clippy = {
-    #  enable = true;
-      settings = {
-        allFeatures = true;
-        offline = false;
-        denyWarnings = true;
-        extraArgs = "--all-targets";
-      };
-    };
     check-added-large-files.enable = true;
     check-json.enable = true;
     check-merge-conflicts.enable = true;

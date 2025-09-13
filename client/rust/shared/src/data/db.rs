@@ -63,9 +63,7 @@ impl Db {
 
     pub(crate) fn perform<F, U /*, Fut*/>(&self, op: F) -> U
     where
-        //U: Send,
         F: FnOnce(&MutexGuard<Connection>) -> U,
-        //Fut: std::future::Future<Output = U>,
     {
         let conn = self.connection.clone();
         let guard = conn.lock().unwrap();
