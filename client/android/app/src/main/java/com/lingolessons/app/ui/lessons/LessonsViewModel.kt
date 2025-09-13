@@ -22,8 +22,8 @@ class LessonsViewModel(
         PagingSourceFactory {
             LessonsPagingSource(
                 domain = domainState.domain,
-                searchText = text,
                 pageSize = LESSONS_PAGE_SIZE,
+                searchText = text,
             )
         }
     },

@@ -10,6 +10,7 @@ import com.lingolessons.shared.Lesson
 
 class LessonsPagingSource(
     private val domain: DomainInterface,
+    private val pageSize: Int,
     private val searchText: String? = null,
 ) : PagingSource<Int, Lesson>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Lesson> =

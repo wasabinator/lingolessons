@@ -838,6 +838,7 @@ internal interface UniffiLib : Library {
         `ptr`: Pointer,
         `lessonId`: RustBuffer.ByValue,
         `pageNo`: Byte,
+        `pageSize`: Byte,
     ): Long
 
     fun uniffi_shared_fn_method_domain_get_lesson(
@@ -848,6 +849,7 @@ internal interface UniffiLib : Library {
     fun uniffi_shared_fn_method_domain_get_lessons(
         `ptr`: Pointer,
         `pageNo`: Byte,
+        `pageSize`: Byte,
     ): Long
 
     fun uniffi_shared_fn_method_domain_get_session(
@@ -1205,7 +1207,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_shared_checksum_method_domain_get_facts() != 19367.toShort()) {
+    if (lib.uniffi_shared_checksum_method_domain_get_facts() != 45845.toShort()) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1213,7 +1215,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 63357.toShort()) {
+    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 55512.toShort()) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1628,11 +1630,15 @@ private class AndroidSystemCleanable(
 
 public interface DomainInterface {
 
-    suspend fun `getFacts`(`lessonId`: Uuid, `pageNo`: kotlin.UByte): List<Fact>
+    suspend fun `getFacts`(
+        `lessonId`: Uuid,
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Fact>
 
     suspend fun `getLesson`(`id`: Uuid): Lesson?
 
-    suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson>
+    suspend fun `getLessons`(`pageNo`: kotlin.UByte, `pageSize`: kotlin.UByte): List<Lesson>
 
     suspend fun `getSession`(): Session
 
@@ -1730,13 +1736,18 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getFacts`(`lessonId`: Uuid, `pageNo`: kotlin.UByte): List<Fact> {
+    override suspend fun `getFacts`(
+        `lessonId`: Uuid,
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Fact> {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_facts(
                     thisPtr,
                     FfiConverterTypeUuid.lower(`lessonId`),
                     FfiConverterUByte.lower(`pageNo`),
+                    FfiConverterUByte.lower(`pageSize`),
                 )
             },
             { future, callback, continuation ->
@@ -1781,12 +1792,16 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson> {
+    override suspend fun `getLessons`(
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Lesson> {
         return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lessons(
                     thisPtr,
                     FfiConverterUByte.lower(`pageNo`),
+                    FfiConverterUByte.lower(`pageSize`),
                 )
             },
             { future, callback, continuation ->
