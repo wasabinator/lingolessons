@@ -7,8 +7,13 @@ use uuid::Uuid;
 #[cfg(test)]
 pub(crate) trait FactsApiMocks {
     fn mock_facts_success(
-        &mut self, lesson_id: Uuid, facts: Vec<Fact>, with_deleted: u16, with_session: bool,
-        in_pages: usize, at_timestamp: Option<u64>,
+        &mut self,
+        lesson_id: Uuid,
+        facts: Vec<Fact>,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
+        at_timestamp: Option<u64>,
     ) -> Vec<Mock>;
 
     #[allow(unused)]
@@ -55,8 +60,13 @@ impl FactsApiMocks for Server {
     /// Facts is a list of facts to mock, this list usually is a product of calling mock_facts()
     /// The first 'with_deleted' facts will be marked as deleted (useful for testing the sync logic)
     fn mock_facts_success(
-        &mut self, lesson_id: Uuid, facts: Vec<Fact>, with_deleted: u16, with_session: bool,
-        in_pages: usize, at_timestamp: Option<u64>,
+        &mut self,
+        lesson_id: Uuid,
+        facts: Vec<Fact>,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
+        at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
         use crate::data::api_mocks::mock_api_success;
         use log::debug;

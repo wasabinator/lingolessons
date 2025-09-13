@@ -11,7 +11,11 @@ use uuid::Uuid;
 #[cfg(test)]
 pub(crate) trait LessonApiMocks {
     fn mock_lessons_success(
-        &mut self, lessons: Vec<Lesson>, with_deleted: u16, with_session: bool, in_pages: usize,
+        &mut self,
+        lessons: Vec<Lesson>,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
         at_timestamp: Option<u64>,
     ) -> Vec<Mock>;
 
@@ -79,7 +83,11 @@ impl LessonApiMocks for Server {
     /// Lessons is a list of lessons to mock, this list usually is a product of calling mock_lessons()
     /// The first 'with_deleted' lessons will be marked as deleted (useful for testing the sync logic)
     fn mock_lessons_success(
-        &mut self, lessons: Vec<Lesson>, with_deleted: u16, with_session: bool, in_pages: usize,
+        &mut self,
+        lessons: Vec<Lesson>,
+        with_deleted: u16,
+        with_session: bool,
+        in_pages: usize,
         at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
         use crate::data::api_mocks::mock_api_success;

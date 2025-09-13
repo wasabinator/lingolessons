@@ -51,7 +51,9 @@ impl Db {
 
     fn init(mut conn: Connection) -> Result<Self, DomainError> {
         match MIGRATIONS.to_latest(&mut conn) {
-            Ok(_) => Ok(Self { connection: Arc::new(Mutex::new(conn)) }),
+            Ok(_) => Ok(Self {
+                connection: Arc::new(Mutex::new(conn)),
+            }),
             Err(err) => {
                 let _ = conn.close();
                 Err(err.into())

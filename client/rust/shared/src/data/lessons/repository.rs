@@ -41,7 +41,10 @@ const PAGE_SIZE: u8 = 20;
 
 impl LessonRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime, api: Arc<AuthApi>, db: Arc<Db>, settings: Arc<SettingRepository>,
+        runtime: Runtime,
+        api: Arc<AuthApi>,
+        db: Arc<Db>,
+        settings: Arc<SettingRepository>,
         page_cache: RwLock<LruCache<u8, Vec<Lesson>>>,
         lesson_cache: RwLock<LruCache<Uuid, Lesson>>,
     ) -> Self {
@@ -111,7 +114,9 @@ impl LessonRepository {
                         if r.next.is_none() {
                             // If the next link is null, then we've reached the end.
                             // Set the timestamp so we'll know where to pick up from next sync
-                            settings.put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time).await;
+                            settings
+                                .put_timestamp(LESSONS_LAST_SYNC_TIME, sync_time)
+                                .await;
                             finished = true;
                         } else {
                             page_no += 1;
@@ -139,7 +144,8 @@ impl LessonRepository {
     }
 
     pub(crate) async fn get_lessons(
-        &self, page_no: u8,
+        &self,
+        page_no: u8,
     ) -> anyhow::Result<Vec<Lesson>, DomainError> {
         use super::db::LessonDao;
 
@@ -151,7 +157,10 @@ impl LessonRepository {
                 lessons.clone()
             }
             None => {
-                log::trace!("Cache miss for page {}. Attempting to load lessons from db", page_no);
+                log::trace!(
+                    "Cache miss for page {}. Attempting to load lessons from db",
+                    page_no
+                );
                 let lessons = self.db.get_lessons()?;
                 log::trace!("Got lessons {} from db", lessons.len());
                 // Map to domain type and cache
@@ -177,7 +186,10 @@ impl LessonRepository {
                 Some(lesson.clone())
             }
             None => {
-                log::trace!("Cache miss for lesson {}. Attempting to load lesson from db", id);
+                log::trace!(
+                    "Cache miss for lesson {}. Attempting to load lesson from db",
+                    id
+                );
                 let lesson_data = self.db.get_lesson(id)?;
                 log::trace!("Got lesson {} from db", id);
                 // Map to domain type and cache

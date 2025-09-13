@@ -8,8 +8,14 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 pub(crate) fn mock_api_success<T, U>(
-    server: &mut Server, base_url: &str, params: HashMap<String, String>, entities: Vec<T>,
-    mock_responses: Vec<U>, with_session: bool, in_pages: usize, at_timestamp: Option<u64>,
+    server: &mut Server,
+    base_url: &str,
+    params: HashMap<String, String>,
+    entities: Vec<T>,
+    mock_responses: Vec<U>,
+    with_session: bool,
+    in_pages: usize,
+    at_timestamp: Option<u64>,
 ) -> Vec<Mock>
 where
     T: Clone,
@@ -20,7 +26,10 @@ where
     //let  = mock_responses(entities, with_deleted);
     let responses: Vec<Vec<U>> = if count > 0 {
         debug!("@@@@@@@@@ base_url: {base_url}, count {count}");
-        mock_responses.chunks(count / in_pages).map(|chunk| chunk.to_vec()).collect()
+        mock_responses
+            .chunks(count / in_pages)
+            .map(|chunk| chunk.to_vec())
+            .collect()
     } else {
         debug!("@@@@@@@@@ base_url: {base_url}, count {count}");
         vec![Vec::new()]
@@ -37,10 +46,18 @@ where
                 _ => Some(format!("page={}", i - 1)),
             };
 
-            let next = if i < max { Some(format!("page={}", i + 1)) } else { None };
+            let next = if i < max {
+                Some(format!("page={}", i + 1))
+            } else {
+                None
+            };
 
-            let r =
-                PagedResponse { count: count as u16, previous, next, results: response.clone() };
+            let r = PagedResponse {
+                count: count as u16,
+                previous,
+                next,
+                results: response.clone(),
+            };
 
             let params: Vec<_> = params
                 .clone()

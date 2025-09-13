@@ -22,10 +22,14 @@ impl TokenApiMocks for Server {
     }
 
     fn mock_login_http_failure(&mut self, status_code: usize) -> Mock {
-        self.mock("POST", "/jwt/create").with_status(status_code).create()
+        self.mock("POST", "/jwt/create")
+            .with_status(status_code)
+            .create()
     }
 
     fn mock_login_other_failure(&mut self) -> Mock {
-        self.mock("POST", "/jwt/create").with_body("random text").create()
+        self.mock("POST", "/jwt/create")
+            .with_body("random text")
+            .create()
     }
 }

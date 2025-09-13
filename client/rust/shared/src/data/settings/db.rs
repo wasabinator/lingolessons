@@ -37,9 +37,11 @@ pub(super) trait SettingDao {
 impl SettingDao for Db {
     fn get(&self, key: &str) -> rusqlite::Result<Setting> {
         self.perform(|conn| {
-            conn.query_row("SELECT text, number FROM setting WHERE key = ?;", [key], |row| {
-                Setting::try_from(row)
-            })
+            conn.query_row(
+                "SELECT text, number FROM setting WHERE key = ?;",
+                [key],
+                |row| Setting::try_from(row),
+            )
         })
         .optional()
         .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))

@@ -25,7 +25,9 @@ impl Api {
     }
 
     pub(super) fn get(
-        &self, url: String, params: Option<std::slice::Iter<(String, String)>>,
+        &self,
+        url: String,
+        params: Option<std::slice::Iter<(String, String)>>,
     ) -> RequestBuilder {
         let url = concat_string!(self.base_url, url);
         let url = match params {
@@ -48,14 +50,21 @@ pub(crate) struct AuthApi {
 
 impl AuthApi {
     pub(super) fn new(api: Arc<Api>, session_manager: Arc<SessionManager>) -> Self {
-        AuthApi { api, session_manager }
+        AuthApi {
+            api,
+            session_manager,
+        }
     }
 
     pub(super) async fn get(
-        &self, url: String, params: Option<std::slice::Iter<'_, (String, String)>>,
+        &self,
+        url: String,
+        params: Option<std::slice::Iter<'_, (String, String)>>,
     ) -> RequestBuilder {
         println!("about to obtain session manager lock to decorate the request");
-        self.session_manager.decorate(self.api.get(url, params.clone())).await
+        self.session_manager
+            .decorate(self.api.get(url, params.clone()))
+            .await
     }
 
     #[allow(dead_code)]

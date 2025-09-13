@@ -48,7 +48,8 @@ static MANAGER_START_TASK: &str = "MANAGER_START_TASK";
 
 impl DataServiceManager {
     fn new(
-        session_manager: Arc<SessionManager>, lesson_repository: Arc<LessonRepository>,
+        session_manager: Arc<SessionManager>,
+        lesson_repository: Arc<LessonRepository>,
         fact_repository: Arc<FactRepository>,
     ) -> Self {
         let mut manager = DataServiceManager {
@@ -72,7 +73,8 @@ impl DataServiceManager {
     }
 
     async fn run(
-        session_manager: Arc<SessionManager>, lesson_repository: Arc<LessonRepository>,
+        session_manager: Arc<SessionManager>,
+        lesson_repository: Arc<LessonRepository>,
         fact_repository: Arc<FactRepository>,
     ) {
         log::trace!("DataServiceManager::run()");
@@ -103,7 +105,8 @@ impl DataServiceManager {
 
 impl DataServiceProvider {
     pub(crate) fn new(
-        base_url: String, data_path: String,
+        base_url: String,
+        data_path: String,
     ) -> Result<DataServiceProvider, DomainError> {
         let api = Arc::new(Api::new(base_url)?);
         let db = Arc::new(Db::open(data_path)?);

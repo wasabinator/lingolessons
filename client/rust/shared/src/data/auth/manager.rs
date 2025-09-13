@@ -45,21 +45,25 @@ impl SessionManager {
         let db = self.db.clone();
         let state_mut = self.state_mut.to_owned();
 
-        self.runtime.borrow_mut().spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
-            log::trace!("Fetching session from db");
-            let session = match db.get_token() {
-                Ok(token) => {
-                    token.map_or(Session::None, |token| Session::Authenticated(token.username))
-                }
-                Err(_) => Session::None,
-            };
-            log::trace!("Initial Session from database {:?}", session);
-            let _ = state_mut.send(session.clone());
-        });
+        self.runtime
+            .borrow_mut()
+            .spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
+                log::trace!("Fetching session from db");
+                let session = match db.get_token() {
+                    Ok(token) => token.map_or(Session::None, |token| {
+                        Session::Authenticated(token.username)
+                    }),
+                    Err(_) => Session::None,
+                };
+                log::trace!("Initial Session from database {:?}", session);
+                let _ = state_mut.send(session.clone());
+            });
     }
 
     pub(crate) async fn login(
-        &self, username: String, password: String,
+        &self,
+        username: String,
+        password: String,
     ) -> anyhow::Result<Session, DomainError> {
         log::trace!("session_manager::login()");
         let api = self.api.clone();

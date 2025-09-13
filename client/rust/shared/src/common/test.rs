@@ -26,7 +26,9 @@ where
 
 /// Parameterised version, which relieves the need to capture in the comparison closure at the call site.
 pub async fn await_condition_arg<T, F, Fut>(
-    mut op: F, arg: &T, condition: fn(&T, &T) -> bool,
+    mut op: F,
+    arg: &T,
+    condition: fn(&T, &T) -> bool,
 ) -> Result<T, Elapsed>
 where
     F: FnMut() -> Fut,

@@ -14,7 +14,9 @@ lazy_static::lazy_static! {
 
 impl Runtime {
     pub(crate) fn new() -> Self {
-        Self { tasks: RwLock::new(HashMap::new()) }
+        Self {
+            tasks: RwLock::new(HashMap::new()),
+        }
     }
 
     pub(crate) fn spawn<F>(&self, key: String, future: F)

@@ -28,7 +28,9 @@ pub(crate) struct FactRepository {
 
 pub trait Facts {
     fn get_facts(
-        &self, lesson_id: Uuid, page_no: u8,
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
     ) -> impl std::future::Future<Output = DomainResult<Vec<Fact>>> + Sync;
 
     fn stop(&self) -> impl std::future::Future<Output = ()>;
@@ -38,7 +40,11 @@ pub trait Facts {
 impl Facts for Domain {
     async fn get_facts(&self, lesson_id: Uuid, page_no: u8) -> DomainResult<Vec<Fact>> {
         trace!("get_facts");
-        let facts = self.provider.fact_repository.get_facts(lesson_id, page_no).await?;
+        let facts = self
+            .provider
+            .fact_repository
+            .get_facts(lesson_id, page_no)
+            .await?;
         trace!("Received facts");
         Ok(facts)
     }
@@ -68,15 +74,21 @@ mod tests {
     async fn test_get_facts_with_session_success() {
         let mut server = mockito::Server::new_async().await;
         let lessons = mock_lessons(5);
-        server.deref_mut().mock_lessons_success(lessons.clone(), 0, true, 1, None);
+        server
+            .deref_mut()
+            .mock_lessons_success(lessons.clone(), 0, true, 1, None);
         for i in 0..=4 {
             let id = lessons[i].id;
-            server.deref_mut().mock_facts_success(id, mock_facts(id, i + 1), 0, true, 1, None);
+            server
+                .deref_mut()
+                .mock_facts_success(id, mock_facts(id, i + 1), 0, true, 1, None);
         }
         server.deref_mut().mock_login_success();
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
-        let _ = domain.login("user".to_string(), "password".to_string()).await;
+        let _ = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
 
         let r = await_condition(
             || async {
@@ -107,7 +119,9 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
         let lessons = mock_lessons(1);
-        server.deref_mut().mock_lessons_success(lessons.clone(), 0, true, 1, None);
+        server
+            .deref_mut()
+            .mock_lessons_success(lessons.clone(), 0, true, 1, None);
         let lesson_id = lessons[0].id;
         server.deref_mut().mock_facts_success(
             lesson_id,
@@ -119,7 +133,9 @@ mod tests {
         );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
-        let _ = domain.login("user".to_string(), "password".to_string()).await;
+        let _ = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
 
         let r = await_condition(
             || async {
@@ -141,7 +157,9 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
         let lessons = mock_lessons(1);
-        server.deref_mut().mock_lessons_success(lessons.clone(), 0, true, 1, None);
+        server
+            .deref_mut()
+            .mock_lessons_success(lessons.clone(), 0, true, 1, None);
         let lesson_id = lessons[0].id;
         server.deref_mut().mock_facts_success(
             lesson_id,
@@ -153,7 +171,9 @@ mod tests {
         );
 
         let domain = fake_domain(server.url() + "/").await.unwrap();
-        let _ = domain.login("user".to_string(), "password".to_string()).await;
+        let _ = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
 
         let _ = domain.get_facts(lesson_id, 0).await;
         let key = format!("FACTS_LAST_SYNC_TIME_{}", lesson_id);
@@ -183,7 +203,9 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         server.deref_mut().mock_login_success();
         let lessons = mock_lessons(1);
-        server.deref_mut().mock_lessons_success(lessons.clone(), 0, true, 1, None);
+        server
+            .deref_mut()
+            .mock_lessons_success(lessons.clone(), 0, true, 1, None);
         let lesson_id = lessons[0].id;
         server.deref_mut().mock_facts_success(
             lesson_id,
@@ -201,7 +223,9 @@ mod tests {
         let key = format!("FACTS_LAST_SYNC_TIME_{lesson_id}");
         settings.put_timestamp(&key, 1337).await;
 
-        let _ = domain.login("user".to_string(), "password".to_string()).await;
+        let _ = domain
+            .login("user".to_string(), "password".to_string())
+            .await;
 
         let r = await_condition(
             || async {

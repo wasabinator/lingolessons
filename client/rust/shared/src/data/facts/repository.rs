@@ -37,7 +37,10 @@ const PAGE_SIZE: u8 = 20;
 
 impl FactRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime, api: Arc<AuthApi>, db: Arc<Db>, settings: Arc<SettingRepository>,
+        runtime: Runtime,
+        api: Arc<AuthApi>,
+        db: Arc<Db>,
+        settings: Arc<SettingRepository>,
         page_cache: RwLock<LruCache<(Uuid, u8), Vec<Fact>>>,
     ) -> Self {
         FactRepository {
@@ -72,7 +75,11 @@ impl FactRepository {
 
             'sync: while !finished {
                 // Try to fetch from the server
-                log::info!("Attempting to fetch facts from api for {}-{}", lesson_id, page_no);
+                log::info!(
+                    "Attempting to fetch facts from api for {}-{}",
+                    lesson_id,
+                    page_no
+                );
                 let response = api.get_facts(lesson_id, page_no, last_sync_time).await;
                 log::info!("Got response from api {:?}", response);
 
@@ -125,7 +132,9 @@ impl FactRepository {
     }
 
     pub(crate) async fn get_facts(
-        &self, lesson_id: Uuid, page_no: u8,
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
     ) -> anyhow::Result<Vec<Fact>, DomainError> {
         use super::db::FactDao;
 
@@ -137,15 +146,28 @@ impl FactRepository {
                 facts.clone()
             }
             None => {
-                log::trace!("Cache miss for page {}. Attempting to load facts from db", page_no);
+                log::trace!(
+                    "Cache miss for page {}. Attempting to load facts from db",
+                    page_no
+                );
                 let facts = self.db.get_facts(lesson_id).unwrap();
                 log::trace!("Got facts {} from db", facts.len());
                 // Map to domain type and cache
                 let facts: Vec<Fact> = facts.iter().map(Fact::from).collect();
                 if !facts.is_empty() {
-                    log::trace!("Caching {} facts for page {}-{}", facts.len(), lesson_id, page_no);
+                    log::trace!(
+                        "Caching {} facts for page {}-{}",
+                        facts.len(),
+                        lesson_id,
+                        page_no
+                    );
                     cache.put((lesson_id, page_no), facts.clone());
-                    log::trace!("Cached {} facts for page {}-{}", facts.len(), lesson_id, page_no);
+                    log::trace!(
+                        "Cached {} facts for page {}-{}",
+                        facts.len(),
+                        lesson_id,
+                        page_no
+                    );
                 }
                 facts
             }

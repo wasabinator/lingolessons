@@ -57,7 +57,9 @@ impl FactDao for Db {
                 "#,
                 )
                 .unwrap();
-            let rows = stmt.query_map([lesson_id], |row| FactData::try_from(row)).unwrap();
+            let rows = stmt
+                .query_map([lesson_id], |row| FactData::try_from(row))
+                .unwrap();
             rows.collect::<Result<Vec<_>, _>>()
         })?;
 

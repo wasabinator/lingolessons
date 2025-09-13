@@ -14,7 +14,10 @@ pub(super) struct Token {
 pub(super) trait TokenDao {
     fn get_token(&self) -> rusqlite::Result<Option<Token>>;
     fn set_token(
-        &self, username: String, auth_token: String, refresh_token: String,
+        &self,
+        username: String,
+        auth_token: String,
+        refresh_token: String,
     ) -> rusqlite::Result<()>;
     fn del_token(&self) -> rusqlite::Result<()>;
 }
@@ -38,7 +41,10 @@ impl TokenDao for Db {
     }
 
     fn set_token(
-        &self, username: String, auth_token: String, refresh_token: String,
+        &self,
+        username: String,
+        auth_token: String,
+        refresh_token: String,
     ) -> rusqlite::Result<()> {
         self.perform(|conn| conn.execute(
             "INSERT OR REPLACE INTO token(id, username, authToken, refreshToken) VALUES (1, ?, ?, ?);",
@@ -62,13 +68,21 @@ mod tests {
         let db = Db::open("blah.txt".to_string()).unwrap();
         let r = db.get_token();
         assert!(r.unwrap().is_none());
-        let r = db.set_token("user1".to_string(), "token1".to_string(), "refresh1".to_string());
+        let r = db.set_token(
+            "user1".to_string(),
+            "token1".to_string(),
+            "refresh1".to_string(),
+        );
         assert!(r.is_ok());
         let r = db.get_token();
         assert!(r.unwrap().is_some_and(|x| x.username == "user1"
             && x.auth_token == "token1"
             && x.refresh_token == "refresh1"));
-        let r = db.set_token("user2".to_string(), "token2".to_string(), "refresh2".to_string());
+        let r = db.set_token(
+            "user2".to_string(),
+            "token2".to_string(),
+            "refresh2".to_string(),
+        );
         assert!(r.is_ok());
         let r = db.get_token();
         assert!(r.unwrap().is_some_and(|x| x.username == "user2"

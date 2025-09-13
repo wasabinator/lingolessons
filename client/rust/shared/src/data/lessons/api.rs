@@ -18,7 +18,9 @@ pub(super) struct LessonResponse {
 
 pub(super) trait LessonsApi {
     async fn get_lessons(
-        &self, page_no: u8, updated_after: Option<u64>,
+        &self,
+        page_no: u8,
+        updated_after: Option<u64>,
     ) -> reqwest::Result<LessonsResponse>;
 }
 
@@ -26,7 +28,9 @@ const LESSONS_URL: &str = "lessons";
 
 impl LessonsApi for AuthApi {
     async fn get_lessons(
-        &self, page_no: u8, updated_after: Option<u64>,
+        &self,
+        page_no: u8,
+        updated_after: Option<u64>,
     ) -> reqwest::Result<LessonsResponse> {
         let mut params: Vec<(String, String)> = Vec::new();
         params.push(("page_no".to_string(), (page_no + 1).to_string())); // Api is 1 based

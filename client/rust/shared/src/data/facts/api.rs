@@ -17,7 +17,10 @@ pub(super) struct FactResponse {
 
 pub(super) trait FactsApi {
     async fn get_facts(
-        &self, lesson_id: Uuid, page_no: u8, updated_after: Option<u64>,
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
+        updated_after: Option<u64>,
     ) -> reqwest::Result<FactsResponse>;
 }
 
@@ -25,7 +28,10 @@ const FACTS_URL: &str = "facts";
 
 impl FactsApi for AuthApi {
     async fn get_facts(
-        &self, lesson_id: Uuid, page_no: u8, updated_after: Option<u64>,
+        &self,
+        lesson_id: Uuid,
+        page_no: u8,
+        updated_after: Option<u64>,
     ) -> reqwest::Result<FactsResponse> {
         let mut params: Vec<(String, String)> = Vec::new();
         debug!("!!!!!!!!!!!!!!!!!!!! lesson_id: {lesson_id}, page_no: {page_no}");
