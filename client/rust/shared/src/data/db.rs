@@ -61,7 +61,7 @@ impl Db {
         }
     }
 
-    pub(crate) fn perform<F, U /*, Fut*/>(&self, op: F) -> U
+    pub(crate) fn perform<F, U>(&self, op: F) -> U
     where
         F: FnOnce(&MutexGuard<Connection>) -> U,
     {

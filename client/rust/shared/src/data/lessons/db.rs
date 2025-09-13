@@ -79,8 +79,7 @@ impl LessonDao for Db {
                     "#,
                 )
                 .unwrap();
-            let page_no: u16 = page_no as u16 + 1;
-            log::debug!("*********************** page_no: {page_no}");
+            let page_no: u16 = page_no as u16;
             let page_size: u16 = page_size as u16;
             let rows = stmt
                 .query_map(params![page_size, page_no * page_size], |row| {

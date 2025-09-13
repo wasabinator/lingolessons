@@ -9,6 +9,7 @@ pub(in crate::data) struct DbFixtures {}
 
 impl DbFixtures {
     pub(super) fn create_facts(db: &Db, lesson_id: Uuid, count: u16) -> Vec<FactData> {
+        println!("create facts");
         let epoc_time = Utc::now().timestamp();
 
         let facts: Vec<FactData> = (0..count)
@@ -22,7 +23,9 @@ impl DbFixtures {
             })
             .collect();
 
+        println!("create facts: {}", facts.len());
         for fact in facts.clone() {
+            println!("set facts");
             db.set_fact(&fact).unwrap();
         }
 

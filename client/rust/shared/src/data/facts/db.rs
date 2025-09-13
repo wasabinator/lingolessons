@@ -63,19 +63,18 @@ impl FactDao for Db {
                     r#"
                     SELECT id, lesson_id, element1, element2, hint, updated_at
                     FROM fact
-                    WHERE lesson_id = (?1)
+                    WHERE lesson_id = ?1
                     ORDER BY updated_at DESC
                     LIMIT ?2 OFFSET ?3;
                     "#,
                 )
                 .unwrap();
-            let page_no: u16 = page_no as u16 + 1;
+            let page_no: u16 = page_no as u16;
             let page_size: u16 = page_size as u16;
             let rows = stmt
                 .query_map(params![lesson_id, page_size, page_no * page_size], |row| {
                     FactData::try_from(row)
-                })
-                .unwrap();
+                })?;
             rows.collect::<Result<Vec<_>, _>>()
         })?;
 
@@ -191,12 +190,11 @@ mod tests {
         );
 
         let facts = DbFixtures::create_facts(&db, lesson_id, 1);
-        let fact = facts.first().unwrap();
-        db.set_fact(fact).unwrap();
         let r = db.get_facts(lesson_id, 0, 10);
         assert_eq!(1, r.unwrap().len());
 
         // Should update rather than insert a duplicate
+        let fact = &facts[0];
         db.set_fact(fact).unwrap();
         let r = db.get_facts(lesson_id, 0, 10);
         assert_eq!(1, r.unwrap().len());
