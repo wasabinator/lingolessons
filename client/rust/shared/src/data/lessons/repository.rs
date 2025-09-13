@@ -142,7 +142,7 @@ impl LessonRepository {
         trace!("Got lessons {} from db", lessons.len());
 
         // Map to domain type
-        let lessons: Vec<Lesson> = lessons.iter().map(|lesson| Lesson::from(lesson)).collect();
+        let lessons: Vec<Lesson> = lessons.iter().map(Lesson::from).collect();
 
         Ok(lessons)
     }
