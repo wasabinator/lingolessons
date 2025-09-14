@@ -70,6 +70,7 @@ mod tests {
         },
         domain::{auth::Auth, fake_domain},
     };
+    use log::debug;
     use serial_test::serial;
     use std::ops::DerefMut;
 
@@ -97,7 +98,7 @@ mod tests {
         let r = await_condition(
             || async {
                 let r = domain.get_facts(lessons[0].id, 0, 10).await.unwrap().len();
-                log::debug!("facts: {r}");
+                debug!("facts: {r}");
                 r
             },
             |count| *count == 1,
@@ -144,7 +145,7 @@ mod tests {
         let r = await_condition(
             || async {
                 let r = domain.get_facts(lesson_id, 0, 10).await.unwrap().len();
-                log::debug!("facts: {r}");
+                debug!("facts: {r}");
                 r
             },
             |count| *count == 3, // 5 facts, 2 deleted
@@ -187,9 +188,9 @@ mod tests {
             || async {
                 let r = settings.get_timestamp(&key).await;
                 if r.is_none() {
-                    log::debug!("r: none");
+                    debug!("r: none");
                 } else {
-                    log::debug!("r: {}", r.unwrap());
+                    debug!("r: {}", r.unwrap());
                 }
                 r
             },

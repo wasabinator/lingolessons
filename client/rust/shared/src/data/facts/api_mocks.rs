@@ -69,10 +69,8 @@ impl FactsApiMocks for Server {
         at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
         use crate::data::api_mocks::mock_api_success;
-        use log::debug;
         use std::collections::HashMap;
 
-        debug!("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         let mock_responses = mock_fact_responses(&facts, with_deleted);
         return mock_api_success(
             self,

@@ -1,5 +1,6 @@
 use crate::data::db::Db;
-use rusqlite::OptionalExtension;
+use log::error;
+use rusqlite::{params, OptionalExtension};
 
 /**
  * Setting
@@ -22,7 +23,7 @@ impl TryFrom<&rusqlite::Row<'_>> for Setting {
         } else if let Some(str) = text {
             Setting::Text(str)
         } else {
-            log::error!("Illegal setting type, passing empty");
+            error!("Illegal setting type, passing empty");
             Setting::None
         })
     }
@@ -50,13 +51,13 @@ impl SettingDao for Db {
     fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()> {
         let params = match value {
             Setting::Text(text) => {
-                rusqlite::params![key, text.to_owned(), Option::<u64>::None]
+                params![key, text.to_owned(), Option::<u64>::None]
             }
             Setting::Number(number) => {
-                rusqlite::params![key, Option::<String>::None, number.to_owned()]
+                params![key, Option::<String>::None, number.to_owned()]
             }
             _ => {
-                rusqlite::params![key, Option::<String>::None, Option::<u64>::None]
+                params![key, Option::<String>::None, Option::<u64>::None]
             }
         };
 

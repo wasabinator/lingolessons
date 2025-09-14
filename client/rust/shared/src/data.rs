@@ -19,6 +19,7 @@ use crate::{
     },
 };
 use api::{Api, AuthApi};
+use log::trace;
 use std::{result::Result, sync::Arc, thread::yield_now};
 
 pub(crate) struct DataServiceProvider {
@@ -71,27 +72,27 @@ impl DataServiceManager {
         lesson_repository: Arc<LessonRepository>,
         fact_repository: Arc<FactRepository>,
     ) {
-        log::trace!("DataServiceManager::run()");
+        trace!("DataServiceManager::run()");
         let mut state = session_manager.state.clone();
 
-        log::trace!("Beginning state change await loop");
+        trace!("Beginning state change await loop");
         while state.changed().await.is_ok() {
-            log::trace!("Received state change from session repo");
+            trace!("Received state change from session repo");
 
             let session = state.borrow().clone();
             let lesson_repo = lesson_repository.clone();
             let fact_repo = fact_repository.clone();
 
             if let Session::Authenticated(_) = session {
-                log::trace!("Session Started - Stopping repos...");
+                trace!("Session Started - Stopping repos...");
                 lesson_repo.start(fact_repo);
             } else {
-                log::trace!("Session Ended - Stopping repos...");
+                trace!("Session Ended - Stopping repos...");
                 lesson_repo.stop();
                 fact_repo.stop();
             }
 
-            log::trace!("Finished state loop, yielding then repeating");
+            trace!("Finished state loop, yielding then repeating");
             yield_now(); // Not strictly necessity as the while loop await will yield anyway
         }
     }

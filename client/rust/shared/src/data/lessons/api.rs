@@ -1,4 +1,5 @@
 use crate::data::api::{AuthApi, PagedResponse};
+use log::trace;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -35,7 +36,7 @@ impl LessonsApi for AuthApi {
         let mut params: Vec<(String, String)> = Vec::new();
         params.push(("page_no".to_string(), (page_no + 1).to_string())); // Api is 1 based
         if let Some(updated_after) = updated_after {
-            log::trace!("Adding header param {}", &updated_after.to_string());
+            trace!("Adding header param {}", &updated_after.to_string());
             params.push(("since".to_string(), updated_after.to_string()));
         }
         let iter = params.iter();

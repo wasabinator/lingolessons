@@ -43,7 +43,10 @@ in
   };
 
   git-hooks.hooks = {
-    #rustfmt.enable = true;
+    rustfmt = {
+      #enable = true;
+      settings.files-with-diff = true;
+    };
     check-added-large-files.enable = true;
     check-json.enable = true;
     check-merge-conflicts.enable = true;

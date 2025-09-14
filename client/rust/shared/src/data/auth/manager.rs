@@ -6,6 +6,7 @@ use crate::{
         DomainError,
     },
 };
+use log::{error, trace};
 use reqwest::RequestBuilder;
 use std::{borrow::BorrowMut, sync::Arc};
 
@@ -19,9 +20,6 @@ impl From<TokenApiError> for DomainError {
         }
     }
 }
-
-// All branches into session manager arrive via the domain thread
-//unsafe impl Send for SessionManager {}
 
 impl SessionManager {
     pub(in crate::data) fn new(api: Arc<Api>, db: Arc<Db>) -> Self {
@@ -41,21 +39,21 @@ impl SessionManager {
     }
 
     fn start(&mut self) {
-        log::trace!("Starting session manager");
+        trace!("Starting session manager");
         let db = self.db.clone();
         let state_mut = self.state_mut.to_owned();
 
         self.runtime
             .borrow_mut()
             .spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
-                log::trace!("Fetching session from db");
+                trace!("Fetching session from db");
                 let session = match db.get_token() {
                     Ok(token) => token.map_or(Session::None, |token| {
                         Session::Authenticated(token.username)
                     }),
                     Err(_) => Session::None,
                 };
-                log::trace!("Initial Session from database {:?}", session);
+                trace!("Initial Session from database {:?}", session);
                 let _ = state_mut.send(session.clone());
             });
     }
@@ -65,16 +63,16 @@ impl SessionManager {
         username: String,
         password: String,
     ) -> anyhow::Result<Session, DomainError> {
-        log::trace!("session_manager::login()");
+        trace!("session_manager::login()");
         let api = self.api.clone();
         let session = api.login(username.clone(), password).await?;
-        log::trace!("api::Login response {:?}", session);
+        trace!("api::Login response {:?}", session);
         let db = self.db.clone();
         db.set_token(username.clone(), session.access, session.refresh)?;
         let session = Session::Authenticated(username);
-        log::trace!("New session: {:?}", session);
+        trace!("New session: {:?}", session);
         let r = self.state_mut.send(session.clone());
-        log::trace!("rc: {:?}", r);
+        trace!("rc: {:?}", r);
         anyhow::Result::Ok(session)
     }
 
@@ -90,13 +88,13 @@ impl SessionManager {
             Ok(session) => match session {
                 Some(token) => {
                     #[cfg(test)]
-                    log::trace!("Using test session token: {}", token.auth_token);
+                    trace!("Using test session token: {}", token.auth_token);
                     builder.bearer_auth(token.auth_token)
                 }
                 None => builder,
             },
             Err(e) => {
-                log::error!("{:?}", e);
+                error!("{:?}", e);
                 builder
             }
         }

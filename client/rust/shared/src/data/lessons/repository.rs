@@ -35,9 +35,6 @@ impl From<LessonResponse> for LessonData {
 static LESSONS_REFRESH_TASK: &str = "LESSONS_REFRESH_TASK";
 static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
 
-#[allow(unused)] // Implementing shortly
-const PAGE_SIZE: u8 = 20;
-
 impl LessonRepository {
     pub(in crate::data) fn new(
         runtime: Runtime,

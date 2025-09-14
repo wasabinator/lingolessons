@@ -13,6 +13,7 @@ use crate::{
         DomainError,
     },
 };
+use log::{debug, error, info, trace};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -47,17 +48,17 @@ impl FactRepository {
     }
 
     pub(in crate::data) fn refresh(&self, lesson_id: Uuid) {
-        log::trace!("fact_repo::refresh");
+        trace!("fact_repo::refresh");
 
         let api = self.api.clone();
         let db = self.db.clone();
         let settings = self.settings.clone();
-        log::trace!("fact_repo - spawning refresh task");
+        trace!("fact_repo - spawning refresh task");
 
         let refresh_task_key = format!("FACTS_REFRESH_TASK_{lesson_id}");
-        log::trace!("Refresh task key: {refresh_task_key}");
+        trace!("Refresh task key: {refresh_task_key}");
         self.runtime.spawn(refresh_task_key, async move {
-            log::info!("fact_repo - refresh task started for lesson: {lesson_id}");
+            info!("fact_repo - refresh task started for lesson: {lesson_id}");
 
             let sync_time = UnixTimestamp::now();
             let last_sync_time_key = format!("FACTS_LAST_SYNC_TIME_{lesson_id}");
@@ -69,13 +70,12 @@ impl FactRepository {
 
             'sync: while !finished {
                 // Try to fetch from the server
-                log::info!(
+                info!(
                     "Attempting to fetch facts from api for {}-{}",
-                    lesson_id,
-                    page_no
+                    lesson_id, page_no
                 );
                 let response = api.get_facts(lesson_id, page_no, last_sync_time).await;
-                log::info!("Got response from api {:?}", response);
+                info!("Got response from api {:?}", response);
 
                 match response {
                     Ok(r) => {
@@ -86,9 +86,9 @@ impl FactRepository {
                                 let data = FactData::from((lesson_id, fact));
                                 let r = db.set_fact(&data);
                                 if r.is_err() {
-                                    log::trace!("could not save fact");
+                                    trace!("could not save fact");
                                 } else {
-                                    log::trace!("saved fact");
+                                    trace!("saved fact");
                                 }
                             }
                         }
@@ -104,7 +104,7 @@ impl FactRepository {
                         }
                     }
                     Err(e) => {
-                        log::error!(
+                        error!(
                             "Failed to fetch facts for {lesson_id}-{}. Exiting sync: {:?}",
                             page_no + 1,
                             e
@@ -112,15 +112,15 @@ impl FactRepository {
                         break 'sync;
                     }
                 };
-                log::debug!("fact_repo - refresh task completed");
+                debug!("fact_repo - refresh task completed");
             }
         });
 
-        log::trace!("fact_repo::start finished");
+        trace!("fact_repo::start finished");
     }
 
     pub(crate) fn stop(&self) {
-        log::trace!("lesson_repo::stop");
+        trace!("lesson_repo::stop");
         self.runtime.abort();
     }
 
@@ -133,7 +133,7 @@ impl FactRepository {
         use super::db::FactDao;
 
         let facts = self.db.get_facts(lesson_id, page_no, page_size).unwrap();
-        log::trace!("Got facts {} from db", facts.len());
+        trace!("Got facts {} from db", facts.len());
         let facts: Vec<Fact> = facts.iter().map(Fact::from).collect();
         Ok(facts)
     }

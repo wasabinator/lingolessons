@@ -91,10 +91,8 @@ impl LessonApiMocks for Server {
         at_timestamp: Option<u64>,
     ) -> Vec<Mock> {
         use crate::data::api_mocks::mock_api_success;
-        use log::debug;
         use std::collections::HashMap;
 
-        debug!("[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[");
         let mock_responses = mock_lesson_responses(&lessons, with_deleted);
         return mock_api_success(
             self,
