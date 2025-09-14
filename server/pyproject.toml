@@ -17,7 +17,7 @@ dependencies = [
     "django-tailwind==3.8.0",
     "django-templated-mail==1.1.1",
     "djangorestframework==3.15.2",
-    "djangorestframework-simplejwt==5.4.0",
+    "djangorestframework-simplejwt==5.5.1",
     "djoser==2.3.0",
     "drf-yasg==1.21.7",
     "emoji==2.12.1",
