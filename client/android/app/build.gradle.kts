@@ -108,10 +108,15 @@ kotlin {
     }
 }
 
+interface InjectedExecOps {
+    @get:Inject val execOps: ExecOperations
+}
+
 // Generation tasks for building the shared Rust lib plus bindings to interact with it
 tasks.register("generateUniFFIBindings") {
+    val injected = project.objects.newInstance<InjectedExecOps>()
     doLast {
-        exec {
+        injected.execOps.exec {
             this.workingDir("../../rust")
             this.executable("./make_android.sh")
             this.args("if_not_exists")

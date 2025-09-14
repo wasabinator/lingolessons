@@ -1,39 +1,41 @@
 use crate::data::api::{AuthApi, PagedResponse};
-use log::trace;
+use log::{debug, trace};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-type LessonsResponse = PagedResponse<LessonResponse>;
+type FactsResponse = PagedResponse<FactResponse>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub(super) struct LessonResponse {
+pub(super) struct FactResponse {
     pub id: Uuid,
-    pub title: String,
-    pub r#type: u8,
-    pub language1: String,
-    pub language2: String,
-    pub owner: String,
+    pub element1: String,
+    pub element2: String,
+    pub hint: String,
     pub is_deleted: bool,
     pub updated_at: i64,
 }
 
-pub(super) trait LessonsApi {
-    async fn get_lessons(
+pub(super) trait FactsApi {
+    async fn get_facts(
         &self,
+        lesson_id: Uuid,
         page_no: u8,
         updated_after: Option<u64>,
-    ) -> reqwest::Result<LessonsResponse>;
+    ) -> reqwest::Result<FactsResponse>;
 }
 
-const LESSONS_URL: &str = "lessons";
+const FACTS_URL: &str = "facts";
 
-impl LessonsApi for AuthApi {
-    async fn get_lessons(
+impl FactsApi for AuthApi {
+    async fn get_facts(
         &self,
+        lesson_id: Uuid,
         page_no: u8,
         updated_after: Option<u64>,
-    ) -> reqwest::Result<LessonsResponse> {
+    ) -> reqwest::Result<FactsResponse> {
         let mut params: Vec<(String, String)> = Vec::new();
+        debug!("lesson_id: {lesson_id}, page_no: {page_no}");
+        params.push(("lesson_id".to_string(), lesson_id.to_string()));
         params.push(("page_no".to_string(), (page_no + 1).to_string())); // Api is 1 based
         if let Some(updated_after) = updated_after {
             trace!("Adding header param {}", &updated_after.to_string());
@@ -41,11 +43,11 @@ impl LessonsApi for AuthApi {
         }
         let iter = params.iter();
         let r = self
-            .get(LESSONS_URL.to_string(), Some(iter))
+            .get(FACTS_URL.to_string(), Some(iter))
             .await
             .send()
             .await?
-            .json::<LessonsResponse>()
+            .json::<FactsResponse>()
             .await?;
         Ok(r)
     }

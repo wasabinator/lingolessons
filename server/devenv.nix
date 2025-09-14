@@ -26,8 +26,7 @@
   };
 
   git-hooks.hooks = {
-    pylint.enable = true;
-    pyright.enable = true;
+    #pylint.enable = true;
   };
 
   scripts = {

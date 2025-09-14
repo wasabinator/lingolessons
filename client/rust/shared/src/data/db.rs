@@ -3,6 +3,7 @@ use include_dir::{include_dir, Dir};
 use lazy_static::lazy_static;
 use rusqlite::Connection;
 use rusqlite_migration::Migrations;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 static MIGRATIONS_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/data/db/migrations");
 
@@ -14,7 +15,7 @@ lazy_static! {
 /// Represents a data, which owns a connection
 /// Capabilities are added to the Db via traits per feature
 pub(crate) struct Db {
-    pub(super) connection: Connection,
+    connection: Arc<Mutex<Connection>>,
 }
 
 /// Mapper from a rusqlite error to domain error
@@ -50,12 +51,23 @@ impl Db {
 
     fn init(mut conn: Connection) -> Result<Self, DomainError> {
         match MIGRATIONS.to_latest(&mut conn) {
-            Ok(_) => Ok(Self { connection: conn }),
+            Ok(_) => Ok(Self {
+                connection: Arc::new(Mutex::new(conn)),
+            }),
             Err(err) => {
                 let _ = conn.close();
                 Err(err.into())
             }
         }
+    }
+
+    pub(crate) fn perform<F, U>(&self, op: F) -> U
+    where
+        F: FnOnce(&MutexGuard<Connection>) -> U,
+    {
+        let conn = self.connection.clone();
+        let guard = conn.lock().unwrap();
+        op(&guard)
     }
 }
 

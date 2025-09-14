@@ -14,15 +14,18 @@ pub(super) struct Token {
 pub(super) trait TokenDao {
     fn get_token(&self) -> rusqlite::Result<Option<Token>>;
     fn set_token(
-        &self, username: String, auth_token: String, refresh_token: String,
+        &self,
+        username: String,
+        auth_token: String,
+        refresh_token: String,
     ) -> rusqlite::Result<()>;
     fn del_token(&self) -> rusqlite::Result<()>;
 }
 
 impl TokenDao for Db {
     fn get_token(&self) -> rusqlite::Result<Option<Token>> {
-        self.connection
-            .query_row(
+        self.perform(|conn| {
+            conn.query_row(
                 "SELECT username, authToken, refreshToken FROM token WHERE id = 1;",
                 [],
                 |row| {
@@ -34,20 +37,24 @@ impl TokenDao for Db {
                 },
             )
             .optional()
+        })
     }
 
     fn set_token(
-        &self, username: String, auth_token: String, refresh_token: String,
+        &self,
+        username: String,
+        auth_token: String,
+        refresh_token: String,
     ) -> rusqlite::Result<()> {
-        self.connection.execute(
+        self.perform(|conn| conn.execute(
             "INSERT OR REPLACE INTO token(id, username, authToken, refreshToken) VALUES (1, ?, ?, ?);",
             rusqlite::params![username, auth_token, refresh_token]
-        )?;
+        ))?;
         Ok(())
     }
 
     fn del_token(&self) -> rusqlite::Result<()> {
-        self.connection.execute("DELETE FROM token;", [])?;
+        self.perform(|conn| conn.execute("DELETE FROM token;", []))?;
         Ok(())
     }
 }
@@ -61,13 +68,21 @@ mod tests {
         let db = Db::open("blah.txt".to_string()).unwrap();
         let r = db.get_token();
         assert!(r.unwrap().is_none());
-        let r = db.set_token("user1".to_string(), "token1".to_string(), "refresh1".to_string());
+        let r = db.set_token(
+            "user1".to_string(),
+            "token1".to_string(),
+            "refresh1".to_string(),
+        );
         assert!(r.is_ok());
         let r = db.get_token();
         assert!(r.unwrap().is_some_and(|x| x.username == "user1"
             && x.auth_token == "token1"
             && x.refresh_token == "refresh1"));
-        let r = db.set_token("user2".to_string(), "token2".to_string(), "refresh2".to_string());
+        let r = db.set_token(
+            "user2".to_string(),
+            "token2".to_string(),
+            "refresh2".to_string(),
+        );
         assert!(r.is_ok());
         let r = db.get_token();
         assert!(r.unwrap().is_some_and(|x| x.username == "user2"

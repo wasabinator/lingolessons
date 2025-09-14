@@ -1,5 +1,6 @@
-use crate::{data::db::Db, ArcMutex};
+use crate::data::db::Db;
+use std::sync::Arc;
 
 pub(crate) struct SettingRepository {
-    pub(crate) db: ArcMutex<Db>,
+    pub(crate) db: Arc<Db>,
 }

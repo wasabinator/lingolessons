@@ -13,16 +13,21 @@ import com.lingolessons.app.ui.lessons.LessonsViewModel.ScreenData
 import com.lingolessons.shared.Lesson
 import kotlinx.coroutines.flow.Flow
 
+private const val LESSONS_PAGE_SIZE = 50
+private const val MAX_PAGE_CACHE = 10
+
 class LessonsViewModel(
     domainState: DomainState,
     private val pagingSourceFactory: (String) -> PagingSourceFactory<Int, Lesson> = { text ->
-        PagingSourceFactory { LessonsPagingSource(domain = domainState.domain, searchText = text) }
-    }
-) :
-    DomainStateViewModel<ScreenData>(
-        domainState = domainState,
-        initData = ScreenData(),
-    ) {
+        PagingSourceFactory {
+            LessonsPagingSource(
+                domain = domainState.domain,
+                pageSize = LESSONS_PAGE_SIZE,
+                searchText = text,
+            )
+        }
+    },
+) : DomainStateViewModel<ScreenData>(domainState = domainState, initData = ScreenData()) {
     init {
         updateData { it.copy(lessons = initPager()) }
     }
@@ -31,11 +36,8 @@ class LessonsViewModel(
         Pager(
                 config =
                     PagingConfig(
-                        pageSize = -1, // Not used
-                        initialLoadSize = 1, // Not used
-                        prefetchDistance = 0, // Only when requested
-                        maxSize = 50,
-                        enablePlaceholders = true,
+                        pageSize = LESSONS_PAGE_SIZE,
+                        maxSize = MAX_PAGE_CACHE * LESSONS_PAGE_SIZE,
                     ),
                 initialKey = 0,
                 pagingSourceFactory = pagingSourceFactory(text),

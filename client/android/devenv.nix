@@ -37,6 +37,7 @@
     export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.13004108/
     export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
     export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+    cp local.properties client/android/local.properties
   '';
 
   git-hooks.hooks.ktfmt = {

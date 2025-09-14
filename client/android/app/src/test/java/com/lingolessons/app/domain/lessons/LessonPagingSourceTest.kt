@@ -29,38 +29,33 @@ class LessonPagingSourceTest : BaseTest() {
                     language1 = "en",
                     language2 = "jp",
                     owner = "owner",
-                    updatedAt = DateTime.now()))
+                    updatedAt = DateTime.now(),
+                ))
         domain =
             mockk<DomainInterface>().apply {
                 coEvery { getSession() } returns Session.Authenticated("user")
-                coEvery { getLessons(0u) } returns mockLessons
-                coEvery { getLessons(1u) } returns emptyList()
+                coEvery { getLessons(0u, 10u) } returns mockLessons
+                coEvery { getLessons(1u, 10u) } returns emptyList()
             }
     }
 
     @Test
     fun `should call api on pager load`() = runTest {
-        val pagingSource = LessonsPagingSource(domain = domain)
+        val pagingSource = LessonsPagingSource(domain = domain, pageSize = 10)
 
         val result: LoadResult<Int, Lesson> =
-            pagingSource.load(Refresh(key = null, loadSize = 2, placeholdersEnabled = false))
+            pagingSource.load(Refresh(key = null, loadSize = 10, placeholdersEnabled = false))
 
         val page = result as? LoadResult.Page
         assertTrue(page != null)
 
         assertEquals(LoadResult.Page(data = mockLessons, prevKey = null, nextKey = 1), result)
 
-        coVerify(exactly = 1) { domain.getLessons(0u) }
+        coVerify(exactly = 1) { domain.getLessons(0u, 10u) }
 
         val result2: LoadResult<Int, Lesson> =
-            pagingSource.load(
-                Refresh(
-                    key = 1,
-                    loadSize = 2,
-                    placeholdersEnabled = false,
-                ),
-            )
+            pagingSource.load(Refresh(key = 1, loadSize = 10, placeholdersEnabled = false))
 
-        coVerify(exactly = 1) { domain.getLessons(1u) }
+        coVerify(exactly = 1) { domain.getLessons(1u, 10u) }
     }
 }

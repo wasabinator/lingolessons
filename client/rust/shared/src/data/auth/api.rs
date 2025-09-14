@@ -27,7 +27,9 @@ impl From<reqwest::Error> for TokenApiError {
 
 pub(super) trait TokenApi {
     async fn login(
-        &self, username: String, password: String,
+        &self,
+        username: String,
+        password: String,
     ) -> Result<LoginResponse, TokenApiError>;
 }
 
@@ -35,7 +37,9 @@ const LOGIN_URL: &str = "jwt/create";
 
 impl TokenApi for Api {
     async fn login(
-        &self, username: String, password: String,
+        &self,
+        username: String,
+        password: String,
     ) -> Result<LoginResponse, TokenApiError> {
         let response: reqwest::Response = self
             .post(LOGIN_URL.to_string())

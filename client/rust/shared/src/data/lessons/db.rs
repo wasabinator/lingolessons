@@ -3,7 +3,7 @@ use crate::{
     domain::lessons::{Lesson, LessonType},
 };
 use chrono::{TimeZone, Utc};
-use rusqlite::OptionalExtension;
+use rusqlite::{params, OptionalExtension};
 use uuid::Uuid;
 
 #[derive(PartialEq, Clone)]
@@ -58,7 +58,7 @@ impl From<&LessonData> for Lesson {
 }
 
 pub(super) trait LessonDao {
-    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>>;
+    fn get_lessons(&self, page_no: u8, page_size: u8) -> rusqlite::Result<Vec<LessonData>>;
     #[allow(dead_code)] // Will be used in the future
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>>;
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()>;
@@ -67,64 +67,81 @@ pub(super) trait LessonDao {
 }
 
 impl LessonDao for Db {
-    fn get_lessons(&self) -> rusqlite::Result<Vec<LessonData>> {
-        let mut statement = self.connection.prepare(
-            r#"
-            SELECT id, title, type, language1, language2, owner, updated_at
-            FROM lesson
-            ORDER BY updated_at DESC;
-            "#,
-        )?;
-        let rows = statement.query_map([], |row| LessonData::try_from(row))?;
+    fn get_lessons(&self, page_no: u8, page_size: u8) -> rusqlite::Result<Vec<LessonData>> {
+        let rows = self.perform(|conn| {
+            let mut stmt = conn
+                .prepare(
+                    r#"
+                    SELECT id, title, type, language1, language2, owner, updated_at
+                    FROM lesson
+                    ORDER BY updated_at DESC
+                    LIMIT ?1 OFFSET ?2;
+                    "#,
+                )
+                .unwrap();
+            let page_no: u16 = page_no as u16;
+            let page_size: u16 = page_size as u16;
+            let rows = stmt
+                .query_map(params![page_size, page_no * page_size], |row| {
+                    LessonData::try_from(row)
+                })
+                .unwrap();
+            rows.collect::<Result<Vec<_>, _>>()
+        })?;
 
         let mut lessons = Vec::new();
         for lesson in rows {
-            lessons.push(lesson?);
+            lessons.push(lesson);
         }
-
         Ok(lessons)
     }
 
     fn get_lesson(&self, id: Uuid) -> rusqlite::Result<Option<LessonData>> {
-        self.connection
-            .query_row(
+        self.perform(|conn| {
+            conn.query_row(
                 r#"
-            SELECT id, title, type, language1, language2, owner, updated_at
-            FROM lesson WHERE id = ?;"#,
-                [id],
+                SELECT id, title, type, language1, language2, owner, updated_at
+                FROM lesson WHERE id = ?1;
+                "#,
+                params![id],
                 |row| LessonData::try_from(row),
             )
             .optional()
+        })
     }
 
     fn set_lesson(&self, lesson: &LessonData) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            INSERT OR REPLACE 
-            INTO lesson(id, title, type, language1, language2, owner, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            "#,
-            rusqlite::params![
-                lesson.id,
-                lesson.title,
-                lesson.r#type,
-                lesson.language1,
-                lesson.language2,
-                lesson.owner,
-                lesson.updated_at
-            ],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                INSERT OR REPLACE
+                INTO lesson(id, title, type, language1, language2, owner, updated_at)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);
+                "#,
+                params![
+                    lesson.id,
+                    lesson.title,
+                    lesson.r#type,
+                    lesson.language1,
+                    lesson.language2,
+                    lesson.owner,
+                    lesson.updated_at
+                ],
+            )
+        })?;
         Ok(())
     }
 
     fn del_lesson(&self, id: Uuid) -> rusqlite::Result<()> {
-        self.connection.execute(
-            r#"
-            DELETE FROM lesson
-            WHERE id = ?;
-            "#,
-            rusqlite::params![id],
-        )?;
+        self.perform(|conn| {
+            conn.execute(
+                r#"
+                DELETE FROM lesson
+                WHERE id = ?;
+                "#,
+                params![id],
+            )
+        })?;
         Ok(())
     }
 }
@@ -138,7 +155,7 @@ mod tests {
     fn test_lessons() {
         let db = Db::open("blah.txt".to_string()).unwrap();
 
-        let r = db.get_lessons();
+        let r = db.get_lessons(0, 10);
         assert!(r.unwrap().is_empty());
 
         // Insert 5 lessons into the db
@@ -156,25 +173,25 @@ mod tests {
         assert!(r.is_none());
 
         // Make sure we have 4 lessons left in the db
-        let lessons = db.get_lessons().unwrap();
+        let lessons = db.get_lessons(0, 10).unwrap();
         assert_eq!(4, lessons.len());
     }
 
     #[test]
     fn test_lessons_primary_key() {
         let db = Db::open("blah.txt".to_string()).unwrap();
-        let r = db.get_lessons();
+        let r = db.get_lessons(0, 5);
         assert!(r.unwrap().is_empty());
 
         let lessons = DbFixtures::create_lessons(&db, 1);
         let lesson = lessons.first().unwrap();
         db.set_lesson(lesson).unwrap();
-        let r = db.get_lessons();
+        let r = db.get_lessons(0, 5);
         assert_eq!(1, r.unwrap().len());
 
         // Should update rather than insert a duplicate
         db.set_lesson(lesson).unwrap();
-        let r = db.get_lessons();
+        let r = db.get_lessons(0, 5);
         assert_eq!(1, r.unwrap().len());
     }
 }

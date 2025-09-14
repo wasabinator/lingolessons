@@ -1,4 +1,4 @@
-use std::{future::Future, time::Duration};
+use std::{future::Future, thread::sleep, time::Duration};
 use tokio::time::error::Elapsed;
 
 /// Allows an async future to get tested against an expected condition within a time threshhold.
@@ -18,6 +18,7 @@ where
             if condition(&r) {
                 return r;
             }
+            sleep(Duration::from_millis(1000));
         }
     })
     .await
@@ -25,7 +26,9 @@ where
 
 /// Parameterised version, which relieves the need to capture in the comparison closure at the call site.
 pub async fn await_condition_arg<T, F, Fut>(
-    mut op: F, arg: &T, condition: fn(&T, &T) -> bool,
+    mut op: F,
+    arg: &T,
+    condition: fn(&T, &T) -> bool,
 ) -> Result<T, Elapsed>
 where
     F: FnMut() -> Fut,

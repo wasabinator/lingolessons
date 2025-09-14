@@ -4,19 +4,19 @@ use crate::{
         settings::db::{Setting, SettingDao},
     },
     domain::settings::SettingRepository,
-    ArcMutex, Run,
+    Arc,
 };
 use log::warn;
 
 impl SettingRepository {
     #[allow(dead_code)]
-    pub(in crate::data) fn new(db: ArcMutex<Db>) -> Self {
+    pub(in crate::data) fn new(db: Arc<Db>) -> Self {
         SettingRepository { db: db.clone() }
     }
 
     #[allow(dead_code)]
     pub(crate) async fn get_string(&self, key: &str) -> Option<String> {
-        match self.db.clone().run(|db| db.get(key)).await {
+        match self.db.get(key) {
             Ok(Setting::Text(text)) => Some(text),
             Err(err) => {
                 warn!("Error getting setting {}: {}", key, err);
@@ -28,12 +28,12 @@ impl SettingRepository {
 
     #[allow(dead_code)]
     pub(crate) async fn put_string(&self, key: &str, value: String) {
-        let _ = self.db.run(|db| db.put(key, Setting::Text(value))).await;
+        let _ = self.db.put(key, Setting::Text(value));
     }
 
     #[allow(dead_code)]
     pub(crate) async fn get_timestamp(&self, key: &str) -> Option<u64> {
-        match self.db.clone().run(|db| db.get(key)).await {
+        match self.db.get(key) {
             Ok(Setting::Number(number)) => Some(number),
             Err(err) => {
                 warn!("Error getting setting {}: {}", key, err);
@@ -45,20 +45,20 @@ impl SettingRepository {
 
     #[allow(dead_code)]
     pub(crate) async fn put_timestamp(&self, key: &str, value: u64) {
-        let _ = self.db.run(|db| db.put(key, Setting::Number(value))).await;
+        let _ = self.db.put(key, Setting::Number(value));
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{arc_mutex, common::time::UnixTimestamp};
+    use crate::common::time::UnixTimestamp;
     use serial_test::serial;
 
     #[serial]
     #[tokio::test]
     async fn test_repository() {
-        let repo = &SettingRepository::new(arc_mutex(Db::open("test".into()).unwrap()));
+        let repo = &SettingRepository::new(Arc::new(Db::open("test".into()).unwrap()));
 
         let key1 = "key1".to_string();
         let key2 = "key2".to_string();

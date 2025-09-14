@@ -109,7 +109,7 @@ def lesson_page(request, id):
             formset.save()
             return HttpResponseRedirect(f"/lesson/{id}")
     else:
-        formset = FactFormSet(queryset=Fact.objects.filter(lesson_id=id), form_kwargs={'lesson': lesson})
+        formset = FactFormSet(queryset=Fact.objects.filter(lesson_id=id, is_deleted=False), form_kwargs={'lesson': lesson})
 
     return render(request, "lesson.html", {
         "lesson": lesson,

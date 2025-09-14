@@ -46,9 +46,7 @@ open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
     // When dealing with these fields, make sure to call `toULong()`.
     @JvmField var capacity: Long = 0
-
     @JvmField var len: Long = 0
-
     @JvmField var data: Pointer? = null
 
     class ByValue : RustBuffer(), Structure.ByValue
@@ -63,22 +61,18 @@ open class RustBuffer : Structure() {
 
     companion object {
         internal fun alloc(size: ULong = 0UL) =
-            uniffiRustCall { status ->
+            uniffiRustCall() { status ->
                     // Note: need to convert the size to a `Long` value to make this work with JVM.
                     UniffiLib.INSTANCE.ffi_shared_rustbuffer_alloc(size.toLong(), status)
                 }
                 .also {
                     if (it.data == null) {
                         throw RuntimeException(
-                            "RustBuffer.alloc() returned null data pointer (size=$size)")
+                            "RustBuffer.alloc() returned null data pointer (size=${size})")
                     }
                 }
 
-        internal fun create(
-            capacity: ULong,
-            len: ULong,
-            data: Pointer?,
-        ): RustBuffer.ByValue {
+        internal fun create(capacity: ULong, len: ULong, data: Pointer?): RustBuffer.ByValue {
             var buf = RustBuffer.ByValue()
             buf.capacity = capacity.toLong()
             buf.len = len.toLong()
@@ -86,9 +80,10 @@ open class RustBuffer : Structure() {
             return buf
         }
 
-        internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall { status ->
-            UniffiLib.INSTANCE.ffi_shared_rustbuffer_free(buf, status)
-        }
+        internal fun free(buf: RustBuffer.ByValue) =
+            uniffiRustCall() { status ->
+                UniffiLib.INSTANCE.ffi_shared_rustbuffer_free(buf, status)
+            }
     }
 
     @Suppress("TooGenericExceptionThrown")
@@ -134,7 +129,6 @@ class RustBufferByReference : ByReference(16) {
 @Structure.FieldOrder("len", "data")
 internal open class ForeignBytes : Structure() {
     @JvmField var len: Int = 0
-
     @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
@@ -169,10 +163,7 @@ public interface FfiConverter<KotlinType, FfiType> {
     fun allocationSize(value: KotlinType): ULong
 
     // Write a Kotlin type to a `ByteBuffer`
-    fun write(
-        value: KotlinType,
-        buf: ByteBuffer,
-    )
+    fun write(value: KotlinType, buf: ByteBuffer)
 
     // Lower a value into a `RustBuffer`
     //
@@ -234,22 +225,24 @@ internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
 @Structure.FieldOrder("code", "error_buf")
 internal open class UniffiRustCallStatus : Structure() {
     @JvmField var code: Byte = 0
-
     @JvmField var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
 
     class ByValue : UniffiRustCallStatus(), Structure.ByValue
 
-    fun isSuccess(): Boolean = code == UNIFFI_CALL_SUCCESS
+    fun isSuccess(): Boolean {
+        return code == UNIFFI_CALL_SUCCESS
+    }
 
-    fun isError(): Boolean = code == UNIFFI_CALL_ERROR
+    fun isError(): Boolean {
+        return code == UNIFFI_CALL_ERROR
+    }
 
-    fun isPanic(): Boolean = code == UNIFFI_CALL_UNEXPECTED_ERROR
+    fun isPanic(): Boolean {
+        return code == UNIFFI_CALL_UNEXPECTED_ERROR
+    }
 
     companion object {
-        fun create(
-            code: Byte,
-            errorBuf: RustBuffer.ByValue,
-        ): UniffiRustCallStatus.ByValue {
+        fun create(code: Byte, errorBuf: RustBuffer.ByValue): UniffiRustCallStatus.ByValue {
             val callStatus = UniffiRustCallStatus.ByValue()
             callStatus.code = code
             callStatus.error_buf = errorBuf
@@ -258,9 +251,7 @@ internal open class UniffiRustCallStatus : Structure() {
     }
 }
 
-class InternalException(
-    message: String,
-) : kotlin.Exception(message)
+class InternalException(message: String) : kotlin.Exception(message)
 
 /**
  * Each top-level error class has a companion object that can lift the error from the call status's
@@ -280,7 +271,7 @@ interface UniffiRustCallStatusErrorHandler<E> {
 // to the Err
 private inline fun <U, E : kotlin.Exception> uniffiRustCallWithError(
     errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    callback: (UniffiRustCallStatus) -> U,
+    callback: (UniffiRustCallStatus) -> U
 ): U {
     var status = UniffiRustCallStatus()
     val return_value = callback(status)
@@ -291,7 +282,7 @@ private inline fun <U, E : kotlin.Exception> uniffiRustCallWithError(
 // Check UniffiRustCallStatus and throw an error if the call wasn't successful
 private fun <E : kotlin.Exception> uniffiCheckCallStatus(
     errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    status: UniffiRustCallStatus,
+    status: UniffiRustCallStatus
 ) {
     if (status.isSuccess()) {
         return
@@ -324,8 +315,9 @@ object UniffiNullRustCallStatusErrorHandler : UniffiRustCallStatusErrorHandler<I
 }
 
 // Call a rust function that returns a plain value
-private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U =
-    uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
+private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U {
+    return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback)
+}
 
 internal inline fun <T> uniffiTraitInterfaceCall(
     callStatus: UniffiRustCallStatus,
@@ -344,7 +336,7 @@ internal inline fun <T, reified E : Throwable> uniffiTraitInterfaceCallWithError
     callStatus: UniffiRustCallStatus,
     makeCall: () -> T,
     writeReturn: (T) -> Unit,
-    lowerError: (E) -> RustBuffer.ByValue,
+    lowerError: (E) -> RustBuffer.ByValue
 ) {
     try {
         writeReturn(makeCall())
@@ -377,12 +369,14 @@ internal class UniffiHandleMap<T : Any> {
     }
 
     // Get an object from the handle map
-    fun get(handle: Long): T =
-        map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
+    fun get(handle: Long): T {
+        return map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
+    }
 
     // Remove an entry from the handlemap and get the Kotlin object back
-    fun remove(handle: Long): T =
-        map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
+    fun remove(handle: Long): T {
+        return map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
+    }
 }
 
 // Contains loading, initialization code,
@@ -396,8 +390,9 @@ private fun findLibraryName(componentName: String): String {
     return "shared"
 }
 
-private inline fun <reified Lib : Library> loadIndirect(componentName: String): Lib =
-    Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
+private inline fun <reified Lib : Library> loadIndirect(componentName: String): Lib {
+    return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
+}
 
 // Define FFI callback types
 internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
@@ -408,11 +403,15 @@ internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
 }
 
 internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
-    fun callback(`handle`: Long)
+    fun callback(
+        `handle`: Long,
+    )
 }
 
 internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
-    fun callback(`handle`: Long)
+    fun callback(
+        `handle`: Long,
+    )
 }
 
 @Structure.FieldOrder("handle", "free")
@@ -423,7 +422,12 @@ internal open class UniffiForeignFuture(
     class UniffiByValue(
         `handle`: Long = 0.toLong(),
         `free`: UniffiForeignFutureFree? = null,
-    ) : UniffiForeignFuture(`handle`, `free`), Structure.ByValue
+    ) :
+        UniffiForeignFuture(
+            `handle`,
+            `free`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFuture) {
         `handle` = other.`handle`
@@ -440,7 +444,12 @@ internal open class UniffiForeignFutureStructU8(
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU8(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructU8(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
         `returnValue` = other.`returnValue`
@@ -464,7 +473,12 @@ internal open class UniffiForeignFutureStructI8(
     class UniffiByValue(
         `returnValue`: Byte = 0.toByte(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI8(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructI8(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
         `returnValue` = other.`returnValue`
@@ -488,7 +502,12 @@ internal open class UniffiForeignFutureStructU16(
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU16(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructU16(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
         `returnValue` = other.`returnValue`
@@ -512,7 +531,12 @@ internal open class UniffiForeignFutureStructI16(
     class UniffiByValue(
         `returnValue`: Short = 0.toShort(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI16(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructI16(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
         `returnValue` = other.`returnValue`
@@ -536,7 +560,12 @@ internal open class UniffiForeignFutureStructU32(
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU32(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructU32(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
         `returnValue` = other.`returnValue`
@@ -560,7 +589,12 @@ internal open class UniffiForeignFutureStructI32(
     class UniffiByValue(
         `returnValue`: Int = 0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI32(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructI32(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
         `returnValue` = other.`returnValue`
@@ -584,7 +618,12 @@ internal open class UniffiForeignFutureStructU64(
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructU64(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructU64(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
         `returnValue` = other.`returnValue`
@@ -608,7 +647,12 @@ internal open class UniffiForeignFutureStructI64(
     class UniffiByValue(
         `returnValue`: Long = 0.toLong(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructI64(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructI64(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
         `returnValue` = other.`returnValue`
@@ -632,7 +676,12 @@ internal open class UniffiForeignFutureStructF32(
     class UniffiByValue(
         `returnValue`: Float = 0.0f,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructF32(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructF32(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
         `returnValue` = other.`returnValue`
@@ -656,7 +705,12 @@ internal open class UniffiForeignFutureStructF64(
     class UniffiByValue(
         `returnValue`: Double = 0.0,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructF64(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructF64(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
         `returnValue` = other.`returnValue`
@@ -680,7 +734,12 @@ internal open class UniffiForeignFutureStructPointer(
     class UniffiByValue(
         `returnValue`: Pointer = Pointer.NULL,
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructPointer(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructPointer(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
         `returnValue` = other.`returnValue`
@@ -704,7 +763,12 @@ internal open class UniffiForeignFutureStructRustBuffer(
     class UniffiByValue(
         `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructRustBuffer(`returnValue`, `callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructRustBuffer(
+            `returnValue`,
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
         `returnValue` = other.`returnValue`
@@ -726,7 +790,11 @@ internal open class UniffiForeignFutureStructVoid(
 ) : Structure() {
     class UniffiByValue(
         `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
-    ) : UniffiForeignFutureStructVoid(`callStatus`), Structure.ByValue
+    ) :
+        UniffiForeignFutureStructVoid(
+            `callStatus`,
+        ),
+        Structure.ByValue
 
     internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
         `callStatus` = other.`callStatus`
@@ -766,6 +834,13 @@ internal interface UniffiLib : Library {
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
 
+    fun uniffi_shared_fn_method_domain_get_facts(
+        `ptr`: Pointer,
+        `lessonId`: RustBuffer.ByValue,
+        `pageNo`: Byte,
+        `pageSize`: Byte,
+    ): Long
+
     fun uniffi_shared_fn_method_domain_get_lesson(
         `ptr`: Pointer,
         `id`: RustBuffer.ByValue,
@@ -774,9 +849,12 @@ internal interface UniffiLib : Library {
     fun uniffi_shared_fn_method_domain_get_lessons(
         `ptr`: Pointer,
         `pageNo`: Byte,
+        `pageSize`: Byte,
     ): Long
 
-    fun uniffi_shared_fn_method_domain_get_session(`ptr`: Pointer): Long
+    fun uniffi_shared_fn_method_domain_get_session(
+        `ptr`: Pointer,
+    ): Long
 
     fun uniffi_shared_fn_method_domain_login(
         `ptr`: Pointer,
@@ -784,7 +862,13 @@ internal interface UniffiLib : Library {
         `password`: RustBuffer.ByValue,
     ): Long
 
-    fun uniffi_shared_fn_method_domain_logout(`ptr`: Pointer): Long
+    fun uniffi_shared_fn_method_domain_logout(
+        `ptr`: Pointer,
+    ): Long
+
+    fun uniffi_shared_fn_method_domain_stop(
+        `ptr`: Pointer,
+    ): Long
 
     fun uniffi_shared_fn_clone_domainbuilder(
         `ptr`: Pointer,
@@ -797,7 +881,7 @@ internal interface UniffiLib : Library {
     ): Unit
 
     fun uniffi_shared_fn_constructor_domainbuilder_new(
-        uniffi_out_err: UniffiRustCallStatus
+        uniffi_out_err: UniffiRustCallStatus,
     ): Pointer
 
     fun uniffi_shared_fn_method_domainbuilder_base_url(
@@ -844,9 +928,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_u8(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_u8(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_u8(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_u8(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_u8(
         `handle`: Long,
@@ -859,9 +947,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_i8(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_i8(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_i8(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_i8(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_i8(
         `handle`: Long,
@@ -874,9 +966,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_u16(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_u16(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_u16(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_u16(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_u16(
         `handle`: Long,
@@ -889,9 +985,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_i16(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_i16(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_i16(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_i16(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_i16(
         `handle`: Long,
@@ -904,9 +1004,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_u32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_u32(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_u32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_u32(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_u32(
         `handle`: Long,
@@ -919,9 +1023,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_i32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_i32(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_i32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_i32(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_i32(
         `handle`: Long,
@@ -934,9 +1042,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_u64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_u64(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_u64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_u64(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_u64(
         `handle`: Long,
@@ -949,9 +1061,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_i64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_i64(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_i64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_i64(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_i64(
         `handle`: Long,
@@ -964,9 +1080,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_f32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_f32(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_f32(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_f32(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_f32(
         `handle`: Long,
@@ -979,9 +1099,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_f64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_f64(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_f64(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_f64(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_f64(
         `handle`: Long,
@@ -994,9 +1118,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_pointer(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_pointer(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_pointer(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_pointer(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_pointer(
         `handle`: Long,
@@ -1009,9 +1137,13 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_rust_buffer(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_rust_buffer(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_rust_buffer(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_rust_buffer(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_rust_buffer(
         `handle`: Long,
@@ -1024,14 +1156,20 @@ internal interface UniffiLib : Library {
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_shared_rust_future_cancel_void(`handle`: Long): Unit
+    fun ffi_shared_rust_future_cancel_void(
+        `handle`: Long,
+    ): Unit
 
-    fun ffi_shared_rust_future_free_void(`handle`: Long): Unit
+    fun ffi_shared_rust_future_free_void(
+        `handle`: Long,
+    ): Unit
 
     fun ffi_shared_rust_future_complete_void(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
+
+    fun uniffi_shared_checksum_method_domain_get_facts(): Short
 
     fun uniffi_shared_checksum_method_domain_get_lesson(): Short
 
@@ -1042,6 +1180,8 @@ internal interface UniffiLib : Library {
     fun uniffi_shared_checksum_method_domain_login(): Short
 
     fun uniffi_shared_checksum_method_domain_logout(): Short
+
+    fun uniffi_shared_checksum_method_domain_stop(): Short
 
     fun uniffi_shared_checksum_method_domainbuilder_base_url(): Short
 
@@ -1067,11 +1207,15 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_shared_checksum_method_domain_get_facts() != 45845.toShort()) {
+        throw RuntimeException(
+            "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_shared_checksum_method_domain_get_lesson() != 44594.toShort()) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 63357.toShort()) {
+    if (lib.uniffi_shared_checksum_method_domain_get_lessons() != 55512.toShort()) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1084,6 +1228,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_shared_checksum_method_domain_logout() != 3835.toShort()) {
+        throw RuntimeException(
+            "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_shared_checksum_method_domain_stop() != 63903.toShort()) {
         throw RuntimeException(
             "UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1115,10 +1263,7 @@ internal val uniffiContinuationHandleMap = UniffiHandleMap<CancellableContinuati
 
 // FFI type for Rust future continuations
 internal object uniffiRustFutureContinuationCallbackImpl : UniffiRustFutureContinuationCallback {
-    override fun callback(
-        data: Long,
-        pollResult: Byte,
-    ) {
+    override fun callback(data: Long, pollResult: Byte) {
         uniffiContinuationHandleMap.remove(data).resume(pollResult)
     }
 }
@@ -1129,7 +1274,7 @@ internal suspend fun <T, F, E : kotlin.Exception> uniffiRustCallAsync(
     completeFunc: (Long, UniffiRustCallStatus) -> F,
     freeFunc: (Long) -> Unit,
     liftFunc: (F) -> T,
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
+    errorHandler: UniffiRustCallStatusErrorHandler<E>
 ): T {
     try {
         do {
@@ -1138,14 +1283,12 @@ internal suspend fun <T, F, E : kotlin.Exception> uniffiRustCallAsync(
                     pollFunc(
                         rustFuture,
                         uniffiRustFutureContinuationCallbackImpl,
-                        uniffiContinuationHandleMap.insert(continuation),
-                    )
+                        uniffiContinuationHandleMap.insert(continuation))
                 }
         } while (pollResult != UNIFFI_RUST_FUTURE_POLL_READY)
 
         return liftFunc(
-            uniffiRustCallWithError(errorHandler, { status -> completeFunc(rustFuture, status) }),
-        )
+            uniffiRustCallWithError(errorHandler, { status -> completeFunc(rustFuture, status) }))
     } finally {
         freeFunc(rustFuture)
     }
@@ -1193,18 +1336,21 @@ object NoPointer
 
 /** @suppress */
 public object FfiConverterUByte : FfiConverter<UByte, Byte> {
-    override fun lift(value: Byte): UByte = value.toUByte()
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
 
-    override fun read(buf: ByteBuffer): UByte = lift(buf.get())
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
 
-    override fun lower(value: UByte): Byte = value.toByte()
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
 
     override fun allocationSize(value: UByte) = 1UL
 
-    override fun write(
-        value: UByte,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
     }
 }
@@ -1259,10 +1405,7 @@ public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
         return sizeForLength + sizeForString
     }
 
-    override fun write(
-        value: String,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: String, buf: ByteBuffer) {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
@@ -1290,10 +1433,7 @@ public object FfiConverterTimestamp : FfiConverterRustBuffer<java.time.Instant> 
     // 8 bytes for seconds, 4 bytes for nanoseconds
     override fun allocationSize(value: java.time.Instant) = 12UL
 
-    override fun write(
-        value: java.time.Instant,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: java.time.Instant, buf: ByteBuffer) {
         var epochOffset = java.time.Duration.between(java.time.Instant.EPOCH, value)
 
         var sign = 1
@@ -1440,10 +1580,7 @@ interface UniffiCleaner {
         fun clean()
     }
 
-    fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable
+    fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable
 
     companion object
 }
@@ -1452,10 +1589,8 @@ interface UniffiCleaner {
 private class UniffiJnaCleaner : UniffiCleaner {
     private val cleaner = com.sun.jna.internal.Cleaner.getCleaner()
 
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
 }
 
 private class UniffiJnaCleanable(
@@ -1482,10 +1617,8 @@ private fun UniffiCleaner.Companion.create(): UniffiCleaner =
 private class AndroidSystemCleaner : UniffiCleaner {
     val cleaner = android.system.SystemCleaner.cleaner()
 
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = AndroidSystemCleanable(cleaner.register(value, cleanUpTask))
+    override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
+        AndroidSystemCleanable(cleaner.register(value, cleanUpTask))
 }
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -1496,23 +1629,30 @@ private class AndroidSystemCleanable(
 }
 
 public interface DomainInterface {
+
+    suspend fun `getFacts`(
+        `lessonId`: Uuid,
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Fact>
+
     suspend fun `getLesson`(`id`: Uuid): Lesson?
 
-    suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson>
+    suspend fun `getLessons`(`pageNo`: kotlin.UByte, `pageSize`: kotlin.UByte): List<Lesson>
 
     suspend fun `getSession`(): Session
 
-    suspend fun `login`(
-        `username`: kotlin.String,
-        `password`: kotlin.String,
-    ): Session
+    suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String): Session
 
     suspend fun `logout`()
+
+    suspend fun `stop`()
 
     companion object
 }
 
 open class Domain : Disposable, AutoCloseable, DomainInterface {
+
     constructor(pointer: Pointer) {
         this.pointer = pointer
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
@@ -1578,9 +1718,7 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(
-        private val pointer: Pointer?,
-    ) : Runnable {
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
@@ -1590,22 +1728,54 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
         }
     }
 
-    fun uniffiClonePointer(): Pointer = uniffiRustCall { status ->
-        UniffiLib.INSTANCE.uniffi_shared_fn_clone_domain(pointer!!, status)
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_shared_fn_clone_domain(pointer!!, status)
+        }
     }
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getLesson`(`id`: Uuid): Lesson? =
-        uniffiRustCallAsync(
+    override suspend fun `getFacts`(
+        `lessonId`: Uuid,
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Fact> {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_facts(
+                    thisPtr,
+                    FfiConverterTypeUuid.lower(`lessonId`),
+                    FfiConverterUByte.lower(`pageNo`),
+                    FfiConverterUByte.lower(`pageSize`),
+                )
+            },
+            { future, callback, continuation ->
+                UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(
+                    future, callback, continuation)
+            },
+            { future, continuation ->
+                UniffiLib.INSTANCE.ffi_shared_rust_future_complete_rust_buffer(future, continuation)
+            },
+            { future -> UniffiLib.INSTANCE.ffi_shared_rust_future_free_rust_buffer(future) },
+            // lift function
+            { FfiConverterSequenceTypeFact.lift(it) },
+            // Error FFI converter
+            DomainException.ErrorHandler,
+        )
+    }
+
+    @Throws(DomainException::class)
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `getLesson`(`id`: Uuid): Lesson? {
+        return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lesson(
                     thisPtr,
                     FfiConverterTypeUuid.lower(`id`),
                 )
             },
-            { future, callback, continuation,
-                ->
+            { future, callback, continuation ->
                 UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(
                     future, callback, continuation)
             },
@@ -1618,19 +1788,23 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
             // Error FFI converter
             DomainException.ErrorHandler,
         )
+    }
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getLessons`(`pageNo`: kotlin.UByte): List<Lesson> =
-        uniffiRustCallAsync(
+    override suspend fun `getLessons`(
+        `pageNo`: kotlin.UByte,
+        `pageSize`: kotlin.UByte
+    ): List<Lesson> {
+        return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_lessons(
                     thisPtr,
                     FfiConverterUByte.lower(`pageNo`),
+                    FfiConverterUByte.lower(`pageSize`),
                 )
             },
-            { future, callback, continuation,
-                ->
+            { future, callback, continuation ->
                 UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(
                     future, callback, continuation)
             },
@@ -1643,18 +1817,18 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
             // Error FFI converter
             DomainException.ErrorHandler,
         )
+    }
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `getSession`(): Session =
-        uniffiRustCallAsync(
+    override suspend fun `getSession`(): Session {
+        return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_get_session(
                     thisPtr,
                 )
             },
-            { future, callback, continuation,
-                ->
+            { future, callback, continuation ->
                 UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(
                     future, callback, continuation)
             },
@@ -1667,14 +1841,12 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
             // Error FFI converter
             DomainException.ErrorHandler,
         )
+    }
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `login`(
-        `username`: kotlin.String,
-        `password`: kotlin.String,
-    ): Session =
-        uniffiRustCallAsync(
+    override suspend fun `login`(`username`: kotlin.String, `password`: kotlin.String): Session {
+        return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_login(
                     thisPtr,
@@ -1682,8 +1854,7 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
                     FfiConverterString.lower(`password`),
                 )
             },
-            { future, callback, continuation,
-                ->
+            { future, callback, continuation ->
                 UniffiLib.INSTANCE.ffi_shared_rust_future_poll_rust_buffer(
                     future, callback, continuation)
             },
@@ -1696,11 +1867,12 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
             // Error FFI converter
             DomainException.ErrorHandler,
         )
+    }
 
     @Throws(DomainException::class)
     @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `logout`() =
-        uniffiRustCallAsync(
+    override suspend fun `logout`() {
+        return uniffiRustCallAsync(
             callWithPointer { thisPtr ->
                 UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_logout(
                     thisPtr,
@@ -1715,18 +1887,48 @@ open class Domain : Disposable, AutoCloseable, DomainInterface {
             { future -> UniffiLib.INSTANCE.ffi_shared_rust_future_free_void(future) },
             // lift function
             { Unit },
+
             // Error FFI converter
             DomainException.ErrorHandler,
         )
+    }
+
+    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+    override suspend fun `stop`() {
+        return uniffiRustCallAsync(
+            callWithPointer { thisPtr ->
+                UniffiLib.INSTANCE.uniffi_shared_fn_method_domain_stop(
+                    thisPtr,
+                )
+            },
+            { future, callback, continuation ->
+                UniffiLib.INSTANCE.ffi_shared_rust_future_poll_void(future, callback, continuation)
+            },
+            { future, continuation ->
+                UniffiLib.INSTANCE.ffi_shared_rust_future_complete_void(future, continuation)
+            },
+            { future -> UniffiLib.INSTANCE.ffi_shared_rust_future_free_void(future) },
+            // lift function
+            { Unit },
+
+            // Error FFI converter
+            UniffiNullRustCallStatusErrorHandler,
+        )
+    }
 
     companion object
 }
 
 /** @suppress */
 public object FfiConverterTypeDomain : FfiConverter<Domain, Pointer> {
-    override fun lower(value: Domain): Pointer = value.uniffiClonePointer()
 
-    override fun lift(value: Pointer): Domain = Domain(value)
+    override fun lower(value: Domain): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): Domain {
+        return Domain(value)
+    }
 
     override fun read(buf: ByteBuffer): Domain {
         // The Rust code always writes pointers as 8 bytes, and will
@@ -1736,10 +1938,7 @@ public object FfiConverterTypeDomain : FfiConverter<Domain, Pointer> {
 
     override fun allocationSize(value: Domain) = 8UL
 
-    override fun write(
-        value: Domain,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Domain, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
@@ -1856,6 +2055,7 @@ public object FfiConverterTypeDomain : FfiConverter<Domain, Pointer> {
 //
 
 public interface DomainBuilderInterface {
+
     fun `baseUrl`(`url`: kotlin.String): DomainBuilder
 
     fun `build`(): Domain
@@ -1866,6 +2066,7 @@ public interface DomainBuilderInterface {
 }
 
 open class DomainBuilder : Disposable, AutoCloseable, DomainBuilderInterface {
+
     constructor(pointer: Pointer) {
         this.pointer = pointer
         this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
@@ -1884,12 +2085,9 @@ open class DomainBuilder : Disposable, AutoCloseable, DomainBuilderInterface {
 
     constructor() :
         this(
-            uniffiRustCall { _status ->
-                UniffiLib.INSTANCE.uniffi_shared_fn_constructor_domainbuilder_new(
-                    _status,
-                )
-            },
-        )
+            uniffiRustCall() { _status ->
+                UniffiLib.INSTANCE.uniffi_shared_fn_constructor_domainbuilder_new(_status)
+            })
 
     protected val pointer: Pointer?
     protected val cleanable: UniffiCleaner.Cleanable
@@ -1940,9 +2138,7 @@ open class DomainBuilder : Disposable, AutoCloseable, DomainBuilderInterface {
 
     // Use a static inner class instead of a closure so as not to accidentally
     // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(
-        private val pointer: Pointer?,
-    ) : Runnable {
+    private class UniffiCleanAction(private val pointer: Pointer?) : Runnable {
         override fun run() {
             pointer?.let { ptr ->
                 uniffiRustCall { status ->
@@ -1952,57 +2148,55 @@ open class DomainBuilder : Disposable, AutoCloseable, DomainBuilderInterface {
         }
     }
 
-    fun uniffiClonePointer(): Pointer = uniffiRustCall { status ->
-        UniffiLib.INSTANCE.uniffi_shared_fn_clone_domainbuilder(pointer!!, status)
+    fun uniffiClonePointer(): Pointer {
+        return uniffiRustCall() { status ->
+            UniffiLib.INSTANCE.uniffi_shared_fn_clone_domainbuilder(pointer!!, status)
+        }
     }
 
-    override fun `baseUrl`(`url`: kotlin.String): DomainBuilder =
-        FfiConverterTypeDomainBuilder.lift(
+    override fun `baseUrl`(`url`: kotlin.String): DomainBuilder {
+        return FfiConverterTypeDomainBuilder.lift(
             callWithPointer {
-                uniffiRustCall { _status ->
+                uniffiRustCall() { _status ->
                     UniffiLib.INSTANCE.uniffi_shared_fn_method_domainbuilder_base_url(
-                        it,
-                        FfiConverterString.lower(`url`),
-                        _status,
-                    )
+                        it, FfiConverterString.lower(`url`), _status)
                 }
-            },
-        )
+            })
+    }
 
     @Throws(DomainException::class)
-    override fun `build`(): Domain =
-        FfiConverterTypeDomain.lift(
+    override fun `build`(): Domain {
+        return FfiConverterTypeDomain.lift(
             callWithPointer {
                 uniffiRustCallWithError(DomainException) { _status ->
-                    UniffiLib.INSTANCE.uniffi_shared_fn_method_domainbuilder_build(
-                        it,
-                        _status,
-                    )
+                    UniffiLib.INSTANCE.uniffi_shared_fn_method_domainbuilder_build(it, _status)
                 }
-            },
-        )
+            })
+    }
 
-    override fun `dataPath`(`path`: kotlin.String): DomainBuilder =
-        FfiConverterTypeDomainBuilder.lift(
+    override fun `dataPath`(`path`: kotlin.String): DomainBuilder {
+        return FfiConverterTypeDomainBuilder.lift(
             callWithPointer {
-                uniffiRustCall { _status ->
+                uniffiRustCall() { _status ->
                     UniffiLib.INSTANCE.uniffi_shared_fn_method_domainbuilder_data_path(
-                        it,
-                        FfiConverterString.lower(`path`),
-                        _status,
-                    )
+                        it, FfiConverterString.lower(`path`), _status)
                 }
-            },
-        )
+            })
+    }
 
     companion object
 }
 
 /** @suppress */
 public object FfiConverterTypeDomainBuilder : FfiConverter<DomainBuilder, Pointer> {
-    override fun lower(value: DomainBuilder): Pointer = value.uniffiClonePointer()
 
-    override fun lift(value: Pointer): DomainBuilder = DomainBuilder(value)
+    override fun lower(value: DomainBuilder): Pointer {
+        return value.uniffiClonePointer()
+    }
+
+    override fun lift(value: Pointer): DomainBuilder {
+        return DomainBuilder(value)
+    }
 
     override fun read(buf: ByteBuffer): DomainBuilder {
         // The Rust code always writes pointers as 8 bytes, and will
@@ -2012,13 +2206,50 @@ public object FfiConverterTypeDomainBuilder : FfiConverter<DomainBuilder, Pointe
 
     override fun allocationSize(value: DomainBuilder) = 8UL
 
-    override fun write(
-        value: DomainBuilder,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: DomainBuilder, buf: ByteBuffer) {
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+/** Fact domain model */
+data class Fact(
+    var `id`: Uuid,
+    var `lessonId`: Uuid,
+    var `element1`: kotlin.String,
+    var `element2`: kotlin.String,
+    var `hint`: kotlin.String
+) {
+
+    companion object
+}
+
+/** @suppress */
+public object FfiConverterTypeFact : FfiConverterRustBuffer<Fact> {
+    override fun read(buf: ByteBuffer): Fact {
+        return Fact(
+            FfiConverterTypeUuid.read(buf),
+            FfiConverterTypeUuid.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Fact) =
+        (FfiConverterTypeUuid.allocationSize(value.`id`) +
+            FfiConverterTypeUuid.allocationSize(value.`lessonId`) +
+            FfiConverterString.allocationSize(value.`element1`) +
+            FfiConverterString.allocationSize(value.`element2`) +
+            FfiConverterString.allocationSize(value.`hint`))
+
+    override fun write(value: Fact, buf: ByteBuffer) {
+        FfiConverterTypeUuid.write(value.`id`, buf)
+        FfiConverterTypeUuid.write(value.`lessonId`, buf)
+        FfiConverterString.write(value.`element1`, buf)
+        FfiConverterString.write(value.`element2`, buf)
+        FfiConverterString.write(value.`hint`, buf)
     }
 }
 
@@ -2030,15 +2261,16 @@ data class Lesson(
     var `language1`: kotlin.String,
     var `language2`: kotlin.String,
     var `owner`: kotlin.String,
-    var `updatedAt`: DateTime,
+    var `updatedAt`: DateTime
 ) {
+
     companion object
 }
 
 /** @suppress */
 public object FfiConverterTypeLesson : FfiConverterRustBuffer<Lesson> {
-    override fun read(buf: ByteBuffer): Lesson =
-        Lesson(
+    override fun read(buf: ByteBuffer): Lesson {
+        return Lesson(
             FfiConverterTypeUuid.read(buf),
             FfiConverterString.read(buf),
             FfiConverterTypeLessonType.read(buf),
@@ -2047,6 +2279,7 @@ public object FfiConverterTypeLesson : FfiConverterRustBuffer<Lesson> {
             FfiConverterString.read(buf),
             FfiConverterTypeDateTime.read(buf),
         )
+    }
 
     override fun allocationSize(value: Lesson) =
         (FfiConverterTypeUuid.allocationSize(value.`id`) +
@@ -2057,10 +2290,7 @@ public object FfiConverterTypeLesson : FfiConverterRustBuffer<Lesson> {
             FfiConverterString.allocationSize(value.`owner`) +
             FfiConverterTypeDateTime.allocationSize(value.`updatedAt`))
 
-    override fun write(
-        value: Lesson,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Lesson, buf: ByteBuffer) {
         FfiConverterTypeUuid.write(value.`id`, buf)
         FfiConverterString.write(value.`title`, buf)
         FfiConverterTypeLessonType.write(value.`type`, buf)
@@ -2073,8 +2303,8 @@ public object FfiConverterTypeLesson : FfiConverterRustBuffer<Lesson> {
 
 /** Errors produced by this domain */
 enum class AuthError {
-    INVALID_CREDENTIALS,
-    ;
+
+    INVALID_CREDENTIALS;
 
     companion object
 }
@@ -2090,39 +2320,29 @@ public object FfiConverterTypeAuthError : FfiConverterRustBuffer<AuthError> {
 
     override fun allocationSize(value: AuthError) = 4UL
 
-    override fun write(
-        value: AuthError,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: AuthError, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
 
 sealed class DomainException : kotlin.Exception() {
-    class Unexpected(
-        val v1: kotlin.String,
-    ) : DomainException() {
+
+    class Unexpected(val v1: kotlin.String) : DomainException() {
         override val message
             get() = "v1=${ v1 }"
     }
 
-    class Database(
-        val v1: kotlin.String,
-    ) : DomainException() {
+    class Database(val v1: kotlin.String) : DomainException() {
         override val message
             get() = "v1=${ v1 }"
     }
 
-    class Api(
-        val v1: kotlin.String,
-    ) : DomainException() {
+    class Api(val v1: kotlin.String) : DomainException() {
         override val message
             get() = "v1=${ v1 }"
     }
 
-    class Auth(
-        val v1: AuthError,
-    ) : DomainException() {
+    class Auth(val v1: AuthError) : DomainException() {
         override val message
             get() = "v1=${ v1 }"
     }
@@ -2135,8 +2355,9 @@ sealed class DomainException : kotlin.Exception() {
 
 /** @suppress */
 public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainException> {
-    override fun read(buf: ByteBuffer): DomainException =
-        when (buf.getInt()) {
+    override fun read(buf: ByteBuffer): DomainException {
+
+        return when (buf.getInt()) {
             1 ->
                 DomainException.Unexpected(
                     FfiConverterString.read(buf),
@@ -2155,9 +2376,10 @@ public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainExcepti
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
+    }
 
-    override fun allocationSize(value: DomainException): ULong =
-        when (value) {
+    override fun allocationSize(value: DomainException): ULong {
+        return when (value) {
             is DomainException.Unexpected -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all
                 // fields
@@ -2175,11 +2397,9 @@ public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainExcepti
                 // fields
                 4UL + FfiConverterTypeAuthError.allocationSize(value.v1))
         }
+    }
 
-    override fun write(
-        value: DomainException,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: DomainException, buf: ByteBuffer) {
         when (value) {
             is DomainException.Unexpected -> {
                 buf.putInt(1)
@@ -2207,9 +2427,9 @@ public object FfiConverterTypeDomainError : FfiConverterRustBuffer<DomainExcepti
 
 /** Lesson type domain model */
 enum class LessonType {
+
     VOCABULARY,
-    GRAMMAR,
-    ;
+    GRAMMAR;
 
     companion object
 }
@@ -2225,21 +2445,17 @@ public object FfiConverterTypeLessonType : FfiConverterRustBuffer<LessonType> {
 
     override fun allocationSize(value: LessonType) = 4UL
 
-    override fun write(
-        value: LessonType,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: LessonType, buf: ByteBuffer) {
         buf.putInt(value.ordinal + 1)
     }
 }
 
 /** Session domain model */
 sealed class Session {
+
     object None : Session()
 
-    data class Authenticated(
-        val v1: kotlin.String,
-    ) : Session() {
+    data class Authenticated(val v1: kotlin.String) : Session() {
         companion object
     }
 
@@ -2248,8 +2464,8 @@ sealed class Session {
 
 /** @suppress */
 public object FfiConverterTypeSession : FfiConverterRustBuffer<Session> {
-    override fun read(buf: ByteBuffer): Session =
-        when (buf.getInt()) {
+    override fun read(buf: ByteBuffer): Session {
+        return when (buf.getInt()) {
             1 -> Session.None
             2 ->
                 Session.Authenticated(
@@ -2257,6 +2473,7 @@ public object FfiConverterTypeSession : FfiConverterRustBuffer<Session> {
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
+    }
 
     override fun allocationSize(value: Session) =
         when (value) {
@@ -2272,10 +2489,7 @@ public object FfiConverterTypeSession : FfiConverterRustBuffer<Session> {
             }
         }
 
-    override fun write(
-        value: Session,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Session, buf: ByteBuffer) {
         when (value) {
             is Session.None -> {
                 buf.putInt(1)
@@ -2307,16 +2521,32 @@ public object FfiConverterOptionalTypeLesson : FfiConverterRustBuffer<Lesson?> {
         }
     }
 
-    override fun write(
-        value: Lesson?,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: Lesson?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
             buf.put(1)
             FfiConverterTypeLesson.write(value, buf)
         }
+    }
+}
+
+/** @suppress */
+public object FfiConverterSequenceTypeFact : FfiConverterRustBuffer<List<Fact>> {
+    override fun read(buf: ByteBuffer): List<Fact> {
+        val len = buf.getInt()
+        return List<Fact>(len) { FfiConverterTypeFact.read(buf) }
+    }
+
+    override fun allocationSize(value: List<Fact>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeFact.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<Fact>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach { FfiConverterTypeFact.write(it, buf) }
     }
 }
 
@@ -2333,10 +2563,7 @@ public object FfiConverterSequenceTypeLesson : FfiConverterRustBuffer<List<Lesso
         return sizeForLength + sizeForItems
     }
 
-    override fun write(
-        value: List<Lesson>,
-        buf: ByteBuffer,
-    ) {
+    override fun write(value: List<Lesson>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.iterator().forEach { FfiConverterTypeLesson.write(it, buf) }
     }

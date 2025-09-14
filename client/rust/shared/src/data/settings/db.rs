@@ -1,5 +1,6 @@
 use crate::data::db::Db;
-use rusqlite::OptionalExtension;
+use log::error;
+use rusqlite::{params, OptionalExtension};
 
 /**
  * Setting
@@ -22,7 +23,7 @@ impl TryFrom<&rusqlite::Row<'_>> for Setting {
         } else if let Some(str) = text {
             Setting::Text(str)
         } else {
-            log::error!("Illegal setting type, passing empty");
+            error!("Illegal setting type, passing empty");
             Setting::None
         })
     }
@@ -36,31 +37,34 @@ pub(super) trait SettingDao {
 
 impl SettingDao for Db {
     fn get(&self, key: &str) -> rusqlite::Result<Setting> {
-        self.connection
-            .query_row("SELECT text, number FROM setting WHERE key = ?;", [key], |row| {
-                Setting::try_from(row)
-            })
-            .optional()
-            .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
+        self.perform(|conn| {
+            conn.query_row(
+                "SELECT text, number FROM setting WHERE key = ?;",
+                [key],
+                |row| Setting::try_from(row),
+            )
+        })
+        .optional()
+        .map_or(Ok(Setting::None), |s| Ok(s.unwrap_or(Setting::None)))
     }
 
     fn put(&self, key: &str, value: Setting) -> rusqlite::Result<()> {
         let params = match value {
             Setting::Text(text) => {
-                rusqlite::params![key, text.to_owned(), Option::<u64>::None]
+                params![key, text.to_owned(), Option::<u64>::None]
             }
             Setting::Number(number) => {
-                rusqlite::params![key, Option::<String>::None, number.to_owned()]
+                params![key, Option::<String>::None, number.to_owned()]
             }
             _ => {
-                rusqlite::params![key, Option::<String>::None, Option::<u64>::None]
+                params![key, Option::<String>::None, Option::<u64>::None]
             }
         };
 
-        self.connection.execute(
+        self.perform(|conn| { conn.execute(
             "INSERT OR REPLACE INTO setting(key, text, number, modified) VALUES (?, ?, ?, CAST(strftime('%s', 'now') AS INTEGER));",
             params,
-        )?;
+        )})?;
         Ok(())
     }
 }

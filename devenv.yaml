@@ -9,4 +9,5 @@ inputs:
 allowUnfree: true
 imports:
 - ./client/android
+- ./client/rust
 - ./server

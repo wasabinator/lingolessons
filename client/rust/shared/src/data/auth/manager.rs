@@ -5,8 +5,8 @@ use crate::{
         auth::{AuthError, Session},
         DomainError,
     },
-    ArcMutex,
 };
+use log::{error, trace};
 use reqwest::RequestBuilder;
 use std::{borrow::BorrowMut, sync::Arc};
 
@@ -21,11 +21,8 @@ impl From<TokenApiError> for DomainError {
     }
 }
 
-// All branches into session manager arrive via the domain thread
-//unsafe impl Send for SessionManager {}
-
 impl SessionManager {
-    pub(in crate::data) fn new(api: Arc<Api>, db: ArcMutex<Db>) -> Self {
+    pub(in crate::data) fn new(api: Arc<Api>, db: Arc<Db>) -> Self {
         let _db = db.clone();
 
         let (tx, rx) = tokio::sync::watch::channel(Session::None);
@@ -42,58 +39,62 @@ impl SessionManager {
     }
 
     fn start(&mut self) {
-        log::trace!("Starting session manager");
+        trace!("Starting session manager");
         let db = self.db.clone();
         let state_mut = self.state_mut.to_owned();
 
-        self.runtime.borrow_mut().spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
-            log::trace!("Fetching session from db");
-            let session = match db.lock().await.get_token() {
-                Ok(token) => {
-                    token.map_or(Session::None, |token| Session::Authenticated(token.username))
-                }
-                Err(_) => Session::None,
-            };
-            log::trace!("Initial Session from database {:?}", session);
-            let _ = state_mut.send(session.clone());
-        });
+        self.runtime
+            .borrow_mut()
+            .spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
+                trace!("Fetching session from db");
+                let session = match db.get_token() {
+                    Ok(token) => token.map_or(Session::None, |token| {
+                        Session::Authenticated(token.username)
+                    }),
+                    Err(_) => Session::None,
+                };
+                trace!("Initial Session from database {:?}", session);
+                let _ = state_mut.send(session.clone());
+            });
     }
 
     pub(crate) async fn login(
-        &self, username: String, password: String,
+        &self,
+        username: String,
+        password: String,
     ) -> anyhow::Result<Session, DomainError> {
-        log::trace!("session_manager::login()");
+        trace!("session_manager::login()");
         let api = self.api.clone();
         let session = api.login(username.clone(), password).await?;
-        log::trace!("api::Login response {:?}", session);
+        trace!("api::Login response {:?}", session);
         let db = self.db.clone();
-        db.lock().await.set_token(username.clone(), session.access, session.refresh)?;
+        db.set_token(username.clone(), session.access, session.refresh)?;
         let session = Session::Authenticated(username);
-        log::trace!("New session: {:?}", session);
+        trace!("New session: {:?}", session);
         let r = self.state_mut.send(session.clone());
-        log::trace!("rc: {:?}", r);
+        trace!("rc: {:?}", r);
         anyhow::Result::Ok(session)
     }
 
-    pub(crate) async fn logout(&mut self) -> uniffi::Result<(), DomainError> {
+    pub(crate) async fn logout(&self) -> uniffi::Result<(), DomainError> {
         let db = self.db.clone();
-        db.lock().await.del_token()?;
+        db.del_token()?;
         Ok(())
     }
 
     pub(crate) async fn decorate(&self, builder: RequestBuilder) -> RequestBuilder {
-        let db = self.db.lock().await;
+        let db = self.db.clone();
         match db.get_token() {
             Ok(session) => match session {
                 Some(token) => {
                     #[cfg(test)]
-                    log::trace!("Using test session token: {}", token.auth_token);
+                    trace!("Using test session token: {}", token.auth_token);
                     builder.bearer_auth(token.auth_token)
                 }
                 None => builder,
             },
             Err(e) => {
-                log::error!("{:?}", e);
+                error!("{:?}", e);
                 builder
             }
         }

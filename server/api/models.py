@@ -48,7 +48,7 @@ class Lesson(models.Model):
     )
     status = models.IntegerField(choices=statuses, default=PRIVATE)
 
-    is_deleted = models.BooleanField(default=False, editable=False)    
+    is_deleted = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -65,9 +65,12 @@ class Lesson(models.Model):
             return match[0][1]
         else:
             return "Private"
-        
+
     def __str__(self):
-        return f"{self.title} [updated: {self.updated_at}]"
+        if self.is_deleted:
+            return f"{self.title} [updated: {self.updated_at}] [Deleted]"
+        else:
+            return f"{self.title} [updated: {self.updated_at}]"
 
 
 class Fact(models.Model):
@@ -77,5 +80,15 @@ class Fact(models.Model):
     element2 = models.CharField(max_length=255)
     hint = models.CharField(max_length=255, blank=True, default='')
 
+    is_deleted = models.BooleanField(default=False, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.save()
+
     def __str__(self):
-        return f"{self.element1} = {self.element2}"
+        if self.is_deleted:
+            return f"{self.element1} = {self.element2} [Deleted]"
+        else:
+            return f"{self.element1} = {self.element2}"

@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 pub mod auth;
 mod common;
+pub mod facts;
 pub mod lessons;
 pub mod runtime;
 pub mod settings;
@@ -39,7 +40,10 @@ pub struct DomainBuilder {
 impl DomainBuilder {
     #[uniffi::constructor]
     pub fn new() -> Self {
-        Self { _data_path: None, _base_url: None }
+        Self {
+            _data_path: None,
+            _base_url: None,
+        }
     }
 
     pub fn data_path(&self, path: String) -> Self {
@@ -60,7 +64,9 @@ impl DomainBuilder {
 
         init();
 
-        Ok(Domain { provider: Arc::new(DataServiceProvider::new(base_url, data_path)?) })
+        Ok(Domain {
+            provider: Arc::new(DataServiceProvider::new(base_url, data_path)?),
+        })
     }
 }
 
