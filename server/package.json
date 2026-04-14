@@ -14,7 +14,7 @@
     "eastasianwidth": "^0.2.0",
     "emoji-regex": "^9.2.2",
     "foreground-child": "^3.3.1",
-    "glob": "^11.0.1",
+    "glob": "^13.0.1",
     "is-fullwidth-code-point": "^3.0.0",
     "isexe": "^2.0.0",
     "jackspeak": "^4.1.0",
