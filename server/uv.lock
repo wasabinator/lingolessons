@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -123,16 +123,16 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "5.0.11"
+version = "5.1.15"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "sqlparse" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/9c/614ef004c122cfdf9f2d291eab75e24ab94d24c0693a0ca0db44e9633dc3/Django-5.0.11.tar.gz", hash = "sha256:e7d98fa05ce09cb3e8d5ad6472fb602322acd1740bfdadc29c8404182d664f65", size = 10635979, upload-time = "2025-01-14T14:28:58.251Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/10/45/1ac68964193cfcc0b0912a0f68025d5bdb54f71ba7b8716e85b959874bd0/django-5.1.15.tar.gz", hash = "sha256:46a356b5ff867bece73fc6365e081f21c569973403ee7e9b9a0316f27d0eb947", size = 10719662, upload-time = "2025-12-02T14:01:31.931Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/d7/da8d8f62f33c3cd45ad7e9cb456d7c95457d15ee26166d2d033f461aedf7/Django-5.0.11-py3-none-any.whl", hash = "sha256:09e8128f717266bf382d82ffa4933f13da05d82579abf008ede86acb15dec88b", size = 8185849, upload-time = "2025-01-14T14:28:46.345Z" },
+    { url = "https://files.pythonhosted.org/packages/27/79/372e091f0eba4ddb8228245ccd1baaa140e9658711f5e3a0056e540b4c1e/django-5.1.15-py3-none-any.whl", hash = "sha256:117871e58d6eda37f09870b7d73a3d66567b03aecd515b386b1751177c413432", size = 8260901, upload-time = "2025-12-02T14:01:27.352Z" },
 ]
 
 [[package]]
@@ -347,7 +347,7 @@ requires-dist = [
     { name = "charset-normalizer", specifier = "==3.3.2" },
     { name = "cryptography", specifier = "==44.0.1" },
     { name = "defusedxml", specifier = "==0.8.0rc2" },
-    { name = "django", specifier = "==5.0.11" },
+    { name = "django", specifier = "==5.1.15" },
     { name = "django-browser-reload", specifier = "==1.12.1" },
     { name = "django-cors-headers", specifier = "==4.3.1" },
     { name = "django-filter", specifier = "==24.2" },
@@ -372,12 +372,12 @@ requires-dist = [
     { name = "requests", specifier = "==2.32.4" },
     { name = "requests-oauthlib", specifier = "==2.0.0" },
     { name = "setuptools", specifier = "==78.1.1" },
-    { name = "social-auth-app-django", specifier = "==5.4.1" },
+    { name = "social-auth-app-django", specifier = "==5.6.0" },
     { name = "social-auth-core", specifier = "==4.5.4" },
     { name = "sqlparse", specifier = "==0.5.0" },
     { name = "typing-extensions", specifier = "==4.12.1" },
     { name = "uritemplate", specifier = "==4.1.1" },
-    { name = "urllib3", specifier = "==2.5.0" },
+    { name = "urllib3", specifier = "==2.6.3" },
 ]
 
 [[package]]
@@ -522,15 +522,15 @@ wheels = [
 
 [[package]]
 name = "social-auth-app-django"
-version = "5.4.1"
+version = "5.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "social-auth-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/56/f5/cede3d063625add7405f0be6a6391a1103593d20275e5fa11fffb5380c88/social-auth-app-django-5.4.1.tar.gz", hash = "sha256:2a43cde559dd34fdc7132417b6c52c780fa99ec2332dee9f405b4763f371c367", size = 25250, upload-time = "2024-04-24T17:22:36.821Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/7d/cd7e0958db16e478ecdf2137621a46aa95bfd7d3991d29cf15f2bdf18b0a/social_auth_app_django-5.6.0.tar.gz", hash = "sha256:c695501fcbf6fe87f68f5a79e379abe853662f5129e7ec6cb758a75d5b28c888", size = 29195, upload-time = "2025-10-09T11:56:08.48Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/e3/60318a13a5d58daa0b37eb2b8b0bada5a9d5725efb407358cebedbcc0ada/social_auth_app_django-5.4.1-py3-none-any.whl", hash = "sha256:7519f186c63c50f2d364457b236f051338d194bcface55e318a6a705c5213477", size = 26874, upload-time = "2024-04-24T17:22:34.089Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/02/738d8c89d6d67a25a568fc6a7744949ddf037153705c6d5c676ce25b9812/social_auth_app_django-5.6.0-py3-none-any.whl", hash = "sha256:43ca88cc5cd9161710896165ced58b3155e8aafaaff847e859879194770f138d", size = 28708, upload-time = "2025-10-09T11:56:07.633Z" },
 ]
 
 [[package]]
@@ -589,9 +589,9 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.5.0"
+version = "2.6.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/15/22/9ee70a2574a4f4599c47dd506532914ce044817c7752a79b6a51286319bc/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760", size = 393185, upload-time = "2025-06-18T14:07:41.644Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/24/5f1b3bdffd70275f6661c76461e25f024d5a38a46f04aaca912426a2b1d3/urllib3-2.6.3.tar.gz", hash = "sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed", size = 435556, upload-time = "2026-01-07T16:24:43.925Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/c2/fe1e52489ae3122415c51f387e221dd0773709bad6c6cdaa599e8a2c5185/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc", size = 129795, upload-time = "2025-06-18T14:07:40.39Z" },
+    { url = "https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl", hash = "sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4", size = 131584, upload-time = "2026-01-07T16:24:42.685Z" },
 ]
