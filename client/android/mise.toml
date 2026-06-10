@@ -1,0 +1,7 @@
+[tools]
+android-sdk = "16"
+java = "21"
+yq = "4.41.1"
+
+[plugins]
+android-sdk = "https://github.com/Syquel/mise-android-sdk.git"
