@@ -6,6 +6,7 @@ pub(crate) mod db;
 pub(crate) mod facts;
 pub(crate) mod lessons;
 pub(crate) mod settings;
+pub(crate) mod worker;
 
 use crate::{
     data::db::Db,
@@ -20,32 +21,37 @@ use crate::{
 };
 use api::{Api, AuthApi};
 use log::trace;
-use std::{result::Result, sync::Arc, thread::yield_now};
+#[cfg(test)]
+use std::sync::atomic::AtomicU32;
+use std::{rc::Rc, result::Result, sync::Arc, thread::yield_now};
 
 pub(crate) struct DataServiceProvider {
-    pub(super) session_manager: Arc<SessionManager>,
-    pub(super) lesson_repository: Arc<LessonRepository>,
-    pub(super) fact_repository: Arc<FactRepository>,
+    pub(super) runtime: Rc<Runtime>,
+    pub(super) session_manager: Rc<SessionManager>,
+    pub(super) lesson_repository: Rc<LessonRepository>,
+    pub(super) fact_repository: Rc<FactRepository>,
     #[allow(unused)]
-    pub(super) setting_repository: Arc<SettingRepository>,
+    pub(super) setting_repository: Rc<SettingRepository>,
     #[allow(unused)]
-    service_manager: Arc<DataServiceManager>,
+    service_manager: Rc<DataServiceManager>,
+    #[cfg(test)]
+    pub(crate) test_count: AtomicU32,
 }
 
 struct DataServiceManager {
-    runtime: Runtime,
-    session_manager: Arc<SessionManager>,
-    lesson_repository: Arc<LessonRepository>,
-    fact_repository: Arc<FactRepository>,
+    runtime: Rc<Runtime>,
+    session_manager: Rc<SessionManager>,
+    lesson_repository: Rc<LessonRepository>,
+    fact_repository: Rc<FactRepository>,
 }
 
 static MANAGER_START_TASK: &str = "MANAGER_START_TASK";
 
 impl DataServiceManager {
     fn new(
-        session_manager: Arc<SessionManager>,
-        lesson_repository: Arc<LessonRepository>,
-        fact_repository: Arc<FactRepository>,
+        session_manager: Rc<SessionManager>,
+        lesson_repository: Rc<LessonRepository>,
+        fact_repository: Rc<FactRepository>,
     ) -> Self {
         let mut manager = DataServiceManager {
             runtime: Runtime::new(),
@@ -103,6 +109,7 @@ impl DataServiceProvider {
         base_url: String,
         data_path: String,
     ) -> Result<DataServiceProvider, DomainError> {
+        let runtime = Runtime::new();
         let api = Arc::new(Api::new(base_url)?);
         let db = Arc::new(Db::open(data_path)?);
 
@@ -136,6 +143,25 @@ impl DataServiceProvider {
             fact_repository: fact_repository.clone(),
             setting_repository: settings.clone(),
             service_manager: service_manager.clone(),
+            #[cfg(test)]
+            test_count: std::sync::atomic::AtomicU32::new(0),
         })
+    }
+
+    #[cfg(test)]
+    pub(crate) fn inc_test_count(&self) {
+        self.test_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    #[cfg(test)]
+    pub(crate) fn add_test_count(&self, count: u32) {
+        self.test_count
+            .fetch_add(count, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    #[cfg(test)]
+    pub(crate) fn get_test_count(&self) -> u32 {
+        self.test_count.load(std::sync::atomic::Ordering::Relaxed)
     }
 }

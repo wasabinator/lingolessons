@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub(crate) struct Api {
-    base_url: String,
+    base_url: reqwest::Url,
     client: reqwest::Client,
 }
 
@@ -21,6 +21,10 @@ impl From<reqwest::Error> for DomainError {
 impl Api {
     pub(super) fn new(base_url: String) -> DomainResult<Self> {
         let client = reqwest::Client::builder().build()?;
+        // Parse the url so we can fail early in case it's invalid
+        let base_url = reqwest::Url::parse(base_url.as_str())
+            .map_err(|err| DomainError::Api(format!("Failed to parse integer: {err}")))?;
+
         Ok(Api { base_url, client })
     }
 
