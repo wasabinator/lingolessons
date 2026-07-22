@@ -37,20 +37,18 @@ static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
 
 impl LessonRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime,
         api: Arc<AuthApi>,
         db: Arc<Db>,
         settings: Arc<SettingRepository>,
     ) -> Self {
         LessonRepository {
-            runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
         }
     }
 
-    pub(in crate::data) fn start(&self, fact_repository: Arc<FactRepository>) {
+    pub(crate) fn start(&self, fact_repository: Arc<FactRepository>) {
         trace!("lesson_repo::start");
         self.refresh(fact_repository);
     }

@@ -1,16 +1,20 @@
+use log::error;
 use std::{cell::OnceCell, collections::HashMap, future::Future, rc::Rc, sync::RwLock};
 use tokio::task::JoinHandle;
 use tokio_util::task::LocalPoolHandle;
 use wg::WaitGroup;
 
-use crate::{data::DataServiceProvider, domain::DomainError};
+use crate::{
+    data::DataServiceProvider,
+    domain::{DomainError, DomainResult},
+};
 
 thread_local! {
     static STATE: OnceCell<Rc<DataServiceProvider>> = const { OnceCell::new() };
 }
 
 pub(crate) struct Runtime {
-    pool: LocalPoolHandle,
+    pub(crate) pool: LocalPoolHandle,
     tasks: RwLock<HashMap<String, JoinHandle<()>>>,
 }
 
@@ -28,24 +32,38 @@ impl Runtime {
             });
             t_wg.done();
         });
-
         wg.wait();
+
         Ok(Self {
             pool: pool,
             tasks: RwLock::new(HashMap::new()),
         })
     }
 
-    pub(crate) fn spawn<F>(&self, key: String, future: impl FnOnce() -> F + Send + 'static)
+    pub(crate) async fn spawn<F, R>(
+        &self,
+        key: String,
+        future: impl FnOnce(Rc<DataServiceProvider>) -> F + Send + 'static,
+    ) -> DomainResult<R>
     where
-        F: Future<Output = ()> + 'static,
+        F: Future<Output = R> + 'static,
+        R: Send + 'static,
     {
         if let Some(task) = self.tasks.read().unwrap().get(&key) {
             task.abort();
         }
 
-        let x: JoinHandle<()> = self.pool.spawn_pinned(future);
-        self.tasks.write().unwrap().insert(key, x);
+        let handle = self.pool.spawn_pinned(move || async move {
+            let state = STATE
+                .with(|state| state.get().cloned())
+                .expect("state initialised in Runtime::new() before any job");
+            future(state).await
+        });
+
+        handle.await.map_err(|e| {
+            error!("Runtime: job '{key}' failed {e:?}");
+            DomainError::Unexpected("Runtime: job '{key}' failed {e:?}".into())
+        })
     }
 
     #[allow(dead_code)]
