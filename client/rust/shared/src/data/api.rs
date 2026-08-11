@@ -3,7 +3,7 @@ use crate::domain::{DomainError, DomainResult};
 use concat_string::concat_string;
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub(crate) struct Api {
@@ -48,12 +48,12 @@ impl Api {
 }
 
 pub(crate) struct AuthApi {
-    api: Arc<Api>,
-    session_manager: Arc<SessionManager>,
+    api: Rc<Api>,
+    session_manager: Rc<SessionManager>,
 }
 
 impl AuthApi {
-    pub(super) fn new(api: Arc<Api>, session_manager: Arc<SessionManager>) -> Self {
+    pub(super) fn new(api: Rc<Api>, session_manager: Rc<SessionManager>) -> Self {
         AuthApi {
             api,
             session_manager,
@@ -65,7 +65,6 @@ impl AuthApi {
         url: String,
         params: Option<std::slice::Iter<'_, (String, String)>>,
     ) -> RequestBuilder {
-        println!("about to obtain session manager lock to decorate the request");
         self.session_manager
             .decorate(self.api.get(url, params.clone()))
             .await

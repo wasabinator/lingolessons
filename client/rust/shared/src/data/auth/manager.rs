@@ -1,6 +1,6 @@
 use super::{api::TokenApi, db::TokenDao};
 use crate::{
-    data::{api::Api, auth::api::TokenApiError, db::Db, Runtime, SessionManager},
+    data::{api::Api, auth::api::TokenApiError, db::Db, SessionManager},
     domain::{
         auth::{AuthError, Session},
         DomainError,
@@ -8,9 +8,7 @@ use crate::{
 };
 use log::{error, trace};
 use reqwest::RequestBuilder;
-use std::{borrow::BorrowMut, sync::Arc};
-
-const SESSION_MANAGER_INIT_TASK: &str = "SESSION_MANAGER_INIT_TASK";
+use std::rc::Rc;
 
 impl From<TokenApiError> for DomainError {
     fn from(error: TokenApiError) -> Self {
@@ -22,40 +20,30 @@ impl From<TokenApiError> for DomainError {
 }
 
 impl SessionManager {
-    pub(in crate::data) fn new(api: Arc<Api>, db: Arc<Db>) -> Self {
-        let _db = db.clone();
-
+    pub(in crate::data) fn new(api: Rc<Api>, db: Rc<Db>) -> Self {
         let (tx, rx) = tokio::sync::watch::channel(Session::None);
-        let mut manager = SessionManager {
-            runtime: Runtime::new(),
+        let manager = SessionManager {
             state: rx,
             state_mut: tx,
             api: api.clone(),
             db: db.clone(),
         };
 
-        manager.borrow_mut().start();
+        // We're on the runtime thread at construction, so we can seed the initial session
+        // synchronously from the database.
+        let session = match db.get_token() {
+            Ok(token) => token.map_or(Session::None, |token| {
+                Session::Authenticated(token.username)
+            }),
+            Err(e) => {
+                error!("Failed to restore session from database: {e:?}");
+                Session::None
+            }
+        };
+        trace!("Initial Session from database {:?}", session);
+        let _ = manager.state_mut.send(session);
+
         manager
-    }
-
-    fn start(&mut self) {
-        trace!("Starting session manager");
-        let db = self.db.clone();
-        let state_mut = self.state_mut.to_owned();
-
-        self.runtime
-            .borrow_mut()
-            .spawn(SESSION_MANAGER_INIT_TASK.into(), async move {
-                trace!("Fetching session from db");
-                let session = match db.get_token() {
-                    Ok(token) => token.map_or(Session::None, |token| {
-                        Session::Authenticated(token.username)
-                    }),
-                    Err(_) => Session::None,
-                };
-                trace!("Initial Session from database {:?}", session);
-                let _ = state_mut.send(session.clone());
-            });
     }
 
     pub(crate) async fn login(

@@ -14,7 +14,7 @@ use crate::{
     },
 };
 use log::{debug, error, info, trace};
-use std::sync::Arc;
+use std::rc::Rc;
 use uuid::Uuid;
 
 impl From<(Uuid, FactResponse)> for FactData {
@@ -34,13 +34,11 @@ impl From<(Uuid, FactResponse)> for FactData {
 
 impl FactRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime,
-        api: Arc<AuthApi>,
-        db: Arc<Db>,
-        settings: Arc<SettingRepository>,
+        api: Rc<AuthApi>,
+        db: Rc<Db>,
+        settings: Rc<SettingRepository>,
     ) -> Self {
         FactRepository {
-            runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
@@ -57,7 +55,7 @@ impl FactRepository {
 
         let refresh_task_key = format!("FACTS_REFRESH_TASK_{lesson_id}");
         trace!("Refresh task key: {refresh_task_key}");
-        self.runtime.spawn(refresh_task_key, async move {
+        Runtime::spawn_detached(refresh_task_key, async move |_provider| {
             info!("fact_repo - refresh task started for lesson: {lesson_id}");
 
             let sync_time = UnixTimestamp::now();
@@ -120,8 +118,8 @@ impl FactRepository {
     }
 
     pub(crate) fn stop(&self) {
-        trace!("lesson_repo::stop");
-        self.runtime.abort();
+        trace!("fact_repo::stop");
+        Runtime::abort();
     }
 
     pub(crate) async fn get_facts(

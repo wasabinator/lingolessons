@@ -1,9 +1,9 @@
 use crate::{
     data::{api::AuthApi, db::Db},
-    domain::{runtime::Runtime, settings::SettingRepository, Domain, DomainResult},
+    domain::{settings::SettingRepository, Domain, DomainResult},
 };
 use log::trace;
-use std::sync::Arc;
+use std::rc::Rc;
 use uuid::Uuid;
 
 /// Fact domain model
@@ -18,10 +18,9 @@ pub struct Fact {
 
 /// Repository the domain requires for getting facts
 pub(crate) struct FactRepository {
-    pub(crate) runtime: Runtime,
-    pub(crate) api: Arc<AuthApi>,
-    pub(crate) db: Arc<Db>,
-    pub(crate) settings: Arc<SettingRepository>,
+    pub(crate) api: Rc<AuthApi>,
+    pub(crate) db: Rc<Db>,
+    pub(crate) settings: Rc<SettingRepository>,
 }
 
 pub trait Facts {
@@ -45,7 +44,7 @@ impl Facts for Domain {
     ) -> DomainResult<Vec<Fact>> {
         trace!("get_facts");
         self.runtime
-            .spawn("logout".into(), async move |provider| {
+            .spawn("get_facts".into(), async move |provider| {
                 let facts = provider
                     .fact_repository
                     .get_facts(lesson_id, page_no, page_size)
@@ -57,7 +56,8 @@ impl Facts for Domain {
     }
 
     async fn stop(&self) {
-        self.runtime
+        let _ = self
+            .runtime
             .spawn("facts_stop".into(), async move |provider| {
                 provider.fact_repository.stop();
             })
@@ -229,7 +229,7 @@ mod tests {
             None,
         );
 
-        let domain = fake_domain(server.url() + "/").await.unwrap();
+        let _domain = fake_domain(server.url() + "/").await.unwrap();
         //TODO
         // let settings = domain.provider.setting_repository.clone();
 

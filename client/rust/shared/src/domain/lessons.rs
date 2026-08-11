@@ -1,10 +1,10 @@
-use super::{runtime::Runtime, settings::SettingRepository, DomainResult};
+use super::{settings::SettingRepository, DomainResult};
 use crate::{
     data::{api::AuthApi, db::Db},
     domain::Domain,
 };
 use chrono::{DateTime, Local};
-use std::sync::Arc;
+use std::rc::Rc;
 use uniffi::deps::log::trace;
 use uuid::Uuid;
 
@@ -29,9 +29,9 @@ pub enum LessonType {
 
 /// Repository the domain requires for getting and updating lessons
 pub(crate) struct LessonRepository {
-    pub(crate) api: Arc<AuthApi>,
-    pub(crate) db: Arc<Db>,
-    pub(crate) settings: Arc<SettingRepository>,
+    pub(crate) api: Rc<AuthApi>,
+    pub(crate) db: Rc<Db>,
+    pub(crate) settings: Rc<SettingRepository>,
 }
 
 pub trait Lessons {

@@ -1,7 +1,6 @@
 use crate::UniffiCustomTypeConverter;
-use std::hash::Hash;
 use std::sync::Mutex;
-use std::{cell::RefCell, collections::HashMap, str::FromStr, sync::Arc};
+use std::{cell::RefCell, str::FromStr, sync::Arc};
 use tokio_util::task::LocalPoolHandle;
 use uuid::Uuid;
 
@@ -54,8 +53,16 @@ pub struct Subscription {
     unsubscribe: Mutex<Option<Box<dyn FnOnce() + Send>>>, // Send-only closure, run once
 }
 
+impl std::fmt::Debug for Subscription {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Subscription")
+            .field("unsubscribe", &"<closure>")
+            .finish()
+    }
+}
+
 impl Subscription {
-    fn new(pool: LocalPoolHandle, unsubscribe: impl FnOnce() + Send + 'static) -> Self {
+    pub(crate) fn new(pool: LocalPoolHandle, unsubscribe: impl FnOnce() + Send + 'static) -> Self {
         Self {
             pool,
             unsubscribe: Mutex::new(Some(Box::new(unsubscribe))),

@@ -1,5 +1,4 @@
 use domain::DomainError;
-use std::sync::Arc;
 use tokio::task::JoinError;
 
 pub mod common;
