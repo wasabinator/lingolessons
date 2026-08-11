@@ -1,10 +1,14 @@
-use super::{runtime::Runtime, DomainResult};
+use super::DomainResult;
 use crate::{
-    data::{api::Api, db::Db},
-    domain::Domain,
+    data::{api::Api, db::Db, DataServiceProvider},
+    domain::{
+        common::{Broadcaster, Subscription},
+        Domain,
+    },
 };
-use std::sync::Arc;
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 use thiserror::Error;
+use tokio::task::JoinHandle;
 use uniffi::deps::log::trace;
 
 /// Errors produced by this domain
@@ -23,15 +27,24 @@ pub enum Session {
 
 /// Manager the domain requires for managing the session
 pub(crate) struct SessionManager {
-    pub(crate) runtime: Runtime,
     pub(crate) state_mut: tokio::sync::watch::Sender<Session>,
     pub(crate) state: tokio::sync::watch::Receiver<Session>,
-    pub(crate) api: Arc<Api>,
-    pub(crate) db: Arc<Db>,
+    pub(crate) api: Rc<Api>,
+    pub(crate) db: Rc<Db>,
+}
+
+#[derive(uniffi::Record, Debug)]
+pub struct SessionSubscriptionResult {
+    pub session: Session,
+    pub subscription: Arc<Subscription>,
 }
 
 pub trait Auth {
-    fn get_session(&self) -> impl std::future::Future<Output = DomainResult<Session>> + Send;
+    #[allow(async_fn_in_trait)]
+    async fn get_session(
+        &self,
+        observer: Arc<dyn SessionObserver>,
+    ) -> DomainResult<SessionSubscriptionResult>;
     fn login(
         &self,
         username: String,
@@ -40,36 +53,122 @@ pub trait Auth {
     fn logout(&self) -> impl std::future::Future<Output = DomainResult<()>> + Send;
 }
 
+#[uniffi::export(with_foreign)]
+pub trait SessionObserver: Send + Sync {
+    fn on_change(&self, session: Session);
+}
+
+impl<F: Fn(Session) + Send + Sync> SessionObserver for F {
+    fn on_change(&self, session: Session) {
+        self(session)
+    }
+}
+
+thread_local! {
+    static SESSION_BROADCASTER: Rc<Broadcaster<dyn SessionObserver>> =
+        Rc::new(Broadcaster::new());
+}
+
+thread_local! {
+    static PUBLISHER_HANDLE: RefCell<Option<JoinHandle<()>>> = const { RefCell::new(None) };
+}
+
 #[uniffi::export(async_runtime = "tokio")]
 impl Auth for Domain {
-    async fn get_session(&self) -> DomainResult<Session> {
+    async fn get_session(
+        &self,
+        observer: Arc<dyn SessionObserver>,
+    ) -> DomainResult<SessionSubscriptionResult> {
         trace!("get_session");
-        let provider = self.provider.clone();
-        trace!("get_session - domain thread");
-        let manager = provider.session_manager.clone();
+        self.runtime
+            .spawn("get_session".into(), async move |provider| {
+                trace!("get_session - domain thread");
+                SESSION_BROADCASTER.with(|b| b.subscribe(observer));
 
-        let session = manager.state.borrow();
-        Ok(session.clone())
+                start_session_publish_loop(&provider);
+
+                let session = provider.session_manager.state.borrow().clone();
+                let subscription = Arc::new(Subscription::new(provider.pool.clone(), || {
+                    SESSION_BROADCASTER.with(|b| b.unsubscribe());
+                }));
+
+                Ok(SessionSubscriptionResult {
+                    session,
+                    subscription,
+                })
+            })
+            .await?
     }
 
     async fn login(&self, username: String, password: String) -> DomainResult<Session> {
         trace!("login");
-        let provider = self.provider.clone();
+        self.runtime
+            .spawn("login".into(), async move |provider| {
+                let provider = provider.clone();
 
-        trace!("login - domain thread");
-        let manager = provider.session_manager.clone();
+                trace!("login - data thread");
+                let manager = provider.session_manager.clone();
 
-        trace!("got manager");
-        let session = manager.login(username, password).await?;
-        Ok(session)
+                trace!("got manager");
+                let session = manager.login(username, password).await?;
+                Ok(session)
+            })
+            .await?
     }
 
     async fn logout(&self) -> DomainResult<()> {
-        let provider = self.provider.clone();
         trace!("logout");
-        let manager = provider.session_manager.clone();
-        manager.logout().await?;
-        Ok(())
+        self.runtime
+            .spawn("logout".into(), async move |provider| {
+                let provider = provider.clone();
+                let manager = provider.session_manager.clone();
+                manager.logout().await?;
+                Ok(())
+            })
+            .await?
+    }
+}
+
+/// Ensure the session watch loop is running. Started once at provider construction so
+/// repositories react to session changes even before anyone subscribes; subsequent calls
+/// are no-ops while the loop is alive.
+pub(crate) fn start_session_publish_loop(provider: &Rc<DataServiceProvider>) {
+    let is_running =
+        PUBLISHER_HANDLE.with(|h| matches!(&*h.borrow(), Some(handle) if !handle.is_finished()));
+    if !is_running {
+        let provider = provider.clone();
+        let handle = tokio::task::spawn_local(async move {
+            run_session_publish_loop(provider).await;
+        });
+        PUBLISHER_HANDLE.with(|h| *h.borrow_mut() = Some(handle));
+    }
+}
+
+async fn run_session_publish_loop(provider: Rc<DataServiceProvider>) {
+    loop {
+        let session_manager = provider.session_manager.clone();
+        let mut state = session_manager.state.clone();
+
+        trace!("Beginning state change await loop");
+        while state.changed().await.is_ok() {
+            trace!("Received state change from session repo");
+
+            let session = state.borrow().clone();
+            SESSION_BROADCASTER.with(|b| b.notify(|o| o.on_change(session)));
+
+            let session = state.borrow().clone();
+
+            if let Session::Authenticated(_) = session {
+                trace!("Session Started - Stopping repos...");
+                provider
+                    .lesson_repository
+                    .start(provider.fact_repository.clone());
+            } else {
+                trace!("Session Ended - Stopping repos...");
+                provider.lesson_repository.stop();
+                provider.fact_repository.stop();
+            }
+        }
     }
 }
 
@@ -86,6 +185,7 @@ mod tests {
     };
     use serial_test::serial;
     use std::ops::DerefMut;
+    use wg::WaitGroup;
 
     #[serial]
     #[tokio::test]
@@ -106,9 +206,20 @@ mod tests {
             .login("user".to_string(), "password".to_string())
             .await;
         assert!(r.is_ok());
-        let s = domain.get_session().await;
+
+        let wg = WaitGroup::new();
+        let t_wg = wg.add(1);
+
+        let callback = move |session: Session| {
+            trace!("got: {:?}", session);
+            t_wg.done();
+        };
+
+        let s = domain.get_session(Arc::new(callback)).await;
+
         assert!(s.is_ok());
-        assert_eq!(Session::Authenticated("user".into()), s.unwrap());
+        let result = s.unwrap();
+        assert_eq!(Session::Authenticated("user".into()), result.session);
     }
 
     #[serial]

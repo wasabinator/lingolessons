@@ -1,4 +1,4 @@
-use crate::{data::DataServiceProvider, domain::auth::AuthError};
+use crate::domain::{auth::AuthError, runtime::Runtime};
 use std::sync::Arc;
 
 pub mod auth;
@@ -26,7 +26,7 @@ pub type DomainResult<T = ()> = anyhow::Result<T, DomainError>;
 
 #[derive(uniffi::Object, Clone)]
 pub struct Domain {
-    provider: Arc<DataServiceProvider>,
+    runtime: Arc<Runtime>,
 }
 
 #[derive(uniffi::Object, Clone)]
@@ -64,9 +64,8 @@ impl DomainBuilder {
 
         init();
 
-        Ok(Domain {
-            provider: Arc::new(DataServiceProvider::new(base_url, data_path)?),
-        })
+        let runtime = Arc::new(Runtime::new(base_url, data_path)?);
+        Ok(Domain { runtime })
     }
 }
 
@@ -92,7 +91,7 @@ pub(crate) async fn fake_domain(base_url: String) -> Result<Domain, DomainError>
     init();
 
     Ok(Domain {
-        provider: Arc::new(DataServiceProvider::new(
+        runtime: Arc::new(Runtime::new(
             base_url,
             "fake_path".to_string(), // Unimportant path as not used with the in memory test db
         )?),

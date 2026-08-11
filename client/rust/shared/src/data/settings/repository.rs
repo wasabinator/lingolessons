@@ -4,13 +4,13 @@ use crate::{
         settings::db::{Setting, SettingDao},
     },
     domain::settings::SettingRepository,
-    Arc,
 };
 use log::warn;
+use std::rc::Rc;
 
 impl SettingRepository {
     #[allow(dead_code)]
-    pub(in crate::data) fn new(db: Arc<Db>) -> Self {
+    pub(in crate::data) fn new(db: Rc<Db>) -> Self {
         SettingRepository { db: db.clone() }
     }
 
@@ -58,7 +58,7 @@ mod tests {
     #[serial]
     #[tokio::test]
     async fn test_repository() {
-        let repo = &SettingRepository::new(Arc::new(Db::open("test".into()).unwrap()));
+        let repo = &SettingRepository::new(Rc::new(Db::open("test".into()).unwrap()));
 
         let key1 = "key1".to_string();
         let key2 = "key2".to_string();

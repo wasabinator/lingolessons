@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use log::{debug, error, trace};
-use std::sync::Arc;
+use std::rc::Rc;
 use uuid::Uuid;
 
 impl From<LessonResponse> for LessonData {
@@ -37,31 +37,29 @@ static LESSONS_LAST_SYNC_TIME: &str = "LESSONS_LAST_SYNC_TIME";
 
 impl LessonRepository {
     pub(in crate::data) fn new(
-        runtime: Runtime,
-        api: Arc<AuthApi>,
-        db: Arc<Db>,
-        settings: Arc<SettingRepository>,
+        api: Rc<AuthApi>,
+        db: Rc<Db>,
+        settings: Rc<SettingRepository>,
     ) -> Self {
         LessonRepository {
-            runtime,
             api: api.clone(),
             db: db.clone(),
             settings: settings.clone(),
         }
     }
 
-    pub(in crate::data) fn start(&self, fact_repository: Arc<FactRepository>) {
+    pub(crate) fn start(&self, fact_repository: Rc<FactRepository>) {
         trace!("lesson_repo::start");
         self.refresh(fact_repository);
     }
 
-    pub(in crate::data) fn refresh(&self, fact_repository: Arc<FactRepository>) {
+    pub(in crate::data) fn refresh(&self, fact_repository: Rc<FactRepository>) {
         let api = self.api.clone();
         let db = self.db.clone();
         let settings = self.settings.clone();
         trace!("lesson_repo - spawning refresh task");
 
-        self.runtime.spawn(LESSONS_REFRESH_TASK.into(), async move {
+        Runtime::spawn_detached(LESSONS_REFRESH_TASK.into(), async move |_provider| {
             debug!("lesson_repo - refresh task started");
 
             let sync_time = UnixTimestamp::now();
@@ -125,7 +123,7 @@ impl LessonRepository {
 
     pub(crate) fn stop(&self) {
         trace!("lesson_repo::stop");
-        self.runtime.abort();
+        Runtime::abort();
     }
 
     pub(crate) async fn get_lessons(
