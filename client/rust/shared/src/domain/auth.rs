@@ -40,6 +40,7 @@ pub struct SessionSubscriptionResult {
 }
 
 pub trait Auth {
+    #[allow(async_fn_in_trait)]
     async fn get_session(
         &self,
         observer: Arc<dyn SessionObserver>,
@@ -132,8 +133,8 @@ impl Auth for Domain {
 /// repositories react to session changes even before anyone subscribes; subsequent calls
 /// are no-ops while the loop is alive.
 pub(crate) fn start_session_publish_loop(provider: &Rc<DataServiceProvider>) {
-    let is_running = PUBLISHER_HANDLE
-        .with(|h| matches!(&*h.borrow(), Some(handle) if !handle.is_finished()));
+    let is_running =
+        PUBLISHER_HANDLE.with(|h| matches!(&*h.borrow(), Some(handle) if !handle.is_finished()));
     if !is_running {
         let provider = provider.clone();
         let handle = tokio::task::spawn_local(async move {
