@@ -6,7 +6,7 @@
     "ansi-regex": "^6.1.0",
     "ansi-styles": "^6.2.1",
     "balanced-match": "^1.0.2",
-    "brace-expansion": "^2.0.1",
+    "brace-expansion": "^5.0.7",
     "color-convert": "^2.0.1",
     "color-name": "^1.1.4",
     "cross-env": "^7.0.3",
